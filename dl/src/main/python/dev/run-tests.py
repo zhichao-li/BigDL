@@ -91,16 +91,15 @@ LOGGER = logging.getLogger()
 
 
 def run_individual_python_test(test_name, python_exec):
+    import os
     env = dict(os.environ)
-    env.update({
-        'SPARK_TESTING': '1'
-    })
     LOGGER.debug("Starting test(%s): %s", python_exec, test_name)
     start_time = time.time()
     try:
         per_test_output = tempfile.TemporaryFile()
+        # print(per_test_output.__file__)
         retcode = subprocess.Popen(
-            [os.path.join(SPARK_HOME, "bin/pyspark"), test_name],
+            [python_exec, "-m", test_name],
             stderr=per_test_output, stdout=per_test_output, env=env).wait()
     except:
         LOGGER.exception("Got exception while running %s with %s", test_name, python_exec)
