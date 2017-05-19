@@ -90,3 +90,10 @@ test_load_caffe = Module(
         "test.load_caffe_test"
     ]
 )
+
+test_notebook = Module(
+    name="notebook",
+    python_test_goals=[
+        "test.dev.run-notebook"
+    ]
+)
