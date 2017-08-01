@@ -72,6 +72,46 @@ class TestWorkFlow(unittest.TestCase):
         self.assertTrue(np.allclose(fc1_loaded.get_weights()[0],
                                     fc1.get_weights()[0]))
 
+
+    def test_keras_functional(self):
+        from bigdl.keras.layers import Input, Dense
+        from bigdl.keras.models import Model
+        # this returns a tensor
+        inputs = Input(shape=(784,))
+
+        # a layer instance is callable on a tensor, and returns a tensor
+        x = Dense(64, activation='relu')(inputs)
+        x = Dense(64, activation='relu')(x)
+        predictions = Dense(10, activation='softmax')(x)
+
+        # this creates a model that includes
+        # the Input layer and three Dense layers
+        model = Model(input=inputs, output=predictions)
+        model.compile(optimizer='rmsprop',
+                      loss='categorical_crossentropy',
+                      metrics=['accuracy'])
+        #model.fit(data, labels)  # starts training
+
+    def test_keras_simple(self):
+        from bigdl.keras.models import Sequential
+        from bigdl.keras.layers import Dense, Activation
+        model = Sequential()
+        model.add(Dense(1, input_dim=784, activation='sigmoid'))
+        model.add(Dense(2, activation='sigmoid'))
+        model.add(Dense(1, activation='sigmoid'))
+        model.compile(optimizer='SGD',
+                      loss='binary_crossentropy',
+                      metrics=['accuracy'])
+
+        # generate dummy data
+        import numpy as np
+        data = np.random.random((1000, 784))
+        labels = np.random.randint(2, size=(1000, 1))
+
+        # train the model, iterating on the data in batches
+        # of 32 samples
+        model.fit(data, labels, nb_epoch=10, batch_size=32)
+
     def test_create_node(self):
         import numpy as np
         fc1 = Linear(4, 2)()
