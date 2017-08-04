@@ -5,6 +5,11 @@ from __future__ import division
 import numpy as np
 import bigdl.nn.layer as bigdl_layer
 from bigdl.keras1.engine.topology import *
+import bigdl.keras1.activations as activations
+
+class Input(Layer):
+    def __init__(self):
+        self.B = bigdl_layer.Input()
 
 class Dense(Layer):
     """Just your regular densely-connected NN layer.
@@ -76,13 +81,58 @@ class Dense(Layer):
                  bias=True, input_dim=None, **kwargs):
         self.output_dim = output_dim
         self.input_dim = input_dim
-        self.value = bigdl_layer.Linear(input_dim, output_dim)
+        self.activation = activations.get(activation) if activation else None
+        super(Dense, self).__init__(**kwargs)
 
-    def __call__(self, input=None, *args, **kwargs):
-        # assert input is a Node
-        return self.value(input)
+    def build(self):
+        self.B = bigdl_layer.Linear(self.input_dim, self.output_dim)
+
 
     def get_output_shape(self):
         return self.output_dim
+
+    # TODO: need to add tostring to every layer
+    def to_string(self):
+        pass
+
+# we are suppose every layer should have a field named activation
+class Activation(Layer):
+
+    def __init__(self, activation, **kwargs):
+        self.activation = activations.get(activation)
+        self.B = self.activation.B
+
+    def call(self, x, mask=None):
+        return self.B(x.B)
+
+class Dropout(Layer):
+    """Applies Dropout to the input.
+
+    Dropout consists in randomly setting
+    a fraction `p` of input units to 0 at each update during training time,
+    which helps prevent overfitting.
+
+    # Arguments
+        p: float between 0 and 1. Fraction of the input units to drop.
+        noise_shape: 1D integer tensor representing the shape of the
+            binary dropout mask that will be multiplied with the input.
+            For instance, if your inputs ahve shape
+            `(batch_size, timesteps, features)` and
+            you want the dropout mask to be the same for all timesteps,
+            you can use `noise_shape=(batch_size, 1, features)`.
+        seed: A Python integer to use as random seed.
+
+    # References
+        - [Dropout: A Simple Way to Prevent Neural Networks from Overfitting](http://www.cs.toronto.edu/~rsalakhu/papers/srivastava14a.pdf)
+    """
+    # TODO: noise_shape seed ??
+    def __init__(self, p, noise_shape=None, seed=None, **kwargs):
+        self.p = p
+        self.B = bigdl_layer.Dropout(init_p = p, inplace = False, scale = True)
+        super(Dropout, self).__init__(**kwargs)
+
+    def _get_noise_shape(self, _):
+        raise Exception("Unsupported !!")
+        #return self.noise_shape
 
 

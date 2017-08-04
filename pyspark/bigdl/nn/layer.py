@@ -1204,6 +1204,11 @@ class Dropout(Layer):
                                       init_p,
                                       inplace,
                                       scale)
+    def get_input_shape_at(self, index):
+        pass
+    def get_output_shape_at(self, index):
+        pass
+
 
 
 class View(Layer):

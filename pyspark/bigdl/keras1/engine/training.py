@@ -1,21 +1,30 @@
 import bigdl.optim.optimizer as bigdl_optimizer
 import bigdl.nn.criterion as bigdl_criterion
 from bigdl.keras1.engine.topology import *
+from bigdl.keras1.utility import *
+from bigdl.keras1.layers.core import *
+from bigdl.keras1 import optimizers
+from bigdl.keras1 import activations
+from bigdl.keras1 import objectives
 
 class Model(Container):
     """The `Model` class adds training & evaluation routines to a `Container`.
     """
     def __init__(self, input, output, name=None):
-        self.value = bigdl_layer.Model(Container._to_bigdl(input), Container._to_bigdl(output))
+        self.B = bigdl_layer.Model(Container._to_bigdl(input), Container._to_bigdl(output))
         # Handle name argument.
         if not name:
-            self.name = self.value.name()
+            self.name = self.B.name()
+        else:
+            self.name = name
 
     def _to_bigdl_criterion(self, loss):
-        return bigdl_criterion.ClassNLLCriterion()
-        #return  bigdl_criterion.CrossEntropyCriterion()
+        #return objectives.get(loss)
+        return  bigdl_criterion.CrossEntropyCriterion()
+
     def _to_bigdl_optim_method(self, optimizer):
-        return  bigdl_optimizer.Adagrad(learningrate=0.01, learningrate_decay=0.0002)
+        return bigdl_optimizer.Adagrad()
+        #return  optimizers.get(optimizer)
 
     def compile(self, optimizer, loss, metrics=None, loss_weights=None,
                 sample_weight_mode=None, **kwargs):
@@ -58,19 +67,18 @@ class Model(Container):
                 `optimizer`, `loss`, `metrics` or `sample_weight_mode`.
         """
 
-        self.optim_method = self._to_bigdl_optim_method(optimizer)
-        self.criterion = self._to_bigdl_criterion(loss)
+        self.optim_method = optimizers.get(optimizer)
+        self.criterion = objectives.get(loss)
 
     def fit(self, x, y, batch_size=32, nb_epoch=10, verbose=1, callbacks=None,
             validation_split=0., validation_data=None, shuffle=True,
             class_weight=None, sample_weight=None, initial_epoch=0):
         from bigdl.util.common import get_spark_context
         sc = get_spark_context()
-        for sample in Model._to_sample_rdd(sc, x, y).take(10):
-            print "features", sample.features.shape
-            print "label", sample.label.shape
+        result = Model._to_sample_rdd(sc, x, y).collect()
+
         bigdl_optimizer.Optimizer(
-            model = self.value,
+            model = self.B,
             training_rdd = Model._to_sample_rdd(sc, x, y),
             criterion = self.criterion,
             end_trigger = bigdl_optimizer.MaxEpoch(nb_epoch),
@@ -86,7 +94,18 @@ class Model(Container):
 
 
 class Sequential(Model):
-    pass
+
+    def __init__(self):
+        self.B = bigdl_layer.Sequential()
+
+    def add(self, layer):
+        self.B.add(layer.B)
+        if layer.activation:
+            a = activations.get(layer.activation)
+            self.B.add(a.B)
+        return self
+
+
 
 def _test():
     from pyspark import SparkContext
@@ -96,17 +115,8 @@ def _test():
     sc = SparkContext(master="local[4]", appName="test layer",
                       conf=create_spark_conf())
     init_engine()
-    dense1 = Dense(4, input_dim = 20)()
-    dense2 = Dense(2, input_dim = 4)(dense1)
-    model = Model(input = [dense1], output= [dense2])
-    model.compile(optimizer="SGD", loss="classnll")
 
-    # generate dummy data
-    import numpy as np
-    data = np.random.random((100, 20))
-    labels = np.random.randint(low=1, high=2, size=(100, 2))
-
-    model.fit(x=data, y=labels, batch_size=32, nb_epoch=10)
 
 if __name__ == "__main__":
     _test()
+
