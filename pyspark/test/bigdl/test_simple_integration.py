@@ -117,8 +117,8 @@ class TestSimple():
 
 
     def test_keras_functional(self):
-        from bigdl.keras.layers import Input, Dense
-        from bigdl.keras.models import Model
+        from keras.layers import Input, Dense
+        from keras.models import Model
         # this returns a tensor
         inputs = Input(shape=(784,))
 
@@ -135,9 +135,23 @@ class TestSimple():
                       metrics=['accuracy'])
         #model.fit(data, labels)  # starts training
 
+    def test_keras_multiple_input(self):
+        from keras.models import Sequential
+        from keras.layers import *
+        model1 = Sequential()
+        model1.add(Dense(32, input_dim=32))
+
+        model2 = Sequential()
+        model2.add(Dense(32, input_dim=32))
+
+        merged_model = Sequential()
+        merged = Merge([model1, model2], mode='concat', concat_axis=1)
+        merged_model.add(merged)
+        merged_model
+
     def test_keras_simple(self):
-        from bigdl.keras.models import Sequential
-        from bigdl.keras.layers import Dense, Activation
+        from keras.models import Sequential
+        from keras.layers import Dense, Activation
         model = Sequential()
         model.add(Dense(1, input_dim=784, activation='sigmoid'))
         model.add(Dense(2, activation='sigmoid'))
