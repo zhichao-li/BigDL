@@ -431,6 +431,11 @@ class Model(Container):
             model = convert(to_list(inputs), to_list(outputs), byte_order, bigdl_type)
             super(Model, self).__init__(model, bigdl_type)
 
+    def executions(self):
+        return callBigDlFunc(self.bigdl_type, "modelGraph", self)
+
+    def __str__(self):
+       return "->".join(self.executions())
 
     @staticmethod
     def load(path, bigdl_type="float"):

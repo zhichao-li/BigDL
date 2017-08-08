@@ -4,16 +4,15 @@ import six
 from bigdl.keras1.utility import *
 from bigdl.keras1.layers.core import *
 
-
 # TODO: we haven't support alpha and max_value yet
 def relu(alpha=0., max_value=None):
-    return BigDLHolder(bigdl_layer.ReLU())
+    return bigdl_layer.ReLU()
 
 def softmax():
-    return BigDLHolder(bigdl_layer.SoftMax())
+    return bigdl_layer.SoftMax()
 
 def linear():
-    return BigDLHolder(bigdl_layer.Input())
+    return bigdl_layer.Input()
 
 def get(identifier):
     """
