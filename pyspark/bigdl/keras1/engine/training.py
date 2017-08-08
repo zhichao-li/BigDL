@@ -92,17 +92,51 @@ class Model(Container):
         y_rdd = sc.parallelize(y)
         return x_rdd.zip(y_rdd).map(lambda item: Sample.from_ndarray(item[0], item[1]))
 
+# we should at least get the graph structure from python side.
+# class Sequential(Model):
+#
+#     def __init__(self, name=None):
+#         self.layers = []
+#         super(Sequential, self).__init__(input=[], output=[], name=name)
+#
+#     def __call__(self, input, output):
+#         self.B = Model(input=input, output=output).B
+#         return self
+#
+#     def add(self, layer):
+#         node = None
+#         if len(self.layers) == 0:
+#             if "input_shape" not in dir(layer) or layer.input_shape is None:
+#                 raise Exception("you should specify input_shape for first layer")
+#             input = Input(input_shape=layer.input_shape)()
+#             self.layers.append(input)
+#             node = layer(input)
+#         else:
+#             node = layer(self.layers[-1])
+#         self.layers.append(node)
+#         return self(input=[self.layers[0]], output=[self.layers[-1]])
 
 class Sequential(Model):
 
-    def __init__(self):
+    def __init__(self, name=None):
+        self.layers = []
         self.B = bigdl_layer.Sequential()
 
+    def __call__(self, input, output):
+        self.B = Model(input=input, output=output).B
+        return self
+
     def add(self, layer):
-        self.B.add(layer.B)
-        if layer.activation:
-            a = activations.get(layer.activation)
-            self.B.add(a.B)
+        node = None
+        if len(self.layers) == 0:
+            if "input_shape" not in dir(layer) or layer.input_shape is None:
+                raise Exception("you should specify input_shape for first layer")
+            input = Input(input_shape=layer.input_shape)()
+            node = layer(input)
+        else:
+            node = layer(self.layers[-1])
+        self.layers.append(node)
+        self.B.add(node.B.element())
         return self
 
 
