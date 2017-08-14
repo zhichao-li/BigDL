@@ -133,10 +133,10 @@ class TestWorkFlow(unittest.TestCase):
 
     def test_mnist_cnn(self):
         from keras.datasets import mnist
+        from keras.utils import np_utils
         from bigdl.keras1.models import Sequential
         from bigdl.keras1.layers import Dense, Dropout, Activation, Flatten
         from bigdl.keras1.layers import Convolution2D, MaxPooling2D
-        from keras.utils import np_utils
         from bigdl.keras1.optimizers import Adagrad
 
         batch_size = 128
