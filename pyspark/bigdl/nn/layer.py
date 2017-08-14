@@ -48,6 +48,21 @@ class Node(JavaValue):
     def element(self):
         return Layer.of(self.value.element())
 
+    def __parse_java_nodes(self, nodes):
+        result = []
+        java_nodes = nodes.toList()
+        for i in range(0, java_nodes.length()):
+            result.append("node-" + java_nodes.apply(i).element().getName())
+        return result
+
+    def inbound_nodes(self):
+       return self.__parse_java_nodes(self.value.prevNodes())
+
+    def outbound_nodes(self):
+       return self.__parse_java_nodes(self.value.nextNodes())
+
+    def name(self):
+        return "node-" + self.element().name()
 
 class Layer(JavaValue):
     """
@@ -432,6 +447,7 @@ class Model(Container):
     def __str__(self):
        return "->".join(self.executions())
 
+
     @staticmethod
     def load(path, bigdl_type="float"):
         """
@@ -774,14 +790,14 @@ class SpatialConvolution(Layer):
                  with_bias=True,
                  bigdl_type="float"):
         super(SpatialConvolution, self).__init__(None, bigdl_type,
-                                                 n_input_plane,
-                                                 n_output_plane,
-                                                 kernel_w,
-                                                 kernel_h,
-                                                 stride_w,
-                                                 stride_h,
-                                                 pad_w,
-                                                 pad_h,
+                                                 int(n_input_plane),
+                                                 int(n_output_plane),
+                                                 int(kernel_w),
+                                                 int(kernel_h),
+                                                 int(stride_w),
+                                                 int(stride_h),
+                                                 int(pad_w),
+                                                 int(pad_h),
                                                  n_group,
                                                  propagate_back,
                                                  wRegularizer,
@@ -829,12 +845,12 @@ class SpatialMaxPooling(Layer):
                  pad_h=0,
                  to_ceil=False,
                  bigdl_type="float"):
-        super(SpatialMaxPooling, self).__init__(None, bigdl_type, kw,
-                                                kh,
-                                                dw,
-                                                dh,
-                                                pad_w,
-                                                pad_h,
+        super(SpatialMaxPooling, self).__init__(None, bigdl_type, int(kw),
+                                                int(kh),
+                                                int(dw),
+                                                int(dh),
+                                                int(pad_w),
+                                                int(pad_h),
                                                 to_ceil)
 
 

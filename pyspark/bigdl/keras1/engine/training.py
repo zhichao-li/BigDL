@@ -6,10 +6,17 @@ from bigdl.keras1.layers.core import *
 from bigdl.keras1 import optimizers
 from bigdl.keras1 import activations
 from bigdl.keras1 import objectives
+from bigdl.util.common import get_spark_context
+
 
 class Model(Container):
     """The `Model` class adds training & evaluation routines to a `Container`.
     """
+    name_to_node = {}
+
+    def nodes(self):
+        return [Model.name_to_node["node-" + e] for e in self.B.executions()]
+
     def __init__(self, input, output, name=None):
         self.B = bigdl_layer.Model(Container._to_bigdl(input), Container._to_bigdl(output))
         # Handle name argument.
@@ -25,6 +32,12 @@ class Model(Container):
     def _to_bigdl_optim_method(self, optimizer):
         return bigdl_optimizer.Adagrad()
         #return  optimizers.get(optimizer)
+
+    def _to_bigdl_metrics(self, metrics):
+        if not metrics:
+            return []
+        return [bigdl_optimizer.Top1Accuracy() if m == "accuracy" or m == "acc" else None for m in metrics] # TODO: fix return None
+
 
     def compile(self, optimizer, loss, metrics=None, loss_weights=None,
                 sample_weight_mode=None, **kwargs):
@@ -69,11 +82,11 @@ class Model(Container):
 
         self.optim_method = optimizers.get(optimizer)
         self.criterion = objectives.get(loss)
+        self.metrics = self._to_bigdl_metrics(metrics)
 
     def fit(self, x, y, batch_size=32, nb_epoch=10, verbose=1, callbacks=None,
             validation_split=0., validation_data=None, shuffle=True,
             class_weight=None, sample_weight=None, initial_epoch=0):
-        from bigdl.util.common import get_spark_context
         sc = get_spark_context()
         result = Model._to_sample_rdd(sc, x, y).collect()
 
@@ -84,6 +97,12 @@ class Model(Container):
             end_trigger = bigdl_optimizer.MaxEpoch(nb_epoch),
             batch_size = batch_size,
             optim_method = self.optim_method).optimize()
+
+    # TODO: maybe we don't need batch_size, verbose and sample_weight
+    def evaluate(self, x, y, batch_size=32, verbose=1, sample_weight=None):
+        sc = get_spark_context()
+        sample_rdd = Model._to_sample_rdd(sc, x, y)
+        return [r.result for r in self.B.test(sample_rdd, batch_size, self.metrics)]
 
     @staticmethod
     def _to_sample_rdd(sc, x, y):
@@ -119,8 +138,12 @@ class Model(Container):
 class Sequential(Model):
 
     def __init__(self, name=None):
-        self.layers = []
+        self.added_nodes = []
         self.B = bigdl_layer.Sequential()
+
+    # TODO: we can remove this if implement Sequential base on Graph
+    def nodes(self):
+        return self.added_nodes
 
     def __call__(self, input, output):
         self.B = Model(input=input, output=output).B
@@ -128,14 +151,14 @@ class Sequential(Model):
 
     def add(self, layer):
         node = None
-        if len(self.layers) == 0:
+        if len(self.added_nodes) == 0:
             if "input_shape" not in dir(layer) or layer.input_shape is None:
                 raise Exception("you should specify input_shape for first layer")
             input = Input(input_shape=layer.input_shape)()
             node = layer(input)
         else:
-            node = layer(self.layers[-1])
-        self.layers.append(node)
+            node = layer(self.added_nodes[-1])
+        self.added_nodes.append(node)
         self.B.add(node.B.element())
         return self
 
