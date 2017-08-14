@@ -60,3 +60,38 @@ def get_from_module(identifier, module_params, module_name,
             raise ValueError('Invalid ' + str(module_name) + ': ' +
                              str(identifier))
     return identifier
+
+
+def conv_output_length(input_length, filter_size,
+                       border_mode, stride, dilation=1):
+    """Determines output length of a convolution given input length.
+
+    # Arguments
+        input_length: integer.
+        filter_size: integer.
+        border_mode: one of "same", "valid", "full".
+        stride: integer.
+        dilation: dilation rate, integer.
+
+    # Returns
+        The output length (integer).
+    """
+    if input_length is None:
+        return None
+    assert border_mode in {'same', 'valid', 'full'}
+    dilated_filter_size = filter_size + (filter_size - 1) * (dilation - 1)
+    if border_mode == 'same':
+        output_length = input_length
+    elif border_mode == 'valid':
+        output_length = input_length - dilated_filter_size + 1
+    elif border_mode == 'full':
+        output_length = input_length + dilated_filter_size - 1
+    return (output_length + stride - 1) // stride
+
+def get_padding(nb_col, nb_row, border_mode):
+    if border_mode == "valid":
+        return (0, 0)
+    elif border_mode == "same":
+        return int((nb_col - 1) / 2), int((nb_row - 1) / 2)
+    else:
+        raise ValueError('Invalid border mode:', border_mode)

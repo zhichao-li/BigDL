@@ -8,12 +8,74 @@ from bigdl.keras1.engine.topology import *
 import bigdl.keras1.activations as activations
 
 class Input(Layer):
-    def __init__(self, **kwargs):
+    def __init__(self, input_shape, **kwargs):
         super(Input, self).__init__(**kwargs)
+        self.input_shape = (None, ) + tuple(input_shape)
+        self.output_shape = (None, ) + tuple(input_shape)
 
-    def build(self, x):
-        self.B = bigdl_layer.Input()
-        self.output_shape = x.output_shape if x is not None else self.input_shape
+    def inbound_nodes(self):
+        return []
+
+    def __call__(self):
+        from bigdl.keras1.engine.training import Model
+        self.B = bigdl_layer.Input() # special here, B in the other keras layer is bigdl layer instead of Node.
+        kerasNode = KerasNode(self.B, self)
+        Model.name_to_node[self.name()] = kerasNode
+        return kerasNode
+
+class Concat(Layer):
+    def __init__(self, concat_axis, name, **kwargs):
+        self.concat_axis = concat_axis
+        super(Concat, self).__init__(**kwargs)
+
+    def build(self):
+        assert(self.input_shapes, "Must have multiple input shape tuples")
+        self.B = bigdl_layer.JoinTable(self.concat_axis, len(self.input_shapes) - 1) # bigdl start from 1 but it doens't take batch, # assuming the first dim is batch
+
+    def get_output_shape(self, input_shapes):
+        assert(isinstance(input_shapes, list))
+        output_shape = list(input_shapes[0])
+        for shape in input_shapes[1:]:
+            if output_shape[self.concat_axis] is None or shape[self.concat_axis] is None:
+                output_shape[self.concat_axis] = None
+                break
+            output_shape[self.concat_axis] += shape[self.concat_axis]
+        return tuple(output_shape)
+
+
+class Flatten(Layer):
+    """Flattens the input. Does not affect the batch size.
+
+    # Example
+
+    ```python
+        model = Sequential()
+        model.add(Convolution2D(64, 3, 3,
+                                border_mode='same',
+                                input_shape=(3, 32, 32)))
+        # now: model.output_shape == (None, 64, 32, 32)
+
+        model.add(Flatten())
+        # now: model.output_shape == (None, 65536)
+    ```
+    """
+
+    def __init__(self, **kwargs):
+        super(Flatten, self).__init__(**kwargs)
+
+    def build(self):
+        self.B = bigdl_layer.Reshape([np.prod(self.input_shape[1:])], None)
+
+    def get_output_shape(self, input_shape):
+        return (None, np.prod(input_shape[1:])) # NB: the return type should alawyas be a list
+        # if not all(input_shape[1:]):
+        #     raise ValueError('The shape of the input to "Flatten" '
+        #                      'is not fully defined '
+        #                      '(got ' + str(input_shape[1:]) + '. '
+        #                      'Make sure to pass a complete "input_shape" '
+        #                      'or "batch_input_shape" argument to the first '
+        #                      'layer in your model.')
+        # return (input_shape[0], np.prod(input_shape[1:]))
 
 class Dense(Layer):
     """Just your regular densely-connected NN layer.
@@ -87,19 +149,16 @@ class Dense(Layer):
         self.input_dim = input_dim
         self.activation = Activation(activation) if activation else None
         if self.input_dim:
-            self.input_shape = [input_dim]
+            self.input_shape = (None, input_dim)
         super(Dense, self).__init__(**kwargs)
 
-    def build(self, x):
-        last_output_shape = x.output_shape  # TODO: where to find the input?????
-        input_dim = self.input_dim if self.input_dim else last_output_shape[0]
+    def build(self):
+        input_dim = self.input_dim if self.input_dim else self.input_shape[1] # TODO: assert last_output_shape only has two dim
         self.B = bigdl_layer.Linear(input_dim, self.output_dim)
-        self.output_shape = [self.output_dim]
-        super(Dense, self).build(x)
 
 
     def get_output_shape(self, input_shape=None):
-        return [self.output_dim] # TODO: add assert that dense only accept 1D tensor
+        return (None, self.output_dim) # TODO: add assert that dense only accept 1D tensor
 
     # TODO: need to add tostring to every layer
     def to_string(self):
@@ -116,9 +175,8 @@ class Activation(Layer):
         super(Activation, self).__init__(**kwargs)
         self.activation_name = activation_name
 
-    def build(self, x):
+    def build(self):
         self.B = activations.get(self.activation_name)
-        self.output_shape = x.output_shape
     #
     # def call(self, x, mask=None):
     #     return self.B()
@@ -152,7 +210,5 @@ class Dropout(Layer):
         raise Exception("Unsupported !!")
         #return self.noise_shape
 
-    def build(self, x):
+    def build(self):
         self.B = bigdl_layer.Dropout(init_p = self.p, inplace = False, scale = True)
-        self.output_shape = x.output_shape
-
