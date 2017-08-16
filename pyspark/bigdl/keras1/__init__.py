@@ -14,5 +14,6 @@
 # from . import objectives
 # from . import optimizers
 # from . import regularizers
+from .. util.generic_utils import *
 
 __version__ = '1.2.2'

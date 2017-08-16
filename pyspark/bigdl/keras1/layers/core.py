@@ -5,6 +5,7 @@ from __future__ import division
 import numpy as np
 import bigdl.nn.layer as bigdl_layer
 from bigdl.keras1.engine.topology import *
+from bigdl.util.generic_utils import *
 import bigdl.keras1.activations as activations
 
 class Input(Layer):
@@ -32,6 +33,7 @@ class Concat(Layer):
         assert(self.input_shapes, "Must have multiple input shape tuples")
         self.B = bigdl_layer.JoinTable(self.concat_axis, len(self.input_shapes) - 1) # bigdl start from 1 but it doens't take batch, # assuming the first dim is batch
 
+    @overrides(Layer)
     def get_output_shape(self, input_shapes):
         assert(isinstance(input_shapes, list))
         output_shape = list(input_shapes[0])
