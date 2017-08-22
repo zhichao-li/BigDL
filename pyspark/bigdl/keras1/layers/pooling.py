@@ -58,7 +58,7 @@ class MaxPooling2D(Layer):
                  to_ceil=False,
                  bigdl_type="float")
 
-    def get_output_shape(self, input_shape): # TODO: add unittest to check if the logic is correct. NCHW
+    def get_output_shape_for(self, input_shape): # TODO: add unittest to check if the logic is correct. NCHW
         rows = input_shape[2]
         cols = input_shape[3]
         nb_row, nb_col = self.pool_size

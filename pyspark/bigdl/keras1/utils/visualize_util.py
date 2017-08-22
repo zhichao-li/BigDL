@@ -29,9 +29,9 @@ def model_to_dot(model, show_shapes=False, show_layer_names=True):
     dot.set('concentrate', True)
     dot.set_node_defaults(shape='record')
 
-    for node in model.nodes():
-        layer_name = node.name()
-        class_name = node.keras_layer.__class__.__name__
+    for layer in model.layers:
+        layer_name = layer.name
+        class_name = layer.__class__.__name__
         # Create node's label.
         if show_layer_names:
             label = '{}: {}'.format(layer_name, class_name)
@@ -41,23 +41,23 @@ def model_to_dot(model, show_shapes=False, show_layer_names=True):
         # Rebuild the label as a table including input/output shapes.
         if show_shapes:
             try:
-                outputlabels = str(node.output_shape)
+                outputlabels = str(layer.output_shape)
             except AttributeError:
                 outputlabels = 'multiple'
-            if hasattr(node, 'input_shape'):
-                inputlabels = str(node.input_shape)
-            elif hasattr(node, 'input_shapes'):
+            if hasattr(layer, 'input_shape'):
+                inputlabels = str(layer.input_shape)
+            elif hasattr(layer, 'input_shapes'):
                 inputlabels = ', '.join(
-                    [str(ishape) for ishape in node.input_shapes])
+                    [str(ishape) for ishape in layer.input_shapes])
             else:
                 inputlabels = 'multiple'
             label = '%s\n|{input:|output:}|{{%s}|{%s}}' % (label, inputlabels, outputlabels)
-        node = pydot.Node(node.name(), label=label)
+        node = pydot.Node(layer.name, label=label)
         dot.add_node(node)
 
-    for node in model.nodes():
-        for in_node in node.inbound_nodes():
-            dot.add_edge(pydot.Edge(in_node.name(), node.name()))
+    for layer in model.layers:
+        for in_node in layer.inbound_keras_nodes:
+            dot.add_edge(pydot.Edge(in_node.name, layer.name))
     return dot
 
 

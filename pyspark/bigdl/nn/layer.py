@@ -53,7 +53,7 @@ class Node(JavaValue):
         result = []
         java_nodes = nodes.toList()
         for i in range(0, java_nodes.length()):
-            result.append("node-" + java_nodes.apply(i).element().getName())
+            result.append(java_nodes.apply(i).element().getName())
         return result
 
     def inbound_nodes(self):
@@ -63,7 +63,7 @@ class Node(JavaValue):
        return self.__parse_java_nodes(self.value.nextNodes())
 
     def name(self):
-        return "node-" + self.element().name()
+        return self.element().name()
 
 class Layer(JavaValue):
     """

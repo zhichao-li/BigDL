@@ -14,16 +14,36 @@ class Model(Container):
     """
     name_to_node = {}
 
-    def nodes(self):
-        return [Model.name_to_node["node-" + e] for e in self.B.executions()]
+    @property
+    def layers(self):
+        return self.topological_sort()
 
+    # This method is for visualize or debug only
+    # Get a topological sorted layers in the current graph
+    def topological_sort(self):
+        stack = []
+        visited = set()
+        def dfs(layer, visited, stack):
+            if layer not in visited:
+                visited.add(layer)
+                print visited
+                for node in layer.inbound_keras_nodes:
+                    dfs(node.keras_layer, visited, stack)
+            stack.append(layer)
+
+        for output_i in bigdl_common.to_list(self.output):
+            if output_i.keras_layer not in visited:
+                dfs(output_i.keras_layer, visited, stack)
+        return stack
+
+
+    def nodes(self):
+        return [Model.name_to_node[e] for e in self.B.executions()]
+
+    # output is a kerasNode or list of kerasNode
     def __init__(self, input, output, name=None):
+        self.output = output
         self.B = bigdl_layer.Model(Container._to_bigdl(input), Container._to_bigdl(output))
-        # Handle name argument.
-        if not name:
-            self.name = self.B.name()
-        else:
-            self.name = name
 
     def _to_bigdl_criterion(self, loss):
         #return objectives.get(loss)
@@ -104,6 +124,24 @@ class Model(Container):
         sample_rdd = Model._to_sample_rdd(sc, x, y)
         return [r.result for r in self.B.test(sample_rdd, batch_size, self.metrics)]
 
+    def predict(self, x, batch_size=32, verbose=0):
+        """Generates output predictions for the input samples,
+        processing the samples in a batched way.
+
+        # Arguments
+            x: the input data, as a Numpy array
+                (or list of Numpy arrays if the model has multiple outputs).
+            batch_size: integer.
+            verbose: verbosity mode, 0 or 1.
+
+        # Returns
+            A Numpy array of predictions.
+        """
+        sc = get_spark_context()
+        x_rdd = sc.parallelize(x).map(
+            lambda i: bigdl_common.Sample.from_ndarray(i, np.zeros((1))))
+        return np.asarray(self.B.predict(x_rdd).collect())
+
     @staticmethod
     def _to_sample_rdd(sc, x, y):
         from bigdl.util.common import Sample
@@ -154,7 +192,7 @@ class Sequential(Model):
         if len(self.added_nodes) == 0:
             if "input_shape" not in dir(layer) or layer.input_shape is None:
                 raise Exception("you should specify input_shape for first layer")
-            input = Input(input_shape=layer.input_shape)()
+            input = Input(shape=layer.input_shape)
             node = layer(input)
         else:
             node = layer(self.added_nodes[-1])

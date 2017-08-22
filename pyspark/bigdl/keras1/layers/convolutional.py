@@ -137,7 +137,7 @@ class Convolution2D(Layer):
                  bigdl_type="float")
         self.built = True
 
-    def get_output_shape(self, input_shape): #NCHW
+    def get_output_shape_for(self, input_shape): #NCHW
         rows = input_shape[2]
         cols = input_shape[3]
 

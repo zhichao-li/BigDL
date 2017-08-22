@@ -1,13 +1,12 @@
 import unittest
 
 from pyspark.context import SparkContext
-from bigdl.util.common import create_spark_conf
-from bigdl.util.common import init_engine
 
-from bigdl.keras1.layers.core import *
 from bigdl.keras1.engine.training import *
 from bigdl.keras1.layers.convolutional import *
-from bigdl.keras1.visualize_util import *
+from bigdl.keras1.utils.visualize_util import *
+from bigdl.util.common import create_spark_conf
+from bigdl.util.common import init_engine
 
 
 class TestWorkFlow(unittest.TestCase):
@@ -20,9 +19,25 @@ class TestWorkFlow(unittest.TestCase):
     def tearDown(self):
         self.sc.stop()
 
+    def test_layers(self):
+        input = Input(shape=(20,))
+        dense1 = Dense(4, input_dim=20, activation="relu")(
+            input)  # we need to add an Input if the parameter is empty.
+        dense2 = Dense(2)(dense1)
+        activation = Activation("relu")
+        out1 = activation(dense1)
+        out2 = activation(dense2)
+        assert out2.output_shape == (None, 4)
+        out3 = Activation("softmax")(out2)
+        merge_output = merge([out1, out2], mode='concat', concat_axis=1, name="hello_merge")
+        model = Model(input=[input], output=[merge_output, out3])
+        result = model.topological_sort()
+
+        plot(model, to_file='model.png', show_shapes=True, show_layer_names=True)
+
 # TODO: add test for multiple inputs.
     def test_visual(self):
-        input = Input(input_shape=(20, ))()
+        input = Input(shape=(20,))
         dense1 = Dense(4, input_dim=20, activation="relu")(
             input)  # we need to add an Input if the parameter is empty.
         dense2 = Dense(2)(dense1)
@@ -34,22 +49,23 @@ class TestWorkFlow(unittest.TestCase):
         plot(model, to_file='model.png', show_shapes=True, show_layer_names=True)
 
     def test_node(self):
-        input = Input(input_shape=(20, ))()
+        input = Input(shape=(20,))
         dense1 = Dense(4, input_dim=20, activation="relu")(input)
         dense2 = Dense(2)(dense1)
         inbound_nodes = dense2.inbound_nodes()
         print inbound_nodes
 
     def test_merge(self):
-        input1 = Input(input_shape=(20, ), name="input1")()
-        input2 = Input(input_shape=(20, ))()
+        input1 = Input(shape=(20,), name="input1")
+        input2 = Input(shape=(20,))
         merge_output = merge([input1, input2], mode='concat', concat_axis=1)
+        merge_output = merge([input1, input2], mode='concat', concat_axis=1, name="hello_merge")
         model = Model(input=[input1, input2], output=[merge_output])
         plot(model, to_file='merge.png', show_shapes=True, show_layer_names=True)
         assert(merge_output.output_shape == (None, 40))
 
     def test_functional_api(self):
-        input = Input(input_shape=(20, ))()
+        input = Input(shape=(20,))
         dense1 = Dense(4, input_dim=20, activation="relu")(
             input)  # we need to add an Input if the parameter is empty.
         dense2 = Dense(2)(dense1)
@@ -92,7 +108,6 @@ class TestWorkFlow(unittest.TestCase):
 
     def test_reshape(self):
         from bigdl.nn.layer import *
-        from bigdl.nn.criterion import *
         import numpy as np
         reshape = Reshape([6, 1], None)
         input = np.random.rand(32, 2, 3)
@@ -116,10 +131,30 @@ class TestWorkFlow(unittest.TestCase):
         output = model.B.forward(np.random.random_sample((2, 3, 20, 20))) # batch_size: 2
         assert((2, 20736) == output.shape)
 
+    def test_convolution2d_shape(self):
+        input_data_shape = (2, 10, 6, 3)
+        tensor_shape = (10, 6, 3)
+        input1 = Input(shape=tensor_shape)
+        conv = Convolution2D(64, 3, 3, border_mode='same',
+                             input_shape=(3, 20, 20))(input1)
+        model = Model(input=input1, output=conv)
+        p_result = model.predict(np.random.random(input_data_shape))
+        assert p_result.shape == (2, 64, 6, 3)
+
+    def test_predict(self):
+        x = np.random.random((5, 3))
+        y = np.random.random((5, 2))
+
+        model = Sequential()
+        model.add(Dense(2, input_dim=3, trainable=False))
+        model.compile('Adagrad', 'categorical_crossentropy')
+        out = model.predict(x)
+        assert (5, 2) == out.shape
+
 
     def test_keras_merge(self):
-        from keras.models import Model, Sequential
-        from keras.layers import Input, Dense, Merge
+        from keras.models import Sequential
+        from keras.layers import Dense, Merge
         model1 = Sequential()
         model1.add(Dense(32, input_dim=32))
 
@@ -133,7 +168,6 @@ class TestWorkFlow(unittest.TestCase):
 
     def test_mnist_cnn(self):
         from keras.datasets import mnist
-        from keras.utils import np_utils
         from bigdl.keras1.models import Sequential
         from bigdl.keras1.layers import Dense, Dropout, Activation, Flatten
         from bigdl.keras1.layers import Convolution2D, MaxPooling2D
