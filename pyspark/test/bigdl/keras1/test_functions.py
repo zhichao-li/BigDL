@@ -27,12 +27,10 @@ class TestWorkFlow(unittest.TestCase):
         activation = Activation("relu")
         out1 = activation(dense1)
         out2 = activation(dense2)
-        assert out2.output_shape == (None, 4)
+        assert out2._shape == (None, 2)
         out3 = Activation("softmax")(out2)
         merge_output = merge([out1, out2], mode='concat', concat_axis=1, name="hello_merge")
         model = Model(input=[input], output=[merge_output, out3])
-        result = model.topological_sort()
-
         plot(model, to_file='model.png', show_shapes=True, show_layer_names=True)
 
 # TODO: add test for multiple inputs.
@@ -47,6 +45,11 @@ class TestWorkFlow(unittest.TestCase):
 
         model = Model(input=[input], output=[out1, out2])
         plot(model, to_file='model.png', show_shapes=True, show_layer_names=True)
+        executions = model.nodes()
+        print executions
+
+    def test_input(self):
+        input = Input(shape=(20,))
 
     def test_node(self):
         input = Input(shape=(20,))
@@ -62,7 +65,7 @@ class TestWorkFlow(unittest.TestCase):
         merge_output = merge([input1, input2], mode='concat', concat_axis=1, name="hello_merge")
         model = Model(input=[input1, input2], output=[merge_output])
         plot(model, to_file='merge.png', show_shapes=True, show_layer_names=True)
-        assert(merge_output.output_shape == (None, 40))
+        assert(merge_output._shape == (None, 40))
 
     def test_functional_api(self):
         input = Input(shape=(20,))
@@ -72,6 +75,10 @@ class TestWorkFlow(unittest.TestCase):
         dense3 = Activation("relu")(dense2)
         model = Model(input=[input], output=[dense3])
         model.compile(optimizer="Adagrad", loss="categorical_crossentropy")
+        expected_nodes=["Input", "Linear", "Relu", "Linear", "Relu"]
+        for expected_node, bigdl_node in zip(expected_nodes, model.nodes()):
+            assert expected_node.lower() in bigdl_node.lower()
+
 
         # generate dummy data
         import numpy as np
@@ -128,6 +135,7 @@ class TestWorkFlow(unittest.TestCase):
                                 input_shape=(3, 20, 20)))
         # now model.output_shape == (None, 64, 18, 18)
         model.add(Flatten())
+        model.compile('Adagrad', 'categorical_crossentropy')
         output = model.B.forward(np.random.random_sample((2, 3, 20, 20))) # batch_size: 2
         assert((2, 20736) == output.shape)
 

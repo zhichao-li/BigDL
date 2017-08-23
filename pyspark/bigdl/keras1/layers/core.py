@@ -14,9 +14,10 @@ class Concat(Layer):
         self.concat_axis = concat_axis
         super(Concat, self).__init__(**kwargs)
 
-    def build(self):
-        assert(self.input_shapes, "Must have multiple input shape tuples")
-        self.B = bigdl_layer.JoinTable(self.concat_axis, len(self.input_shapes) - 1) # bigdl start from 1 but it doens't take batch, # assuming the first dim is batch
+    def build(self, input_shape):
+        assert(len(input_shape) > 1,
+               "Must have multiple input shape tuples, but got %s", len(input_shape))
+        self.B = bigdl_layer.JoinTable(self.concat_axis, len(input_shape) - 1) # bigdl start from 1 but it doens't take batch, # assuming the first dim is batch
 
     def get_output_shape_for(self, input_shapes):
         assert(isinstance(input_shapes, list))
@@ -49,8 +50,8 @@ class Flatten(Layer):
     def __init__(self, **kwargs):
         super(Flatten, self).__init__(**kwargs)
 
-    def build(self):
-        self.B = bigdl_layer.Reshape([np.prod(self.input_shape[1:])], None)
+    def build(self, input_shape):
+        self.B = bigdl_layer.Reshape([np.prod(input_shape[1:])], None)
 
     def get_output_shape_for(self, input_shape):
         return (None, np.prod(input_shape[1:])) # NB: the return type should alawyas be a list
@@ -133,14 +134,40 @@ class Dense(Layer):
                  bias=True, input_dim=None, **kwargs):
         self.output_dim = output_dim
         self.input_dim = input_dim
-        self.activation = Activation(activation) if activation else None
+        self.b_activation = activations.get(activation)
+        self.input_spec = [InputSpec(ndim='2+')]
+
         if self.input_dim:
-            self.input_shape = (None, input_dim)
+            kwargs['input_shape'] = (self.input_dim,)
         super(Dense, self).__init__(**kwargs)
 
-    def build(self):
-        input_dim = self.input_dim if self.input_dim else self.input_shape[1] # TODO: assert last_output_shape only has two dim
+    def build(self, input_shape):
+        """Creates the layer weights.
+        Must be implemented on all layers that have weights.
+
+        # Arguments
+            input_shape: Keras tensor (future input to layer)
+                or list/tuple of Keras tensors to reference
+                for weight shape computations.
+        """
+        input_dim = self.input_dim if self.input_dim else input_shape[1] # TODO: assert last_output_shape only has two dim
         self.B = bigdl_layer.Linear(input_dim, self.output_dim)
+        self.built = True
+
+    def call(self, x, mask=None):
+        """This is where the layer's logic lives.
+
+        # Arguments
+            x: input tensor, or list/tuple of input tensors.
+            mask: a masking tensor (or list of tensors). Used mainly in RNNs.
+
+        # Returns:
+            A tensor or list/tuple of tensors.
+        """
+        bigdl_tensor = self.B(bigdl_util.to_bigdl(x))
+        if self.b_activation:
+            bigdl_tensor = self.b_activation(bigdl_tensor)
+        return Tensor(bigdl_tensor, self)
 
 
     def get_output_shape_for(self, input_shape=None):
@@ -161,7 +188,15 @@ class Activation(Layer):
         super(Activation, self).__init__(**kwargs)
         self.activation_name = activation_name
 
-    def build(self):
+    def build(self, input_shape):
+        """Creates the layer weights.
+        Must be implemented on all layers that have weights.
+
+        # Arguments
+            input_shape: Keras tensor (future input to layer)
+                or list/tuple of Keras tensors to reference
+                for weight shape computations.
+        """
         self.B = activations.get(self.activation_name)
 
 
@@ -194,5 +229,5 @@ class Dropout(Layer):
         raise Exception("Unsupported !!")
         #return self.noise_shape
 
-    def build(self):
+    def build(self, input_shape):
         self.B = bigdl_layer.Dropout(init_p = self.p, inplace = False, scale = True)

@@ -3,7 +3,7 @@ import numpy as np
 from numpy.testing import assert_allclose
 
 from keras.utils.np_utils import conv_input_length
-from bigdl.keras1.utils.test_utils import *
+from bigdl.keras1.utils.test_utils import layer_test
 import bigdl.keras1.layers.convolutional as convolutional
 import bigdl.util.common as bigdl_common
 _convolution_border_modes = ['valid', 'same']
@@ -42,6 +42,27 @@ def test_convolution_2d():
                        input_shape=(nb_samples, nb_row, nb_col, stack_size))
 
 
+def test_maxpooling_2d():
+    pool_size = (3, 3)
+
+    for strides in [(1, 1), (2, 2)]:
+        layer_test(convolutional.MaxPooling2D,
+                   kwargs={'strides': strides,
+                           'border_mode': 'valid',
+                           'pool_size': pool_size},
+                   input_shape=(3, 11, 12, 4))
+
+
+
+def test_averagepooling_2d():
+    for border_mode in ['valid', 'same']:
+        for pool_size in [(2, 2), (3, 3), (4, 4), (5, 5)]:
+            for strides in [(1, 1), (2, 2)]:
+                layer_test(convolutional.AveragePooling2D,
+                           kwargs={'strides': strides,
+                                   'border_mode': border_mode,
+                                   'pool_size': pool_size},
+                           input_shape=(3, 11, 12, 4))
 
 if __name__ == '__main__':
     bigdl_common.init_engine()

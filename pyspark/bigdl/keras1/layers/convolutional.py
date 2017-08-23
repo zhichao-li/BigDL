@@ -97,7 +97,7 @@ class Convolution2D(Layer):
         self.nb_row = nb_row
         self.nb_col = nb_col
         # self.init = initializations.get(init)
-        self.activation = activations.get(activation)
+        self.b_activation = activations.get(activation)
         self.border_mode = border_mode
         self.subsample = tuple(subsample)
 
@@ -114,10 +114,31 @@ class Convolution2D(Layer):
         # self.initial_weights = weights
         super(Convolution2D, self).__init__(**kwargs)
 
-    def build(self):
-        assert(len(self.input_shape) == 3, "The input shape should be CHW") # we only accept NCHW
+    def call(self, x, mask=None):
+        """This is where the layer's logic lives.
+
+        # Arguments
+            x: input tensor, or list/tuple of input tensors.
+            mask: a masking tensor (or list of tensors). Used mainly in RNNs.
+
+        # Returns:
+            A tensor or list/tuple of tensors.
+        """
+        bigdl_tensor = self.B(bigdl_util.to_bigdl(x))
+        if self.b_activation:
+            bigdl_tensor = self.b_activation(bigdl_tensor)
+        return Tensor(bigdl_tensor, self)
+
+    def build(self, input_shape):
+        assert(len(input_shape) == 4, "The input shape should be NCHW") # we only accept NCHW
+        stack_size = input_shape[1]
+        # TODO: Check order
+        # if self.dim_ordering == 'th':
+        #     stack_size = input_shape[1]
+        # else:
+        #     raise Exception("lOnly support NCHW for now, which means you should use th ordering")
         (self.pad_w, self.pad_h) = get_padding(self.nb_col, self.nb_row, self.border_mode)
-        self.B = bigdl_layer.SpatialConvolution(n_input_plane=self.input_shape[1],
+        self.B = bigdl_layer.SpatialConvolution(n_input_plane=stack_size,
                  n_output_plane = self.nb_filter,
                  kernel_w=self.nb_col, # Additional zeros added to the input plane data on both sides of width axis. Default is 0. (kW-1)/2 is often used here.
                  kernel_h=self.nb_row,

@@ -17,12 +17,12 @@ def linear():
 def get(identifier):
     """
     :param identifier: name of activation
-    :return: activation layer
+    :return: activation layer of BigDL not keras layer
     >>> a = get("relu")
     >>> assert(a, ReLU)
     """
     if identifier is None:
-        return linear
+        return None
     return get_from_module(identifier, globals(), 'activations', True)
 
 

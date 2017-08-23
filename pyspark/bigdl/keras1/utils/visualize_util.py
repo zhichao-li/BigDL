@@ -1,6 +1,7 @@
 """Utilities related to model visualization."""
 import os
 
+from ..models import Sequential
 
 try:
     # pydot-ng is a fork of pydot that is better maintained.
@@ -29,9 +30,24 @@ def model_to_dot(model, show_shapes=False, show_layer_names=True):
     dot.set('concentrate', True)
     dot.set_node_defaults(shape='record')
 
-    for layer in model.layers:
+    if isinstance(model, Sequential):
+        if not model.built:
+            model.build()
+        model = model.model
+    layers = model.layers
+
+    # Create graph nodes.
+    for layer in layers:
+        layer_id = str(id(layer))
+
+        # Append a wrapped layer's label to node's label, if it exists.
         layer_name = layer.name
         class_name = layer.__class__.__name__
+        # if isinstance(layer, Wrapper):
+        #     layer_name = '{}({})'.format(layer_name, layer.layer.name)
+        #     child_class_name = layer.layer.__class__.__name__
+        #     class_name = '{}({})'.format(class_name, child_class_name)
+
         # Create node's label.
         if show_layer_names:
             label = '{}: {}'.format(layer_name, class_name)
@@ -52,12 +68,20 @@ def model_to_dot(model, show_shapes=False, show_layer_names=True):
             else:
                 inputlabels = 'multiple'
             label = '%s\n|{input:|output:}|{{%s}|{%s}}' % (label, inputlabels, outputlabels)
-        node = pydot.Node(layer.name, label=label)
+
+        node = pydot.Node(layer_id, label=label)
         dot.add_node(node)
 
-    for layer in model.layers:
-        for in_node in layer.inbound_keras_nodes:
-            dot.add_edge(pydot.Edge(in_node.name, layer.name))
+    # Connect nodes with edges.
+    for layer in layers:
+        layer_id = str(id(layer))
+        for i, node in enumerate(layer.inbound_nodes):
+            node_key = layer.name + '_ib-' + str(i)
+            if node_key in model.container_nodes:
+                for inbound_layer in node.inbound_layers:
+                    inbound_layer_id = str(id(inbound_layer))
+                    layer_id = str(id(layer))
+                    dot.add_edge(pydot.Edge(inbound_layer_id, layer_id))
     return dot
 
 

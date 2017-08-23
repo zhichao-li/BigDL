@@ -45,7 +45,7 @@ class MaxPooling2D(Layer):
             self.strides = self.pool_size
         super(MaxPooling2D, self).__init__(**kwargs)
 
-    def build(self):
+    def build(self, input_shape):
         kw = self.pool_size[0]
         kh = self.pool_size[1]
         pad_w, pad_h = get_padding(kw, kh, self.border_mode)
