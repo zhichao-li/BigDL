@@ -72,6 +72,7 @@ def get_news20(source_dir="/tmp/news20/"):
                     else:
                         f = open(fpath, encoding='latin-1')
                     content = f.read()
+                    content = "\n".join([line for line in content.split("\n") if not line.startswith("Newsgroups:")])
                     texts.append((content, label_id))
                     f.close()
 

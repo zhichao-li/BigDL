@@ -69,13 +69,12 @@ def build_model(seq_len, max_features, embedding_dim, class_num):
     model.add(LogSoftMax())
     return model
 
-
 def train(sc,
           batch_size,
           sequence_len, max_words, embedding_dim, training_split):
     print('Processing text dataset')
     texts = news20.get_news20()
-    data_rdd = sc.parallelize(texts, 2)
+    data_rdd = sc.parallelize(texts, 4)
 
     word_to_ic = analyze_texts(data_rdd)
 
@@ -133,7 +132,7 @@ def train(sc,
         indexes_per_text = [word_to_ic[word][0] for word in text_to_words(item)]
         all.append(indexes_per_text)
     X_all = all
-    ngram_range = 2
+    ngram_range = 3
     max_features = np.hstack(all).max()
     # Create set of unique n-gram from the training set.
     ngram_set = set()
@@ -210,7 +209,7 @@ def train(sc,
     from keras.preprocessing.text import Tokenizer
     from keras.preprocessing.sequence import pad_sequences
     from keras.layers import Dense, Input, Flatten
-    from keras.layers import Conv1D, MaxPooling1D, Embedding
+    from keras.layers import Conv1D, MaxPooling1D, Embedding, Dropout
     from keras.models import Model
 
     model = Sequential()
@@ -220,14 +219,10 @@ def train(sc,
     model.add(Embedding(max_features,
                         embedding_dim,
                         input_length=max_seqlength))
-    model.add(Conv1D(128, 5, activation='relu'))
-    model.add(MaxPooling1D(5))
-    model.add(Conv1D(128, 5, activation='relu'))
-    model.add(MaxPooling1D(5))
-    model.add(Conv1D(128, 5, activation='relu'))
-    model.add(MaxPooling1D(35))
-    model.add(Flatten())
-    model.add(Dense(128, activation='relu'))
+    model.add(Dropout(p=0.5))
+    model.add(GlobalAveragePooling1D())
+
+    # We project onto a single unit output layer, and squash it with a sigmoid:
 
     model.add(Dense(20, activation='softmax'))
 
@@ -237,7 +232,7 @@ def train(sc,
 
     model.fit(x_train, y_train,
               batch_size=128,
-              nb_epoch=30,
+              nb_epoch=60,
               validation_data=(x_val, y_val))
 
 

@@ -26,11 +26,35 @@ from bigdl.optim.optimizer import *
 from bigdl.util.common import *
 from bigdl.util.common import Sample
 
+# import nltk
+# print nltk.__version__
+
+
 
 def text_to_words(review_text):
+    # from nltk.stem.porter import PorterStemmer
+    # from nltk.corpus import stopwords
+    #
+    # st = PorterStemmer()
     letters_only = re.sub("[^a-zA-Z]", " ", review_text)
     words = letters_only.lower().split()
     return words
+
+    # english_punctuations = set([',', '.', ':', ';', '?', '!', '(', ')', '[', ']', '@', '&', '#', '%',
+    #                         '$', '{', '}', '--', '-', '##'])
+    #
+    # english_stopwords = stopwords.words('english')
+    # result = []
+    # for word in words:
+    #     if (word not in english_punctuations) and (word not in english_stopwords) and not word.startswith("##"):
+    #         stem = st.stem(word)
+    #         result.append(stem)
+    #
+    # return result
+
+
+    # return [st.stem(word) for word in words if word not in english_punctuations and word not in english_stopwords]
+
 
 
 def analyze_texts(data_rdd):
@@ -56,7 +80,8 @@ def to_vec(token, b_w2v, embedding_dim):
     if token in b_w2v:
         return b_w2v[token]
     else:
-        return pad([], 0, embedding_dim)
+       # print("Unfound token: " + token + "__")
+        return np.random.random_sample(embedding_dim).tolist()
 
 
 def to_sample(vectors, label, embedding_dim):
@@ -81,6 +106,9 @@ def build_model(class_num):
         model.add(SpatialConvolution(128, 128, 5, 1))
         model.add(ReLU())
         model.add(SpatialMaxPooling(5, 1, 5, 1))
+        model.add(SpatialConvolution(128, 128, 5, 1))
+        model.add(ReLU())
+        model.add(SpatialMaxPooling(35, 1, 35, 1))
         model.add(Reshape([128]))
     elif model_type.lower() == "lstm":
         model.add(Recurrent()
@@ -104,7 +132,7 @@ def train(sc,
           sequence_len, max_words, embedding_dim, training_split):
     print('Processing text dataset')
     texts = news20.get_news20()
-    data_rdd = sc.parallelize(texts, 2)
+    data_rdd = sc.parallelize(texts, 4) #TODO: expose this as parameter
 
     word_to_ic = analyze_texts(data_rdd)
 
@@ -163,11 +191,12 @@ if __name__ == "__main__":
         max_epoch = int(options.max_epoch)
         p = float(options.p)
         model_type = options.model_type
-        sequence_len = 50
+        sequence_len = 1000
         max_words = 1000
         training_split = 0.8
         sc = SparkContext(appName="text_classifier",
                           conf=create_spark_conf())
+        sc.setLogLevel("WARN")
         init_engine()
         train(sc,
               batch_size,
