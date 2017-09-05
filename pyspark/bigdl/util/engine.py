@@ -18,21 +18,6 @@ import sys
 import os
 import glob
 
-def __prepare_spark_env():
-    modules = sys.modules
-    if "pyspark" not in modules or "py4j" not in modules:
-        spark_home = os.environ.get('SPARK_HOME', None)
-        if not spark_home:
-            raise ValueError(
-                """Could not find Spark. Pls make sure SPARK_HOME env is set:
-                   export SPARK_HOME=path to your spark home directory""")
-        print("Using %s" % spark_home)
-        py4j = glob.glob(os.path.join(spark_home, 'python/lib', 'py4j-*.zip'))[0]
-        pyspark = glob.glob(os.path.join(spark_home, 'python/lib', 'pyspark*.zip'))[0]
-        sys.path.insert(0, py4j)
-        sys.path.insert(0, pyspark)
-
-
 def __prepare_bigdl_env():
     jar_dir = os.path.abspath(__file__ + "/../../")
     jar_paths = glob.glob(os.path.join(jar_dir, "share/lib/*.jar"))
@@ -55,5 +40,4 @@ def __prepare_bigdl_env():
 
 
 def prepare_env():
-    __prepare_spark_env()
     __prepare_bigdl_env()
