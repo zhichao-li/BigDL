@@ -54,7 +54,7 @@ class Keras1Spec extends FlatSpec with Matchers {
   """.stripMargin
     val flattenLayer = new JsonParser[Layer]().parseLayer(flattenLayerString)
     flattenLayer.className should be("Flatten")
-    flattenLayer.name.get should be("flatten_3")
+    flattenLayer.name should be("flatten_3")
     val flattenConfig = new FlattenConfig(flattenLayer.config)
     flattenConfig.trainable should be(true)
     flattenConfig.name should be("flatten_3")
@@ -92,17 +92,27 @@ class Keras1Spec extends FlatSpec with Matchers {
                              """.stripMargin
     val denseLayer = new JsonParser[DenseConfig]().parseLayer(denseLayerStr)
     denseLayer.className should be("Dense")
-    denseLayer.name.get should be("dense_18")
+    denseLayer.name should be("dense_18")
     val denseConfig = new DenseConfig(denseLayer.config)
     denseConfig.trainable should be(true)
     denseConfig.outputDim should be(2)
   }
 
 
-
+  // just use to ensure we can load the model sucessfully
+  // and then we can verify the result by kerasModel.predict against bigdlModel.forward
   "load simple module" should "ok" in {
-    new KerasLoader().loadModule(
+    val module = new KerasLoader(
       "/home/lizhichao/bin/god/BigDL/spark/dl/src/test/resources/keras/mlp_functional.json")
+      .loadModule()
+    println(module.toString())
   }
 
+  // TODO: Load module with share weights
+
+  // TODO: Load module with multiple outputs
+
+  // TODO: Load Module with multiple inputs
+
+  // TODO: Load Module from Sequence model
 }

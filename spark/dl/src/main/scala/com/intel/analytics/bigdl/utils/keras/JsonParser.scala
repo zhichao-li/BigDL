@@ -16,25 +16,80 @@
 
 package com.intel.analytics.bigdl.utils.keras
 
+import com.intel.analytics.bigdl.nn.abstractnn.{AbstractModule, Activity}
+import com.intel.analytics.bigdl.optim.Regularizer
 import play.api.libs.json._
 import play.api.libs.functional.syntax._
 
 import scala.reflect.ClassTag
 
 
+//case class KerasHistory(layerName: String, nodeIndex: String, tensorIndex: String)
+
+
+case class Layer(className: String,
+                 config: JsValue,
+                 inboundNodes: Seq[Seq[JsArray]],
+                 name: String) // name is layer name
+case class ModelConfig(name: String,
+                       layers: Seq[Layer],
+                       inputLayers: Seq[JsArray],
+                       outputLayers: Seq[JsArray]) // name is model name
+case class KerasJson(className: String, config: ModelConfig, kerasVersion: String)
+
+class BaseLayerConfig(val name: String,
+                      val trainable: Boolean,
+                      val batchInputShape: Option[JsValue],
+                      val inputDtype: Option[String]) {
+  def this(config: JsValue) = {
+    this(
+      (JsPath \ "name").read[String].reads(config).get,
+      (JsPath \ "trainable").read[Boolean].reads(config).get,
+      (JsPath \ "batch_input_shape").readNullable[JsValue].reads(config).get,
+      (JsPath \ "input_dtype").readNullable[String].reads(config).get
+    )
+  }
+}
+
+class InputConfig(config: JsValue) extends BaseLayerConfig(config) {
+  val sparse: Boolean = (JsPath \ "sparse").read[Boolean].reads(config).get
+}
+
+class FlattenConfig(config: JsValue) extends BaseLayerConfig(config)
+
+class DenseConfig(config: JsValue) extends BaseLayerConfig(config) {
+  val outputDim = (JsPath \ "output_dim").read[Int].reads(config).get
+  val initMethod = (JsPath \ "init").read[String].reads(config).get
+  val activation = (JsPath \ "activation").read[String].reads(config).get
+  val wRegularizer = (JsPath \ "W_regularizer").read[JsValue].reads(config).get
+  val wConstraint = (JsPath \ "W_constraint").read[JsValue].reads(config).get
+  val bConstraint = (JsPath \ "b_constraint").read[JsValue].reads(config).get
+  val bias = (JsPath \ "bias").read[Boolean].reads(config).get
+  val inputDim = (JsPath \ "input_dim").read[Int].reads(config).get
+}
+
+class ActivationConfig(config: JsValue) extends BaseLayerConfig(config) {
+  val activation = (JsPath \ "activation").read[String].reads(config).get
+}
+
+class DropoutConfig(config: JsValue) extends BaseLayerConfig(config) {
+  val p = (JsPath \ "p").read[Double].reads(config).get
+}
+
+
 class JsonParser[K: ClassTag] {
   implicit val layerReads: Reads[Layer] = (
     (JsPath \ "class_name").read[String] and
       (JsPath \ "config").read[JsValue] and
-      (JsPath \ "inbound_nodes").read[Seq[JsValue]] and
-      (JsPath \ "name").readNullable[String]
+      (JsPath \ "inbound_nodes").read[Seq[Seq[JsArray]]] and
+      (JsPath \ "name").read[String]
     )(Layer.apply _)
 
   implicit val modelConfigReads: Reads[ModelConfig] = (
     (JsPath \ "name").read[String] and
       (JsPath \ "layers").read[Seq[Layer]] and
-      (JsPath \ "input_layers").read[Seq[JsValue]] and
-      (JsPath \ "output_layers").read[Seq[JsValue]]
+      (JsPath \ "input_layers").read[Seq[JsArray]] and
+      (JsPath \ "output_layers").read[Seq[JsArray]]
     )(ModelConfig.apply _)
 
   implicit val KerasJsonReads: Reads[KerasJson] = (

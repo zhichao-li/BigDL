@@ -25,7 +25,7 @@
           "name": "dense_16",
           "activity_regularizer": null,
           "trainable": true,
-          "init": "glorot_uniform",
+          "init": "one",
           "bias": true,
           "input_dim": 10,
           "b_regularizer": null,
@@ -88,7 +88,7 @@
           "name": "dense_17",
           "activity_regularizer": null,
           "trainable": true,
-          "init": "glorot_uniform",
+          "init": "one",
           "bias": true,
           "input_dim": 5,
           "b_regularizer": null,
@@ -133,7 +133,7 @@
           "name": "dense_18",
           "activity_regularizer": null,
           "trainable": true,
-          "init": "glorot_uniform",
+          "init": "one",
           "bias": true,
           "input_dim": 3,
           "b_regularizer": null,
@@ -151,24 +151,6 @@
           ]
         ],
         "name": "dense_18"
-      },
-      {
-        "class_name": "Activation",
-        "config": {
-          "activation": "softmax",
-          "trainable": true,
-          "name": "activation_16"
-        },
-        "inbound_nodes": [
-          [
-            [
-              "dense_18",
-              0,
-              0
-            ]
-          ]
-        ],
-        "name": "activation_16"
       }
     ],
     "input_layers": [
@@ -180,7 +162,7 @@
     ],
     "output_layers": [
       [
-        "activation_16",
+        "dense_18",
         0,
         0
       ]

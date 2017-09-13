@@ -17,78 +17,24 @@
 package com.intel.analytics.bigdl.utils.keras
 
 import com.google.protobuf.GeneratedMessage
+import com.intel.analytics.bigdl.dataset.DataSet._
 import com.intel.analytics.bigdl.nn.Graph._
 import com.intel.analytics.bigdl.nn.abstractnn.{AbstractModule, Activity}
-import com.intel.analytics.bigdl.nn.{Graph, Input, Linear}
+import com.intel.analytics.bigdl.nn._
 import com.intel.analytics.bigdl.optim.Regularizer
 import com.intel.analytics.bigdl.tensor.Tensor
-import play.api.libs.json.{JsNull, JsPath, JsValue}
+import com.intel.analytics.bigdl.tensor.TensorNumericMath.TensorNumeric
+import org.apache.log4j.Logger
+import play.api.libs.json.{JsArray, JsNull, JsPath, JsValue}
 
 import scala.collection.mutable
-
-class BaseLayerConfig(val name: String,
-                      val trainable: Boolean,
-                      val batchInputShape: Option[JsValue],
-                      val inputDtype: Option[String]) {
-  def this(config: JsValue) = {
-    this(
-      (JsPath \ "name").read[String].reads(config).get,
-      (JsPath \ "trainable").read[Boolean].reads(config).get,
-      (JsPath \ "batch_input_shape").readNullable[JsValue].reads(config).get,
-      (JsPath \ "input_dtype").readNullable[String].reads(config).get
-    )
-  }
-}
-//object BaseLayerConfig {
-//  def apply(config: JsValue) = {
-//
-//  }
-//  def parse(config: JsValue): BaseLayerConfig = {
-//    new BaseLayerConfig(
-//      (JsPath \ "name").read[String].reads(config).get,
-//      (JsPath \ "trainable").read[Boolean].reads(config).get,
-//      (JsPath \ "batch_input_shape").readNullable[JsValue].reads(config).get,
-//      (JsPath \ "input_dtype").readNullable[String].reads(config).get
-//    )
-//  }
-//}
-
-class InputConfig(config: JsValue) extends BaseLayerConfig(config) {
-  val sparse: Boolean = (JsPath \ "sparse").read[Boolean].reads(config).get
-}
-
-class FlattenConfig(config: JsValue) extends BaseLayerConfig(config)
-
-class DenseConfig(config: JsValue) extends BaseLayerConfig(config) {
-  val outputDim = (JsPath \ "output_dim").read[Int].reads(config).get
-  val initMethod = (JsPath \ "init").read[String].reads(config).get
-  val activation = (JsPath \ "activation").read[String].reads(config).get
-  val wRegularizer = (JsPath \ "W_regularizer").read[JsValue].reads(config).get
-  val wConstraint = (JsPath \ "W_constraint").read[JsValue].reads(config).get
-  val bConstraint = (JsPath \ "b_constraint").read[JsValue].reads(config).get
-  val bias = (JsPath \ "bias").read[Boolean].reads(config).get
-  val inputDim = (JsPath \ "input_dim").read[Int].reads(config).get
-}
-
-object RegularizerHelper {
-  def toBigDL[T](reg: JsValue): Regularizer[T] = {
-    reg match {
-      case JsNull => null  // case object cannot use isinstance of
-      case _ => throw new RuntimeException("not supported yet")
-    }
-  }
-}
-
-class ActivationConfig(config: JsValue) extends BaseLayerConfig(config) {
-  val activation = (JsPath \ "activation").read[String].reads(config).get
-}
-
-class DropoutConfig(config: JsValue) extends BaseLayerConfig(config) {
-  val activation = (JsPath \ "p").read[String].reads(config).get
-}
+import scala.reflect.ClassTag
 
 
-abstract class Converter[T](kerasJson: KerasJson) {
+
+abstract class Converter[T: ClassTag](kerasJson: KerasJson)(implicit ev: TensorNumeric[T]) {
+  protected val logger = Logger.getLogger(getClass)
+
   private val kerasToBigDLCreator = new mutable.HashMap[String,
     (Layer) => AbstractModule[Activity, Activity, T]]()
 
@@ -99,65 +45,60 @@ abstract class Converter[T](kerasJson: KerasJson) {
 
   def init(): Unit = {
     kerasToBigDLCreator("InputLayer") = createInput
+    kerasToBigDLCreator("Dense") = createDense
+    kerasToBigDLCreator("Dropout") = createDropout
+    kerasToBigDLCreator("Activation") = createActivation
+
+    // Create name to keras layer mapping
     kerasJson.config.layers.foreach {layer =>
-      if (nodeIdToKerasLayer.contains(layer.name.get)) {
-        throw new RuntimeException(s"Duplicate node id: ${layer.name.get}")
+      if (nodeIdToKerasLayer.contains(layer.name)) {
+        throw new RuntimeException(s"Duplicate node id: ${layer.name}")
       }
-      nodeIdToKerasLayer(layer.name.get) = layer
+      nodeIdToKerasLayer(layer.name) = layer
     }
-
-
   }
 
-  def createNode(kerasJson: KerasJson): ModuleNode[T] = {
+  private def convertInOrOutForModel(boundNodes: Seq[JsArray]): Array[ModuleNode[T]] = {
+      boundNodes.map { node =>
+        val nodeName = node.value(0).toString().replaceAll("^\"|\"$", "")
+        // TODO: parse nodeID and tensorID
+        this.nodeIdToNodeInstance(nodeName)
+      }.toArray
+  }
 
+  def createGraph(kerasJson: KerasJson): Graph[T] = {
+    // ensure each node instances is created
     kerasJson.config.layers.foreach { layer =>
-      val bigdlLayer = kerasToBigDLCreator(layer.name.get)(layer)
-      val inNodes = layer.inboundNodes.map { inNodeConfig =>
-        val inNodeName = inNodeConfig(0).get.toString()
-        // TODO: may need to get the nodeID and tensorID from inboundNodes
-        if(!nodeIdToNodeInstance.contains(inNodeName)) {
-          val jsLayer = nodeIdToKerasLayer(inNodeName)
-          val inNode = doCreateNode(jsLayer)
-          nodeIdToNodeInstance(inNodeName) = inNode
-        }
-        this.nodeIdToNodeInstance(inNodeName)
+      if (!this.nodeIdToNodeInstance.contains(layer.name)) {
+        doCreateNode(layer)
       }
-      val bigDLNode = bigdlLayer.inputs(inNodes : _*)
-      bigDLNode
     }
 
-    val input = kerasJson.config.inputLayers { inputLayer =>
-      val inputName = inputLayer(0).toString()
-      // TODO: parse nodeID and tensorID
-      this.nodeIdToNodeInstance(inputName)
-    }
-
-    val output = kerasJson.config.outputLayers { outputLayer =>
-      val inputName = outputLayer(0).toString()
-      // TODO: parse nodeID and tensorID
-      this.nodeIdToNodeInstance(inputName)
-    }
-
-    Graph(input=input, output=output)
+    val input = convertInOrOutForModel(kerasJson.config.inputLayers)
+    val output = convertInOrOutForModel(kerasJson.config.outputLayers)
+    Graph[T](input = input, output = output)
   }
 
   def doCreateNode(layer: Layer): ModuleNode[T] = {
-
+     if (layer.className == "InputLayer") {
+       val input = Input[T]() // input cannot set name
+       this.nodeIdToNodeInstance(layer.name) = input
+       return input
+     }
+    val inNodes = layer.inboundNodes.map { node =>
+      val nodeName = node(0)(0).get.toString().replaceAll("^\"|\"$", "") // TODO why always o here?
+      // todo: parse nodeindex or tensorindex
+      if (!this.nodeIdToNodeInstance.contains(nodeName)) {
+        val node = doCreateNode(this.nodeIdToKerasLayer(nodeName))
+        logger.info(s"Creating: $nodeName")
+      }
+      this.nodeIdToNodeInstance(nodeName)
+    }
+    val bigDLLayer = this.kerasToBigDLCreator(layer.className)(layer)
+    val newNode = bigDLLayer.inputs(inNodes : _*)
+    this.nodeIdToNodeInstance(layer.name) = newNode
+    newNode
   }
-
-//  def apply(layer: Layer): ModuleNode[T] = {
-//    // TODO: add guard here in case exception
-//    kerasToBigDL(layer.className)(layer)
-//  }
-
-//  def parseLayerConfig(config: JsValue): Map[String, String] = {
-//    val baseConfig = BaseLayerConfig.parse(config)
-//    baseConfig.name match {
-//      case "Flatten" =>
-//        new FlattenConfig(config)
-//    }
-//  }
 
   def createInput(layer: Layer): AbstractModule[Activity, Activity, T]
 
@@ -175,11 +116,58 @@ abstract class Converter[T](kerasJson: KerasJson) {
 
 }
 
-class Keras1Converter[T] extends Converter[T] {
+object InitMethodHelper {
+  def toBigDL[T](initName: String): InitializationMethod = {
+    initName match {
+      case "glorot_uniform" => RandomUniform  // case object cannot use isinstance of
+      case "one" => Ones
+      case i: String => throw new RuntimeException(s"not supported yet $i")
+    }
+  }
+}
+
+object RegularizerHelper {
+  def toBigDL[T](reg: JsValue): Regularizer[T] = {
+    reg match {
+      case JsNull => null  // case object cannot use isinstance of
+      case _ => throw new RuntimeException("not supported yet")
+    }
+  }
+}
+
+object ActivationHelper {
+  def toBigDL[T: ClassTag](activationName: String,
+                 layerName: String)
+                          (implicit ev: TensorNumeric[T]): AbstractModule[Activity, Activity, T] = {
+    activationName match {
+      case "relu" => ReLU[T]().setName(layerName)
+      case "softmax" => LogSoftMax[T]().setName(layerName)
+      case _ => throw new IllegalArgumentException(
+        s"unsupported type: ${activationName}")
+    }
+  }
+
+  def fuse[T: ClassTag](srcLayer: AbstractModule[Activity, Activity, T],
+              activationName: String,
+              name: String)
+                       (implicit ev: TensorNumeric[T]): AbstractModule[Activity, Activity, T] = {
+    // "linear" meaning do nothing
+    if (activationName != "linear") {
+      val seq = Sequential[T]()
+      seq.add(srcLayer)
+      seq.add(toBigDL(activationName, name))
+      seq.setName(s"seq_${srcLayer.getName()}_${activationName}")
+    } else {
+      srcLayer
+    }
+  }
+}
+
+class Keras1Converter[T: ClassTag](kerasJson: KerasJson)(implicit ev: TensorNumeric[T])
+  extends Converter[T](kerasJson) {
 
   override def createInput(layer: Layer): AbstractModule[Activity, Activity, T] = {
-            new FlattenConfig(layer.config)
-
+    // place holder , dummpy
     return null
   }
 
@@ -196,27 +184,36 @@ class Keras1Converter[T] extends Converter[T] {
   }
 
   override def createDense(layer: Layer): AbstractModule[Activity, Activity, T] = {
-    val inboundNodes = layer.inboundNodes
-    val instanceName = layer.name
     val layerConfig = new DenseConfig(layer.config)
     if (layerConfig.wConstraint != JsNull || layerConfig.bConstraint != JsNull ) {
       throw new IllegalArgumentException("Haven't support constraint yet")
     }
-    Linear[T](
+
+    val linear = Linear[T](
       inputSize = layerConfig.inputDim,
       outputSize = layerConfig.outputDim,
       withBias = layerConfig.bias,
       wRegularizer = RegularizerHelper.toBigDL(layerConfig.wRegularizer),
       bRegularizer = RegularizerHelper.toBigDL(layerConfig.wRegularizer)
-    ).asInstanceOf
+    ).setName(layer.name)
+    val initMethod = InitMethodHelper.toBigDL(layerConfig.initMethod)
+    linear.setInitMethod(initMethod, Zeros) // Keras always set this to be Zero.
+
+    ActivationHelper.fuse[T](linear,
+      layerConfig.activation,
+      s"${layer.name}_${layerConfig.activation}")
   }
 
   def createDropout(layer: Layer): AbstractModule[Activity, Activity, T] = {
-null
+    val dropoutConfig = new DropoutConfig(layer.config)
+    Dropout[T](dropoutConfig.p).setName(layer.name)
   }
 
   def createActivation(layer: Layer): AbstractModule[Activity, Activity, T] = {
-null
+    val inboundNodes = layer.inboundNodes
+    val instanceName = layer.name
+    val layerConfig = new ActivationConfig(layer.config)
+    ActivationHelper.toBigDL(layerConfig.activation, layer.name)
   }
 
 }
