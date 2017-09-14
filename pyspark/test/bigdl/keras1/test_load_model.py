@@ -23,7 +23,7 @@ import shutil
 import tempfile
 from numpy.testing import assert_allclose
 import bigdl.keras1.backend as bigdl_backend
-from bigdl.keras1.backend import ModelLoader, BigDLBackend
+from bigdl.keras1.backend import ModelLoader
 
 from keras.layers import Dense, Dropout, Input, Activation
 from keras.models import Sequential, Model
@@ -44,7 +44,7 @@ class TestModel():
         with open(keras_model_json_path, "w") as json_file:
             json_file.write(keras_model.to_json())
             #model.save("mlp_functional.hdf5")
-        bigdl_model = bigdl_backend.load_graph(keras_model_json_path)
+        bigdl_model = ModelLoader.load_definition(keras_model_json_path)
         bigdl_output = bigdl_model.forward(input_data)
         keras_output = keras_model.predict(input_data)
         assert_allclose(bigdl_output, keras_output, rtol=1e-5)
@@ -119,6 +119,7 @@ class TestModel():
         assert_allclose(boutput, koutput, rtol=1e-5)
 
     def test_run_keras_example(self):
+
         input1 = Input(shape=(20,))
         dense = Dense(10)(input1)
         activation = Activation('relu')(dense)
@@ -127,12 +128,14 @@ class TestModel():
         activation2 = Activation('softmax')(dense3)
         model = Model(input=input1, output=activation2)
         model.compile(loss='categorical_crossentropy',
-                      optimizer=RMSprop(),
+                      optimizer='Adagrad',
                       metrics=['accuracy'])
-        BigDLBackend().install_bigdl_backend(model)
-        input_data = np.random.random([1, 10])
-        output_data = np.random.random([1, 5])
-        model.fit(input_data, output_data, nb_epoch=2)
+
+        bigdl_common.init_engine()
+        bigdl_backend.install_bigdl_backend(model)
+        input_data = np.random.random([4, 20])
+        output_data = np.random.randint(1, 5, [4, 5])
+        model.fit(input_data, output_data, batch_size=4, nb_epoch=2)
 
 
 if __name__ == "__main__":

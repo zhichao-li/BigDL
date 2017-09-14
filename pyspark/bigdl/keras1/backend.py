@@ -4,6 +4,11 @@ import tempfile
 from bigdl.util.common import callBigDlFuncWithoutMappingReturn
 from bigdl.util.common import get_spark_context
 from bigdl.nn.layer import Model as BModel
+import bigdl.optim.optimizer as boptimizer
+import bigdl.nn.criterion as bcriterion
+import bigdl.util.common as bcommon
+import keras.optimizers as koptimizers
+
 # > import types
 # > x.method = types.MethodType(method, x)
 from keras.models import Sequential, Model
@@ -14,43 +19,97 @@ def create_tmp_path():
     tmp_file.close()
     return tmp_file.name
 
-def new_fit():
+
+def install_bigdl_backend(kmodel):
+    def bevaluate(self, x, y, batch_size=32, verbose=1, sample_weight=None):
+        sc = get_spark_context()
+        sample_rdd = Model._to_sample_rdd(sc, x, y)
+        return [r.result for r in self.B.test(sample_rdd, batch_size, self.metrics)]
+
+    def bpredict(self, x, batch_size=32, verbose=0):
+        """Generates output predictions for the input samples,
+        processing the samples in a batched way.
+
+        # Arguments
+            x: the input data, as a Numpy array
+                (or list of Numpy arrays if the model has multiple outputs).
+            batch_size: integer.
+            verbose: verbosity mode, 0 or 1.
+
+        # Returns
+            A Numpy array of predictions.
+        """
+        sc = get_spark_context()
+        x_rdd = sc.parallelize(x).map(
+            lambda i: bcommon.Sample.from_ndarray(i, np.zeros((1))))
+        return np.asarray(self.B.predict(x_rdd).collect())
 
 
-def register_bigdl_backend():
-    Model.fit = new_fit
+    def bfit(x, y, batch_size=32, nb_epoch=10, verbose=1, callbacks=None,
+            validation_split=0., validation_data=None, shuffle=True,
+            class_weight=None, sample_weight=None, initial_epoch=0):
+        sc = get_spark_context()
+        # result = ModelLoader.to_sample_rdd(sc, x, y).collect()
 
-# class BigDLBackend:
-#     def _new_fit(
-#             model,
-#             x,
-#             y,
-#             batch_size=32,
-#             nb_epoch=10,
-#             verbose=1,
-#             callbacks=[],
-#             validation_split=0.,
-#             validation_data=None,
-#             shuffle=True,
-#             class_weight=None,
-#             sample_weight=None,
-#             **kwargs):
-#         self.optimizer = model.optimizer
-#         self.loss = model.loss
-#
-#         model_path = create_tmp_path()
-#         with open(model_path, "w") as json_file:
-#             json_file.write(model.to_json())
-#
-#     def install_bigdl_backend(model):
-#         model.__old_fit = model.fit
-#
-#         model.fit = new.instancemethod(_new_fit, model, None)
-#         # model.load_weights = new.instancemethod(ModelLoader.load_weights, filepath, by_name=False)
+        boptimizer.Optimizer(
+            model=bmodel,
+            training_rdd=ModelLoader.to_sample_rdd(sc, x, y),
+            criterion=ModelLoader.to_bigdl_criterion(kmodel.loss),
+            end_trigger=boptimizer.MaxEpoch(nb_epoch),
+            batch_size=batch_size,
+            optim_method=ModelLoader.to_bigdl_optim_method(kmodel.optimizer)
+        ).optimize()
 
-
+        # TODO: maybe we don't need batch_size, verbose and sample_weight
+    bmodel = ModelLoader.to_bigdl_definition(kmodel)
+    kmodel.__old_fit = kmodel.fit
+    kmodel.fit = bfit
+    kmodel.predict = bpredict
+    kmodel.evaluate = bevaluate
+    kmodel.get_weights = bmodel.get_weights
 
 class ModelLoader:
+
+    @staticmethod
+    def to_bigdl_criterion(kloss):
+        # TODO: it may pass in an object
+        if kloss == "categorical_crossentropy":
+            return bcriterion.ClassNLLCriterion()
+        elif kloss == "mse":
+            return bcriterion.MSECriterion()
+        else:
+            raise Exception("Not supported type: %s" % kloss)
+
+    @staticmethod
+    def to_bigdl_optim_method(koptim_method):
+        # This is always be an object
+        if isinstance(koptim_method, koptimizers.Adagrad):
+            return boptimizer.Adagrad()
+        elif isinstance(koptim_method, koptimizers.SGD):
+            return boptimizer.SGD(learningrate=0.01)  # TODO: enrich parameters, sgd.lr return a variable!!!not float
+        else:
+            raise Exception("Not supported type: %s" % koptim_method)
+
+    @staticmethod
+    def to_sample_rdd(sc, x, y):
+        from bigdl.util.common import Sample
+        x_rdd = sc.parallelize(x)
+        y_rdd = sc.parallelize(y)
+        return x_rdd.zip(y_rdd).map(lambda item: Sample.from_ndarray(item[0], item[1]))
+
+    @staticmethod
+    def to_bigdl_definition(kmodel):
+        keras_model_path = create_tmp_path()
+        keras_model_path_json = keras_model_path + ".json"
+        #keras_model_path_hdf5 = keras_model_path + ".hdf5"
+
+        with open(keras_model_path_json, "w") as json_file:
+            json_file.write(kmodel.to_json())
+        #kmodel.save(keras_model_path_hdf5)
+
+        # load bigdl model from file. TODO: no need to save json to file first
+        return ModelLoader.load_definition(keras_model_path_json)
+
     @staticmethod
     def load_definition(model_path, bigdl_type="float"):
         bigdl_graph = callBigDlFuncWithoutMappingReturn(bigdl_type,
