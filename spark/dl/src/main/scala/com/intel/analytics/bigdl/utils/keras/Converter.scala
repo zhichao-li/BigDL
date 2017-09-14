@@ -156,7 +156,7 @@ object ActivationHelper {
       val seq = Sequential[T]()
       seq.add(srcLayer)
       seq.add(toBigDL(activationName, name))
-      seq.setName(s"seq_${srcLayer.getName()}_${activationName}")
+      seq.setName(srcLayer.getName())
     } else {
       srcLayer
     }

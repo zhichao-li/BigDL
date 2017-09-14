@@ -23,6 +23,7 @@ import shutil
 import tempfile
 from numpy.testing import assert_allclose
 import bigdl.keras1.backend as bigdl_backend
+from bigdl.keras1.backend import ModelLoader, BigDLBackend
 
 from keras.layers import Dense, Dropout, Input, Activation
 from keras.models import Sequential, Model
@@ -32,6 +33,7 @@ np.random.seed(1337)  # for reproducibility
 from keras.layers import Dense, Dropout, Input, Lambda
 from keras.optimizers import RMSprop
 from keras.utils import np_utils
+
 
 
 
@@ -47,6 +49,42 @@ class TestModel():
         keras_output = keras_model.predict(input_data)
         assert_allclose(bigdl_output, keras_output, rtol=1e-5)
 
+    def __simple_mlp_model_single(self):
+        input1 = Input(shape=(3,))
+        dense = Dense(2)(input1)
+        model = Model(input=input1, output=dense)
+        model.compile(loss='categorical_crossentropy',
+                      optimizer=RMSprop(),
+                      metrics=['accuracy'])
+        keras_model_path = bigdl_backend.create_tmp_path()
+        keras_model_path_json = keras_model_path + ".json"
+        keras_model_path_hdf5 = keras_model_path + ".hdf5"
+
+        with open(keras_model_path_json, "w") as json_file:
+            json_file.write(model.to_json())
+        model.save(keras_model_path_hdf5)
+        return model, keras_model_path_json, keras_model_path_hdf5
+
+    def __simple_mlp_model(self):
+        input1 = Input(shape=(20,))
+        dense = Dense(10)(input1)
+        activation = Activation('relu')(dense)
+        dense2 = Dense(10, activation='relu')(activation)
+        dense3 = Dense(5)(dense2)
+        # activation2 = Activation('softmax')(dense3)
+        model = Model(input=input1, output=dense3)
+        model.compile(loss='categorical_crossentropy',
+                      optimizer=RMSprop(),
+                      metrics=['accuracy'])
+        keras_model_path = bigdl_backend.create_tmp_path()
+        keras_model_path_json = keras_model_path + ".json"
+        keras_model_path_hdf5 = keras_model_path + ".hdf5"
+
+        with open(keras_model_path_json, "w") as json_file:
+            json_file.write(model.to_json())
+        model.save(keras_model_path_hdf5)
+        return model, keras_model_path_json, keras_model_path_hdf5
+
     def test_dense(self):
         input_data = np.random.random_sample([1, 10])
         input1 = Input(shape=(10,))
@@ -58,7 +96,43 @@ class TestModel():
         pass
 
     def test_load_weights(self):
-        bigdl_backend.load_weights("/home/lizhichao/bin/god/BigDL/spark/dl/src/test/resources/keras/mlp_sequence.hdf5")
+        kmodel, keras_model_path_json, keras_model_path_hdf5 = self.__simple_mlp_model()
+        bmodel = ModelLoader.load_definition(keras_model_path_json)
+        ModelLoader.load_weights(bmodel,
+                                       kmodel,
+
+                                       keras_model_path_hdf5)
+        input = np.random.sample([1, 20])
+        boutput = bmodel.forward(input)
+        koutput = kmodel.predict(input)
+        assert_allclose(boutput, koutput, rtol=1e-5)
+
+    def test_load_weights_single_layer(self):
+        kmodel, keras_model_path_json, keras_model_path_hdf5 = self.__simple_mlp_model_single()
+        bmodel = ModelLoader.load_definition(keras_model_path_json)
+        ModelLoader.load_weights(bmodel,
+                                       kmodel,
+                                       keras_model_path_hdf5)
+        input = np.random.sample([1, 3])
+        boutput = bmodel.forward(input)
+        koutput = kmodel.predict(input)
+        assert_allclose(boutput, koutput, rtol=1e-5)
+
+    def test_run_keras_example(self):
+        input1 = Input(shape=(20,))
+        dense = Dense(10)(input1)
+        activation = Activation('relu')(dense)
+        dense2 = Dense(10, activation='relu')(activation)
+        dense3 = Dense(5)(dense2)
+        activation2 = Activation('softmax')(dense3)
+        model = Model(input=input1, output=activation2)
+        model.compile(loss='categorical_crossentropy',
+                      optimizer=RMSprop(),
+                      metrics=['accuracy'])
+        BigDLBackend().install_bigdl_backend(model)
+        input_data = np.random.random([1, 10])
+        output_data = np.random.random([1, 5])
+        model.fit(input_data, output_data, nb_epoch=2)
 
 
 if __name__ == "__main__":
