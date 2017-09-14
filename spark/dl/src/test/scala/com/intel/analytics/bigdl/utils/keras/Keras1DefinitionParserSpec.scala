@@ -98,4 +98,51 @@ class Keras1DefinitionParserSpec extends FlatSpec with Matchers {
     denseConfig.outputDim should be(2)
   }
 
+  "parse conv2D layer" should "ok" in {
+    val layerStr =
+      """
+        |      {
+        |        "class_name": "Convolution2D",
+        |        "config": {
+        |          "b_regularizer": null,
+        |          "W_constraint": null,
+        |          "b_constraint": null,
+        |          "name": "convolution2d_1",
+        |          "activity_regularizer": null,
+        |          "trainable": true,
+        |          "dim_ordering": "tf",
+        |          "nb_col": 3,
+        |          "subsample": [
+        |            1,
+        |            1
+        |          ],
+        |          "init": "glorot_uniform",
+        |          "bias": true,
+        |          "nb_filter": 64,
+        |          "input_dtype": "float32",
+        |          "border_mode": "same",
+        |          "batch_input_shape": [
+        |            null,
+        |            3,
+        |            256,
+        |            256
+        |          ],
+        |          "W_regularizer": null,
+        |          "activation": "linear",
+        |          "nb_row": 3
+        |        },
+        |        "inbound_nodes": [
+        |          [
+        |            [
+        |              "input_1",
+        |              0,
+        |              0
+        |            ]
+        |          ]
+        |        ],
+        |        "name": "convolution2d_1"
+        |      }
+      """.stripMargin
+  }
+
 }

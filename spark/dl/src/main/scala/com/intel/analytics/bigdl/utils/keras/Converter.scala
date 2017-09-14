@@ -120,7 +120,8 @@ abstract class LayerConverter[T: ClassTag](kerasJson: KModel)(implicit ev: Tenso
 object InitMethodHelper {
   def toBigDL[T](initName: String): InitializationMethod = {
     initName match {
-      case "glorot_uniform" => RandomUniform  // TODO: this is a correct mapping? case object cannot use isinstance of
+      case "glorot_uniform" => RandomUniform
+      // TODO: this is a correct mapping? case object cannot use isinstance of
       case "one" => Ones
       case i: String => throw new RuntimeException(s"not supported yet $i")
     }

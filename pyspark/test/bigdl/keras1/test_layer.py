@@ -29,7 +29,8 @@ from keras.layers import Dense, Dropout, Input, Activation
 from keras.models import Sequential, Model
 import numpy as np
 np.random.seed(1337)  # for reproducibility
-# from keras.layers.core import Dense, Dropout, Activation, Input
+from keras.layers.core import *
+from keras.layers.convolutional import *
 from keras.layers import Dense, Dropout, Input, Lambda
 from keras.optimizers import RMSprop
 from keras.utils import np_utils
@@ -46,6 +47,7 @@ class TestLayer():
         keras_model_json_path = bigdl_backend.create_tmp_path() + ".json"
         with open(keras_model_json_path, "w") as json_file:
             json_file.write(keras_model.to_json())
+        print("json path: " + keras_model_json_path)
         bigdl_model = ModelLoader.load_definition(keras_model_json_path)
         bigdl_output = bigdl_model.forward(input_data)
         keras_output = keras_model.predict(input_data)
@@ -55,6 +57,14 @@ class TestLayer():
         input_data = np.random.random_sample([1, 10])
         dense = Dense(2, init='one', activation="relu")
         self.__modelTestSingleLayer(input_data,  dense)
+
+    def test_conv2D(self):
+        input_data = np.random.random_sample([1, 3, 256, 256])
+        layer = Convolution2D(64, 3, 3,
+                    border_mode='same',
+                                input_shape=(3, 256, 256))
+        self.__modelTestSingleLayer(input_data,  layer)
+
 
 
 if __name__ == "__main__":
