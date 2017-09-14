@@ -37,17 +37,7 @@ from keras.utils import np_utils
 
 
 
-class TestModel():
-
-    def __modelTest(self, input_data, keras_model):
-        keras_model_json_path = bigdl_backend.create_tmp_path() + ".json"
-        with open(keras_model_json_path, "w") as json_file:
-            json_file.write(keras_model.to_json())
-            #model.save("mlp_functional.hdf5")
-        bigdl_model = ModelLoader.load_definition(keras_model_json_path)
-        bigdl_output = bigdl_model.forward(input_data)
-        keras_output = keras_model.predict(input_data)
-        assert_allclose(bigdl_output, keras_output, rtol=1e-5)
+class TestLoadModel():
 
     def __simple_mlp_model_single(self):
         input1 = Input(shape=(3,))
@@ -85,12 +75,7 @@ class TestModel():
         model.save(keras_model_path_hdf5)
         return model, keras_model_path_json, keras_model_path_hdf5
 
-    def test_dense(self):
-        input_data = np.random.random_sample([1, 10])
-        input1 = Input(shape=(10,))
-        dense = Dense(2, init='one', activation="relu")(input1)
-        model = Model(input=input1, output=dense)
-        self.__modelTest(input_data, model)
+
 
     def test_load_Graph(self):
         pass

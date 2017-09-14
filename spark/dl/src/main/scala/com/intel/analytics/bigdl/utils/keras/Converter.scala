@@ -30,8 +30,7 @@ import play.api.libs.json.{JsArray, JsNull, JsPath, JsValue}
 import scala.collection.mutable
 import scala.reflect.ClassTag
 
-
-
+// TODO: We should be able to find unittest on python side.
 abstract class LayerConverter[T: ClassTag](kerasJson: KModel)(implicit ev: TensorNumeric[T]) {
   protected val logger = Logger.getLogger(getClass)
 
@@ -119,7 +118,7 @@ abstract class LayerConverter[T: ClassTag](kerasJson: KModel)(implicit ev: Tenso
 object InitMethodHelper {
   def toBigDL[T](initName: String): InitializationMethod = {
     initName match {
-      case "glorot_uniform" => RandomUniform  // case object cannot use isinstance of
+      case "glorot_uniform" => RandomUniform  // TODO: this is a correct mapping? case object cannot use isinstance of
       case "one" => Ones
       case i: String => throw new RuntimeException(s"not supported yet $i")
     }
@@ -137,19 +136,22 @@ object RegularizerHelper {
 
 object ActivationHelper {
   def toBigDL[T: ClassTag](activationName: String,
-                 layerName: String)
+                           layerName: String)
                           (implicit ev: TensorNumeric[T]): AbstractModule[Activity, Activity, T] = {
-    activationName match {
-      case "relu" => ReLU[T]().setName(layerName)
-      case "softmax" => LogSoftMax[T]().setName(layerName)
+    val layer = activationName match {
+      case "tanh" => Tanh[T]()
+      case "sigmoid" => Sigmoid[T]()
+      case "relu" => ReLU[T]()
+      case "softmax" => SoftMax[T]()
       case _ => throw new IllegalArgumentException(
         s"unsupported type: ${activationName}")
     }
+    layer.setName(layerName).asInstanceOf
   }
 
   def fuse[T: ClassTag](srcLayer: AbstractModule[Activity, Activity, T],
-              activationName: String,
-              name: String)
+                        activationName: String,
+                        name: String)
                        (implicit ev: TensorNumeric[T]): AbstractModule[Activity, Activity, T] = {
     // "linear" meaning do nothing
     if (activationName != "linear") {
@@ -166,12 +168,23 @@ object ActivationHelper {
 class Keras1LayerConverter[T: ClassTag](kerasJson: KModel)(implicit ev: TensorNumeric[T])
   extends LayerConverter[T](kerasJson) {
 
+
   override def createInput(layer: Layer): AbstractModule[Activity, Activity, T] = {
     // place holder , dummpy
     return null
   }
 
   override def createEmbedding(layer: Layer): AbstractModule[Activity, Activity, T] = {
+    val layerConfig = new EmbeddingConfig(layer)
+    val lookupTable = LookupTable[T](
+      nIndex: Int,
+      nOutput: Int,
+      paddingValue: Double = 0,
+    maxNorm: Double = Double.MaxValue,
+    normType: Double = 2.0,
+    shouldScaleGradByFreq: Boolean = false,
+    wRegularizer = RegularizerHelper.toBigDL(layerConfig.wRegularizer)
+    )
     return null
   }
 
@@ -188,7 +201,6 @@ class Keras1LayerConverter[T: ClassTag](kerasJson: KModel)(implicit ev: TensorNu
     if (layerConfig.wConstraint != JsNull || layerConfig.bConstraint != JsNull ) {
       throw new IllegalArgumentException("Haven't support constraint yet")
     }
-
     val linear = Linear[T](
       inputSize = layerConfig.inputDim,
       outputSize = layerConfig.outputDim,

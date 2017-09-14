@@ -57,6 +57,10 @@ class InputConfig(config: JsValue) extends BaseLayerConfig(config) {
 
 class FlattenConfig(config: JsValue) extends BaseLayerConfig(config)
 
+class EmbeddingConfig(config: JsValue) extends BaseLayerConfig(config) {
+  
+}
+
 class DenseConfig(config: JsValue) extends BaseLayerConfig(config) {
   val outputDim = (JsPath \ "output_dim").read[Int].reads(config).get
   val initMethod = (JsPath \ "init").read[String].reads(config).get
