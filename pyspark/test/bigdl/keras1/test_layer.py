@@ -39,8 +39,10 @@ from keras.utils import np_utils
 
 class TestLayer():
 
-    def __modelTestSingleLayer(self, input_data, ):
-        
+    def __modelTestSingleLayer(self, input_data, output_layer):
+        input_node = Input(shape=input_data.shape[1:])
+        out = output_layer(input_node)
+        keras_model = Model(input=input_node, output=out)
         keras_model_json_path = bigdl_backend.create_tmp_path() + ".json"
         with open(keras_model_json_path, "w") as json_file:
             json_file.write(keras_model.to_json())
@@ -51,10 +53,8 @@ class TestLayer():
 
     def test_dense(self):
         input_data = np.random.random_sample([1, 10])
-        input1 = Input(shape=(10,))
-        dense = Dense(2, init='one', activation="relu")(input1)
-        model = Model(input=input1, output=dense)
-        self.__modelTestSingleLayer(input_data, model)
+        dense = Dense(2, init='one', activation="relu")
+        self.__modelTestSingleLayer(input_data,  dense)
 
 
 if __name__ == "__main__":

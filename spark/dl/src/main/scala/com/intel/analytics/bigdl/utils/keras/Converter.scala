@@ -101,6 +101,8 @@ abstract class LayerConverter[T: ClassTag](kerasJson: KModel)(implicit ev: Tenso
 
   def createInput(layer: Layer): AbstractModule[Activity, Activity, T]
 
+  def createConv2D(layer: Layer): AbstractModule[Activity, Activity, T]
+
   def createEmbedding(layer: Layer): AbstractModule[Activity, Activity, T]
 
   def createFlatten(layer: Layer): AbstractModule[Activity, Activity, T]
@@ -146,7 +148,7 @@ object ActivationHelper {
       case _ => throw new IllegalArgumentException(
         s"unsupported type: ${activationName}")
     }
-    layer.setName(layerName).asInstanceOf
+    layer.setName(layerName).asInstanceOf[AbstractModule[Activity, Activity, T]]
   }
 
   def fuse[T: ClassTag](srcLayer: AbstractModule[Activity, Activity, T],
@@ -175,16 +177,20 @@ class Keras1LayerConverter[T: ClassTag](kerasJson: KModel)(implicit ev: TensorNu
   }
 
   override def createEmbedding(layer: Layer): AbstractModule[Activity, Activity, T] = {
-    val layerConfig = new EmbeddingConfig(layer)
-    val lookupTable = LookupTable[T](
-      nIndex: Int,
-      nOutput: Int,
-      paddingValue: Double = 0,
-    maxNorm: Double = Double.MaxValue,
-    normType: Double = 2.0,
-    shouldScaleGradByFreq: Boolean = false,
-    wRegularizer = RegularizerHelper.toBigDL(layerConfig.wRegularizer)
-    )
+//    val layerConfig = new EmbeddingConfig(layer)
+//    val lookupTable = LookupTable[T](
+//      nIndex: Int,
+//      nOutput: Int,
+//      paddingValue: Double = 0,
+//    maxNorm: Double = Double.MaxValue,
+//    normType: Double = 2.0,
+//    shouldScaleGradByFreq: Boolean = false,
+//    wRegularizer = RegularizerHelper.toBigDL(layerConfig.wRegularizer)
+//    )
+    return null
+  }
+
+  override def createConv2D(layer: Layer): AbstractModule[Activity, Activity, T] = {
     return null
   }
 
