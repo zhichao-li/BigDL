@@ -30,74 +30,7 @@ import scala.collection.mutable
 import scala.reflect.ClassTag
 import scala.util.Random
 
-class Keras1Spec extends FlatSpec with Matchers {
-
-  "convert flatten layer" should "ok" in {
-  val flattenLayerString = """
-    |      {
-    |        "class_name": "Flatten",
-    |        "config": {
-    |          "trainable": true,
-    |          "name": "flatten_3"
-    |        },
-    |        "inbound_nodes": [
-    |          [
-    |            [
-    |              "mlp_embedding_user",
-    |              0,
-    |              0
-    |            ]
-    |          ]
-    |        ],
-    |        "name": "flatten_3"
-    |      }
-  """.stripMargin
-    val flattenLayer = new JsonParser[Layer]().parseLayer(flattenLayerString)
-    flattenLayer.className should be("Flatten")
-    flattenLayer.name should be("flatten_3")
-    val flattenConfig = new FlattenConfig(flattenLayer.config)
-    flattenConfig.trainable should be(true)
-    flattenConfig.name should be("flatten_3")
-  }
-
-  "convert dense layer" should "ok" in {
-    val denseLayerStr = """
-                          |      {
-                          |        "class_name": "Dense",
-                          |        "config": {
-                          |          "W_constraint": null,
-                          |          "b_constraint": null,
-                          |          "name": "dense_18",
-                          |          "activity_regularizer": null,
-                          |          "trainable": true,
-                          |          "init": "glorot_uniform",
-                          |          "bias": true,
-                          |          "input_dim": 3,
-                          |          "b_regularizer": null,
-                          |          "W_regularizer": null,
-                          |          "activation": "linear",
-                          |          "output_dim": 2
-                          |        },
-                          |        "inbound_nodes": [
-                          |          [
-                          |            [
-                          |              "dropout_12",
-                          |              0,
-                          |              0
-                          |            ]
-                          |          ]
-                          |        ],
-                          |        "name": "dense_18"
-                          |      }
-                             """.stripMargin
-    val denseLayer = new JsonParser[DenseConfig]().parseLayer(denseLayerStr)
-    denseLayer.className should be("Dense")
-    denseLayer.name should be("dense_18")
-    val denseConfig = new DenseConfig(denseLayer.config)
-    denseConfig.trainable should be(true)
-    denseConfig.outputDim should be(2)
-  }
-
+class Keras1LoaderSpec extends FlatSpec with Matchers {
 
   // just use to ensure we can load the model sucessfully
   // and then we can verify the result by kerasModel.predict against bigdlModel.forward

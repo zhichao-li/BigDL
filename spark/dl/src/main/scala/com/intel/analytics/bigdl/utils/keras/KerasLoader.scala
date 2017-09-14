@@ -39,34 +39,21 @@ class KerasLoader[T: ClassTag](kerasJsonPath: String)(implicit ev: TensorNumeric
   private val nameToBigDLNode = Map[String, ModuleNode[T]]()
   private val nameToBigDLLayer = Map[String, ModuleNode[T]]()
   private val kerasJson = this.loadKerasJsonFromPath(kerasJsonPath)
-  private val converter = new Keras1Converter[T](kerasJson)
+  private val converter = new Keras1LayerConverter[T](kerasJson)
 
 
   def loadModule(): AbstractModule[Activity, Activity, T] = {
     loadModule(loadKerasJsonFromPath(kerasJsonPath))
   }
 
-  def loadModule(kerasJson: KerasJson): AbstractModule[Activity, Activity, T] = {
+  def loadModule(kerasJson: KModel): AbstractModule[Activity, Activity, T] = {
     converter.createGraph(kerasJson)
   }
 
-//  def loadWeightsFromHDF5(module: Graph[T], hdf5Path: String): Unit = {
-//    // Open file using the default properties.
-//    try {
-//      val file_id = H5.H5Fopen(hdf5Path, H5F_ACC_RDWR, H5P_DEFAULT)
-//      if (file_id >= 0) {
-//        val dataset_id = H5.H5Dopen(file_id, "model_weights", H5P_DEFAULT)
-//      }
-//
-//    }
-//    catch {
-//      case e: Exception => e.printStackTrace()
-//    }
-//  }
 
-  def loadKerasJsonFromPath(path: String): KerasJson = {
+  def loadKerasJsonFromPath(path: String): KModel = {
     val jsonStr = readFileToString(path)
-    val kerasJson = new JsonParser[KerasJson]().parseKerasJson(jsonStr)
+    val kerasJson = new Keras1DefinitionParser[KModel]().parseModel(jsonStr)
     kerasJson
   }
 

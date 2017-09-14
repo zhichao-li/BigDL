@@ -35,7 +35,7 @@ case class ModelConfig(name: String,
                        layers: Seq[Layer],
                        inputLayers: Seq[JsArray],
                        outputLayers: Seq[JsArray]) // name is model name
-case class KerasJson(className: String, config: ModelConfig, kerasVersion: String)
+case class KModel(className: String, config: ModelConfig, kerasVersion: String)
 
 class BaseLayerConfig(val name: String,
                       val trainable: Boolean,
@@ -77,26 +77,26 @@ class DropoutConfig(config: JsValue) extends BaseLayerConfig(config) {
 }
 
 
-class JsonParser[K: ClassTag] {
-  implicit val layerReads: Reads[Layer] = (
+class Keras1DefinitionParser[K: ClassTag] {
+  private implicit val layerReads: Reads[Layer] = (
     (JsPath \ "class_name").read[String] and
       (JsPath \ "config").read[JsValue] and
       (JsPath \ "inbound_nodes").read[Seq[Seq[JsArray]]] and
       (JsPath \ "name").read[String]
     )(Layer.apply _)
 
-  implicit val modelConfigReads: Reads[ModelConfig] = (
+  private implicit val modelConfigReads: Reads[ModelConfig] = (
     (JsPath \ "name").read[String] and
       (JsPath \ "layers").read[Seq[Layer]] and
       (JsPath \ "input_layers").read[Seq[JsArray]] and
       (JsPath \ "output_layers").read[Seq[JsArray]]
     )(ModelConfig.apply _)
 
-  implicit val KerasJsonReads: Reads[KerasJson] = (
+  private implicit val KerasJsonReads: Reads[KModel] = (
     (JsPath \ "class_name").read[String] and
       (JsPath \ "config").read[ModelConfig] and
       (JsPath \ "keras_version").read[String]
-    )(KerasJson.apply _)
+    )(KModel.apply _)
 
   def parseLayer(jsonString: String): Layer = {
     val jsonObject = Json.parse(jsonString)
@@ -106,27 +106,11 @@ class JsonParser[K: ClassTag] {
     }
   }
 
-  def parseKerasJson(jsonString: String): KerasJson = {
+  def parseModel(jsonString: String): KModel = {
     val jsonObject = Json.parse(jsonString)
-    val placeResult = jsonObject.validate[KerasJson]
+    val placeResult = jsonObject.validate[KModel]
     placeResult match {
       case JsSuccess(value, path) => value
     }
   }
-
-//  def parse(jsonString: String): K = {
-//    //  val trainable = kerasJson.config.layers(3).config \ "trainable"
-//    val jsonObject = Json.parse(jsonString)
-//     val placeResult = jsonObject.validate[K]
-//        val result = placeResult match {
-//          case JsSuccess(value, path) => value
-//        }
-//        result
-//  }
 }
-
-//object JsonParser {
-//  def apply[T](): JsonParser[T] = {
-//    JsonParser[T]()
-//  }
-//}

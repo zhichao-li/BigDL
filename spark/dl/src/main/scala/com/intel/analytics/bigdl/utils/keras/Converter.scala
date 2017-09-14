@@ -32,7 +32,7 @@ import scala.reflect.ClassTag
 
 
 
-abstract class Converter[T: ClassTag](kerasJson: KerasJson)(implicit ev: TensorNumeric[T]) {
+abstract class LayerConverter[T: ClassTag](kerasJson: KModel)(implicit ev: TensorNumeric[T]) {
   protected val logger = Logger.getLogger(getClass)
 
   private val kerasToBigDLCreator = new mutable.HashMap[String,
@@ -66,7 +66,7 @@ abstract class Converter[T: ClassTag](kerasJson: KerasJson)(implicit ev: TensorN
       }.toArray
   }
 
-  def createGraph(kerasJson: KerasJson): Graph[T] = {
+  def createGraph(kerasJson: KModel): Graph[T] = {
     // ensure each node instances is created
     kerasJson.config.layers.foreach { layer =>
       if (!this.nodeIdToNodeInstance.contains(layer.name)) {
@@ -163,8 +163,8 @@ object ActivationHelper {
   }
 }
 
-class Keras1Converter[T: ClassTag](kerasJson: KerasJson)(implicit ev: TensorNumeric[T])
-  extends Converter[T](kerasJson) {
+class Keras1LayerConverter[T: ClassTag](kerasJson: KModel)(implicit ev: TensorNumeric[T])
+  extends LayerConverter[T](kerasJson) {
 
   override def createInput(layer: Layer): AbstractModule[Activity, Activity, T] = {
     // place holder , dummpy
