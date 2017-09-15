@@ -24,6 +24,7 @@ import com.intel.analytics.bigdl.tensor.TensorNumericMath.TensorNumeric
 import com.intel.analytics.bigdl.tensor.TensorNumericMath.TensorNumeric.NumericDouble
 import com.intel.analytics.bigdl.tensor.{Storage, Tensor}
 import com.intel.analytics.bigdl.utils.caffe.{CaffeLoader, Customizable}
+import org.apache.spark.{SparkConf, SparkContext}
 import org.scalatest.{FlatSpec, Matchers}
 
 import scala.collection.mutable
@@ -143,6 +144,22 @@ class Keras1DefinitionParserSpec extends FlatSpec with Matchers {
         |        "name": "convolution2d_1"
         |      }
       """.stripMargin
+
+    val denseLayer = new Keras1DefinitionParser[DenseConfig]().parseLayer(layerStr)
+    denseLayer.className should be("Convolution2D")
+    denseLayer.name should be("convolution2d_1")
+    val config = new Convolution2DConfig(denseLayer.config)
+    config.nbFilter should be(64)
+    config.nbCol should be(3)
+  }
+  "test spark" should "ok" in {
+
+    val conf = new SparkConf().setAppName("hello").setMaster("local[*]")
+      .set("spark.driver.extraClassPath",
+        "/Users/lizhichao/god/BigDL/dist/lib/bigdl-0.3.0-SNAPSHOT-jar-with-dependencies.jar")
+    val sc = new SparkContext(conf)
+    val result = sc.parallelize(Range(0, 10)).collect()
+    println(result)
   }
 
 }

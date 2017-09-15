@@ -39,13 +39,18 @@ case class KModel(className: String, config: ModelConfig, kerasVersion: String)
 
 class BaseLayerConfig(val name: String,
                       val trainable: Boolean,
-                      val batchInputShape: Option[JsValue],
+                      val batchInputShape: Option[Array[String]],
                       val inputDtype: Option[String]) {
   def this(config: JsValue) = {
     this(
       (JsPath \ "name").read[String].reads(config).get,
       (JsPath \ "trainable").read[Boolean].reads(config).get,
-      (JsPath \ "batch_input_shape").readNullable[JsValue].reads(config).get,
+      (JsPath \ "batch_input_shape")
+        .readNullable[JsArray]
+        .reads(config).get
+        .map {jarray =>
+          jarray.value.toList.map(_.as[String]).toArray
+        },
       (JsPath \ "input_dtype").readNullable[String].reads(config).get
     )
   }
@@ -61,14 +66,39 @@ class EmbeddingConfig(config: JsValue) extends BaseLayerConfig(config) {
   
 }
 
-class DenseConfig(config: JsValue) extends BaseLayerConfig(config) {
-  val outputDim = (JsPath \ "output_dim").read[Int].reads(config).get
-  val initMethod = (JsPath \ "init").read[String].reads(config).get
+class ParametersLayerConfig(config: JsValue) extends BaseLayerConfig(config) {
   val activation = (JsPath \ "activation").read[String].reads(config).get
+
+  val activityRegularizer = (JsPath \ "activity_regularizer").read[JsValue].reads(config).get
+
   val wRegularizer = (JsPath \ "W_regularizer").read[JsValue].reads(config).get
+  val bRegularizer = (JsPath \ "b_regularizer").readNullable[JsValue].reads(config).get
+
+  val bConstraint = (JsPath \ "b_constraint").readNullable[JsValue].reads(config).get
   val wConstraint = (JsPath \ "W_constraint").read[JsValue].reads(config).get
-  val bConstraint = (JsPath \ "b_constraint").read[JsValue].reads(config).get
-  val bias = (JsPath \ "bias").read[Boolean].reads(config).get
+  val bias = (JsPath \ "bias").readNullable[Boolean].reads(config).get
+
+  val initMethod = (JsPath \ "init").read[String].reads(config).get
+
+  checkConstraint(this)
+  private def checkConstraint(config: ParametersLayerConfig) = {
+    if (config.wConstraint != JsNull || config.bConstraint.getOrElse(JsNull) != JsNull ) {
+      throw new IllegalArgumentException("Haven't support constraint yet")
+    }
+  }
+}
+
+class Convolution2DConfig(config: JsValue) extends ParametersLayerConfig(config) {
+  val dimOrder = (JsPath \ "dim_ordering").read[String].reads(config).get
+  val nbCol = (JsPath \ "nb_col").read[Int].reads(config).get
+  val nbRow = (JsPath \ "nb_row").read[Int].reads(config).get
+  val subsample = (JsPath \ "subsample").read[JsArray].reads(config).get
+  val nbFilter = (JsPath \ "nb_filter").read[Int].reads(config).get
+  val borderMode = (JsPath \ "border_mode").read[String].reads(config).get
+}
+
+class DenseConfig(config: JsValue) extends ParametersLayerConfig(config) {
+  val outputDim = (JsPath \ "output_dim").read[Int].reads(config).get
   val inputDim = (JsPath \ "input_dim").read[Int].reads(config).get
 }
 

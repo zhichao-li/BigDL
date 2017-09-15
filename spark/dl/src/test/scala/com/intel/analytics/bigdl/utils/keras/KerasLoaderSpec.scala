@@ -36,7 +36,7 @@ class Keras1LoaderSpec extends FlatSpec with Matchers {
   // and then we can verify the result by kerasModel.predict against bigdlModel.forward
   "load simple module" should "ok" in {
     val module = new KerasLoader(
-      "/home/lizhichao/bin/god/BigDL/spark/dl/src/test/resources/keras/mlp_functional.json")
+      "/Users/lizhichao/god/BigDL/spark/dl/src/test/resources/keras/mlp_functional.json")
       .loadModule()
     println(module.toString())
   }
