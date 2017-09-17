@@ -1,13 +1,18 @@
 import new
 import types # TODO: support python3
 import tempfile
+
+from bigdl.keras1.converter import BigDLLayerConverter
 from bigdl.util.common import callBigDlFuncWithoutMappingReturn
 from bigdl.util.common import get_spark_context
 from bigdl.nn.layer import Model as BModel
+import bigdl.nn.layer as BLayer
 import bigdl.optim.optimizer as boptimizer
 import bigdl.nn.criterion as bcriterion
 import bigdl.util.common as bcommon
 import keras.optimizers as koptimizers
+from keras.models import model_from_json
+
 
 # > import types
 # > x.method = types.MethodType(method, x)
@@ -216,7 +221,6 @@ class ModelLoader:
                                                                    weight_values)
                 bigdl_layer.set_weights(bigdl_weights)
 
-
 class ParameterConverter:
     @staticmethod
     def convert_weights(layer_name, wb):
@@ -224,5 +228,74 @@ class ParameterConverter:
             return [np.transpose(wb[0]), wb[1]]
         else:
             return wb
+
+
+class DefinitionLoader:
+
+    def __init__(self, json_path):
+        self.node_id_to_instance = {}
+        self.node_id_to_layer = {}
+        self.node_id_to_config_layer = {}
+        with open(json_path, "r") as jp:
+            self.kmodel = model_from_json(jp.read())
+            self.kconfig = self.kmodel.get_config()
+
+        for layer in self.kmodel.layers:
+            self.node_id_to_layer[layer.name] = layer
+
+        for clayer in self.kconfig["layers"]:
+            self.node_id_to_config_layer[clayer["name"]] = clayer
+
+    def _create_bigdl_layer(self, class_name, layer):
+        pass
+    def _do_create_node(self, layer, clayer):
+        if clayer["class_name"] == "InputLayer":
+            input = BLayer.Input()
+            input.element().set_name(layer.name) # cannot set name for node?
+            self.node_id_to_instance[layer.name] = input
+            return input
+        bigdl_in_nodes = []
+        for node in clayer["inbound_nodes"]:
+            for out in node:
+                out_name = out[0]
+                out_index = out[1]
+                out_tensor_index = out[2]
+                if out_name not in self.node_id_to_instance:
+                    self._do_create_node(self.node_id_to_layer[out_name],
+                                         self.node_id_to_config_layer[out_name])
+                bigdl_in_nodes.append(self.node_id_to_instance[out_name])
+
+        blayer = BigDLLayerConverter().create(clayer["class_name"], layer, clayer)
+        new_bnode = blayer(bigdl_in_nodes)
+        self.node_id_to_instance[layer.name] = new_bnode
+        return new_bnode
+
+    def _construct_bigdl_model(self):
+        for clayer in self.kconfig["layers"]:
+            if clayer["name"] not in self.node_id_to_instance:
+
+                self._do_create_node(self.node_id_to_layer[clayer["name"]],
+                                     clayer)
+        ins = []
+        for input_layer in self.kconfig["input_layers"]:
+            name = input_layer[0]
+            ins.append(self.node_id_to_instance[name])
+        outs = []
+        for output_layer in self.kconfig["output_layers"]:
+            name = output_layer[0]
+            outs.append(self.node_id_to_instance[name])
+        return BLayer.Model(inputs=ins, outputs=outs)
+
+    def _construct_bigdl_sequence(self):
+        pass
+
+
+    def to_bigdl(self):
+        if isinstance(self.kmodel, Model):
+            bmodel = self._construct_bigdl_model()
+        elif isinstance(self.kmodel, Sequential):
+            bmodel = self. _construct_bigdl_sequence()
+        return bmodel
+
 
 

@@ -48,6 +48,10 @@ class Node(JavaValue):
 
     def element(self):
         return Layer.of(self.value.element())
+    # Node doesn't have set name method
+    # def set_name(self, name):
+    #     callJavaFunc(get_spark_context(), self.value.setName, name)
+    #     return self
 
 
 class Layer(JavaValue):

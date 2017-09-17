@@ -49,7 +49,7 @@ class TestLayer():
         with open(keras_model_json_path, "w") as json_file:
             json_file.write(keras_model.to_json())
         print("json path: " + keras_model_json_path)
-        bigdl_model = ModelLoader.load_definition(keras_model_json_path)
+        bigdl_model = bigdl_backend.DefinitionLoader(keras_model_json_path).to_bigdl()
         bigdl_output = bigdl_model.forward(input_data)
         keras_output = keras_model.predict(input_data)
         assert bigdl_output.shape == keras_output.shape
@@ -67,8 +67,11 @@ class TestLayer():
 
     def bigdl_assert_allclose(self, a, b, rtol=1e-7):
         if a.shape != b.shape:
-            a = a.squeeze()
+            a = a.squeeze() # bigdl has a leading 1 for conv2d
             b = b.squeeze()
+        if a.shape != b.shape:
+            a = a.transpose() # for Dense in keras and linear in bigdl has diff order
+
         assert_allclose(a, b, rtol)
 
 

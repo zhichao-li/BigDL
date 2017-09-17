@@ -40,8 +40,8 @@ from keras.utils import np_utils
 class TestLoadDefinition():
 
     def test_load_mlp(self):
-        pass
-
+        loader = bigdl_backend.DefinitionLoader("/Users/lizhichao/god/BigDL/pyspark/test/bigdl/keras1/multiple_inputs_model.json")
+        loader.to_bigdl()
 
 if __name__ == "__main__":
     pytest.main([__file__])

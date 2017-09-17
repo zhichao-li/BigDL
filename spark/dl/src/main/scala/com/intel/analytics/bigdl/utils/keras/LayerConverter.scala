@@ -107,7 +107,8 @@ abstract class LayerConverter[T: ClassTag](kerasJson: KModel)(implicit ev: Tenso
        return input
      }
     val inNodes = layer.inboundNodes.map { node =>
-      val nodeName = node(0)(0).get.toString().replaceAll("^\"|\"$", "") // TODO why always o here?
+      val nodeName = node(0)(0).get.toString().replaceAll("^\"|\"$", "")
+      // TODO why always o here?, "Dense" remove ""
       // todo: parse nodeindex or tensorindex
       if (!this.nodeIdToNodeInstance.contains(nodeName)) {
         val node = doCreateNode(this.nodeIdToKerasLayer(nodeName))
