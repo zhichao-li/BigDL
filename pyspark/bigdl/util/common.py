@@ -28,6 +28,7 @@ from pyspark.mllib.common import callJavaFunc
 from pyspark import SparkConf
 import numpy as np
 import threading
+import tempfile
 from bigdl.util.engine import prepare_env
 
 INTMAX = 2147483647
@@ -401,6 +402,11 @@ def _py2java(sc, obj):
         data = bytearray(PickleSerializer().dumps(obj))
         obj = sc._jvm.org.apache.spark.bigdl.api.python.BigDLSerDe.loads(data)
     return obj
+
+def create_tmp_path():
+    tmp_file = tempfile.NamedTemporaryFile(prefix="bigdl")
+    tmp_file.close()
+    return tmp_file.name
 
 
 def _test():
