@@ -25,13 +25,14 @@ from numpy.testing import assert_allclose
 import bigdl.keras1.backend as bigdl_backend
 from bigdl.keras1.converter import ModelLoader
 
-from keras.layers import Dense, Dropout, Input, Activation
+from keras.layers import *
 from keras.models import Sequential, Model
 import numpy as np
 np.random.seed(1337)  # for reproducibility
 from keras.layers.core import *
 from keras.layers.convolutional import *
 from keras.layers import Dense, Dropout, Input, Lambda
+from keras.models import model_from_json
 from keras.optimizers import RMSprop
 from keras.utils import np_utils
 from bigdl.util.common import create_tmp_path
@@ -80,16 +81,17 @@ class TestLayer():
         bigdl_output2 = bigdl_model.forward(input_data)
 
         # TODO: increase the presision?
+        d = ~np.isclose(bigdl_output2, keras_output, rtol=predict_precision)
+        np.where(d)
         assert_allclose(bigdl_output2, keras_output, rtol=predict_precision)
         # np.testing.assert_array_almost_equal(bigdl_output2, keras_output)
 
     def bigdl_assert_allclose(self, a, b, rtol=1e-7):
-        if a.shape != b.shape:
-            a = a.squeeze() # bigdl has a leading 1 for conv2d
-            b = b.squeeze()
+        if a.shape != b.shape and a.shape[0] == 1:
+            a = a.squeeze(0) # bigdl has a leading 1 for conv2d
+            b = b
         if a.shape != b.shape:
             a = a.transpose() # for Dense in keras and linear in bigdl has diff order
-
         assert_allclose(a, b, rtol)
 
 
@@ -102,28 +104,114 @@ class TestLayer():
     def test_conv1D(self):
         input_data = np.random.random_sample([1, 10, 32])
         layer = Convolution1D(64, 3, border_mode='valid', input_shape=(10, 32))
+        # TODO: increase the precision
         self.__modelTestSingleLayer(input_data, layer, dump_weights=True, predict_precision=1e-1)
 
         layer = Convolution1D(64, 3, border_mode='same', input_shape=(10, 32))
         self.__modelTestSingleLayer(input_data, layer, dump_weights=True, predict_precision=1e-1)
 
+    def _load_keras(self, json_path, hdf5_path):
+        with open(json_path, "r") as jp:
+            kmodel = model_from_json(jp.read())
+        kmodel.load_weights(hdf5_path)
+        bmodel = ModelLoader.load_def_from_json(json_path)
+        ModelLoader.load_weights(bmodel, kmodel, hdf5_path) # TODO: refactor reability of this api
+        return kmodel, bmodel
+
     def test_conv2D(self):
-        input_data = np.random.random_sample([1, 3, 256, 256])
-        layer = Convolution2D(64, 3, 3,
-                    border_mode='same',
-                                input_shape=(3, 256, 256))
+        # TODO: the shape of weights is not the same if using theano backend.
+        input_data = np.random.random_sample([1, 3, 128, 128])
+        # json_path = "/tmp/bigdlYUOHqN.json"
+        # hdf5_path = "/tmp/bigdlYUOHqN.hdf5"
+        # kmodel, bmodel = self._load_keras(json_path, hdf5_path)
+        # koutput = kmodel.predict(input_data)
+        # boutput = bmodel.forward(input_data)
+        # assert_allclose(boutput, koutput, rtol=1e-4)
+
+
+
+        layer = Convolution2D(64, 4, 4,
+                    border_mode='valid')
         self.__modelTestSingleLayer(input_data,
                                     layer,
-                                    dump_weights=True)
+                                    dump_weights=True, predict_precision=1e-4)
+        # Test if alias works or not
+        # layer = Conv2D(64, 3, 3,
+        #             border_mode='same',
+        #                         input_shape=(3, 128, 128))
+        # self.__modelTestSingleLayer(input_data,
+        #                             layer,
+        #                             dump_weights=True, predict_precision=1e-1)
 
-    def test_maxpooling2d(self): # TODO: implement create_flatten
+
+    def test_maxpooling2d(self):
         input_data = np.random.random_sample([1, 3, 20, 20])
         layer = MaxPooling2D(pool_size=[3, 3], strides=[2,2], border_mode="valid")
         self.__modelTestSingleLayer(input_data, layer)
 
+    def test_maxpooling1d(self):
+        input_data = np.random.random_sample([1, 3, 20])
+        layer = MaxPooling1D(pool_length=2, stride=None, border_mode='valid')
+        self.__modelTestSingleLayer(input_data, layer)
+
+    def test_globalmaxpooling2d(self):
+        input_data = np.random.random_sample([1, 3, 20, 20])
+        layer = GlobalMaxPooling2D()
+        self.__modelTestSingleLayer(input_data, layer)
+
+    def test_globalmaxpooling1d(self):
+        input_data = np.random.random_sample([1, 3, 20])
+        layer = GlobalMaxPooling1D()
+        self.__modelTestSingleLayer(input_data, layer)
+
+    def test_averagepooling2d(self):
+        input_data = np.random.random_sample([1, 3, 20, 20])
+        layer = AveragePooling2D(pool_size=[3, 3], strides=[2,2], border_mode="valid")
+        self.__modelTestSingleLayer(input_data, layer)
+
+    def test_averagepooling1d(self):
+        input_data = np.random.random_sample([1, 3, 20])
+        layer = AveragePooling1D(pool_length=2, stride=None, border_mode='valid')
+        self.__modelTestSingleLayer(input_data, layer)
+
+    def test_globalaveragepooling2d(self):
+        input_data = np.random.random_sample([1, 3, 20, 20])
+        layer = GlobalAveragePooling2D()
+        self.__modelTestSingleLayer(input_data, layer)
+
+    def test_globalaveragepooling1d(self):
+        input_data = np.random.random_sample([1, 3, 20])
+        layer = GlobalAveragePooling1D() # TODO: add dim_ordering as parameter?
+        self.__modelTestSingleLayer(input_data, layer)
+
+    def test_batchnormalization(self): # test with channel first
+        # For debug: bigdl_model.executions()[1].value.runningMean()
+        # TODO mode=0 would fail 0 vs 2? oh, keras predict is in predict stage not the same as training.
+        input_data = np.random.random_sample([2, 3, 20, 20])
+        layer = BatchNormalization(input_shape=(3, 20, 20), epsilon=1e-3, mode=2, axis=1, momentum=0.99,
+                 weights=None, beta_init='zero', gamma_init='one',
+                 gamma_regularizer=None, beta_regularizer=None)
+        # TODO: increase the precision, 1e-4 would fail
+        self.__modelTestSingleLayer(input_data, layer, dump_weights=True, predict_precision=1e-3)
+
     def test_flatten(self):
         input_data = np.random.random_sample([1, 2, 3])
         layer = Flatten()
+        self.__modelTestSingleLayer(input_data, layer)
+
+    def test_reshape(self):
+        input_data = np.random.random_sample([1, 3, 5, 4])
+        layer = Reshape(target_shape=(3, 20))
+        self.__modelTestSingleLayer(input_data, layer)
+
+    def test_merge_concat(self):
+        input_data1 = np.random.random_sample([2, 3, 5])
+        input_data2 = np.random.random_sample([2, 3, 6])
+
+        layer = Merge(layers=[input_data1, input_data2], mode='sum', concat_axis=2,
+                 dot_axes=-1, output_shape=None, output_mask=None,
+                 arguments=None, node_indices=None, tensor_indices=None,
+                 name=None)
         self.__modelTestSingleLayer(input_data, layer)
 
     # TODO: Support share weights training.

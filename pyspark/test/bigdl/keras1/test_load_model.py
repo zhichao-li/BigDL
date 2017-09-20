@@ -82,7 +82,7 @@ class TestLoadModel():
 
     def test_load_weights(self):
         kmodel, keras_model_path_json, keras_model_path_hdf5 = self.__simple_mlp_model()
-        bmodel = ModelLoader.load_definition(keras_model_path_json)
+        bmodel = ModelLoader.load_def_from_json(keras_model_path_json)
         ModelLoader.load_weights(bmodel,
                                        kmodel,
 
@@ -94,7 +94,7 @@ class TestLoadModel():
 
     def test_load_weights_single_layer(self):
         kmodel, keras_model_path_json, keras_model_path_hdf5 = self.__simple_mlp_model_single()
-        bmodel = ModelLoader.load_definition(keras_model_path_json)
+        bmodel = ModelLoader.load_def_from_json(keras_model_path_json)
         ModelLoader.load_weights(bmodel,
                                        kmodel,
                                        keras_model_path_hdf5)

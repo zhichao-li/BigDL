@@ -10,6 +10,9 @@ import bigdl.nn.criterion as bcriterion
 import bigdl.util.common as bcommon
 import keras.optimizers as koptimizers
 from keras.models import model_from_json
+from bigdl.keras1.converter import ModelLoader
+from bigdl.keras1.converter import OptimConverter
+
 
 
 # > import types
@@ -17,6 +20,12 @@ from keras.models import model_from_json
 from keras.models import Sequential, Model
 import numpy as np
 
+
+def to_sample_rdd(sc, x, y):
+    from bigdl.util.common import Sample
+    x_rdd = sc.parallelize(x)
+    y_rdd = sc.parallelize(y)
+    return x_rdd.zip(y_rdd).map(lambda item: Sample.from_ndarray(item[0], item[1]))
 
 def install_bigdl_backend(kmodel):
     def bevaluate(self, x, y, batch_size=32, verbose=1, sample_weight=None):
@@ -51,15 +60,15 @@ def install_bigdl_backend(kmodel):
 
         boptimizer.Optimizer(
             model=bmodel,
-            training_rdd=ModelLoader.to_sample_rdd(sc, x, y),
-            criterion=ModelLoader.to_bigdl_criterion(kmodel.loss),
+            training_rdd=to_sample_rdd(sc, x, y),
+            criterion=OptimConverter.to_bigdl_criterion(kmodel.loss),
             end_trigger=boptimizer.MaxEpoch(nb_epoch),
             batch_size=batch_size,
-            optim_method=ModelLoader.to_bigdl_optim_method(kmodel.optimizer)
+            optim_method=OptimConverter.to_bigdl_optim_method(kmodel.optimizer)
         ).optimize()
 
         # TODO: maybe we don't need batch_size, verbose and sample_weight
-    bmodel = ModelLoader.to_bigdl_definition(kmodel)
+    bmodel = ModelLoader.load_def_from_kmodel(kmodel)
     kmodel.__old_fit = kmodel.fit
     kmodel.fit = bfit
     kmodel.predict = bpredict
