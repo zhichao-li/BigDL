@@ -294,7 +294,7 @@ def get_spark_context(conf = None):
         return SparkContext.getOrCreate(conf=conf or create_spark_conf())
     else:
         # Might have threading issue but we cann't add _lock here
-        # as it's not RLock in spark1.5
+        # as it's not RLock in spark1.5;
         if SparkContext._active_spark_context is None:
             SparkContext(conf=conf or create_spark_conf())
         return SparkContext._active_spark_context

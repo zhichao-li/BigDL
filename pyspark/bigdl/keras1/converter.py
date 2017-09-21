@@ -187,6 +187,10 @@ class WeightsConverter:
     def convert_convolution1d(weights):
         return WeightsConverter.convert_convolution2d(weights)
 
+    @staticmethod
+    def convert_embedding(weights):
+        return weights
+
 class DefinitionLoader:
 
     def __init__(self, kmodel):
@@ -199,8 +203,24 @@ class DefinitionLoader:
         for layer in self.kmodel.layers:
             self.node_id_to_layer[layer.name] = layer
 
-        for clayer in self.kconfig["layers"]:
-            self.node_id_to_config_layer[clayer["name"]] = clayer
+        if isinstance(self.kmodel, Sequential):
+            for layer_config in self.kmodel.get_config():
+                layer_name = layer_config["config"]["name"]
+                self.node_id_to_config_layer[layer_name] = layer_config
+        else:
+            for layerConfig in self.kconfig["layers"]:
+                self.node_id_to_config_layer[layerConfig["name"]] = layerConfig
+        # Miss inbound_nodes in the layer config of Sequential comparing against functional api
+        # "inbound_nodes": [
+        #   [
+        #     [
+        #       "mixed3",
+        #       0,
+        #       0
+        #     ]
+        #   ]
+        # ],
+
 
     @classmethod
     def from_kmodel(cls, kmodel):
@@ -229,7 +249,7 @@ class DefinitionLoader:
                                          self.node_id_to_config_layer[out_name])
                 bigdl_in_nodes.append(self.node_id_to_instance[out_name])
 
-        blayer = LayerConverter().create(clayer["class_name"], layer, clayer)
+        blayer = LayerConverter().create(layer, clayer)
         new_bnode = blayer(bigdl_in_nodes)
         self.node_id_to_instance[layer.name] = new_bnode
         return new_bnode
@@ -251,20 +271,25 @@ class DefinitionLoader:
         return BLayer.Model(inputs=ins, outputs=outs)
 
     def _construct_bigdl_sequence(self):
-        pass
+        bseq = BLayer.Sequential()
+        layerConverter = LayerConverter()
+        for layer in self.kmodel.layers:
+            blayer = layerConverter.create(layer, self.node_id_to_config_layer[layer.name])
+            bseq.add(blayer)
+        return bseq
 
 
     def to_bigdl(self):
-        if isinstance(self.kmodel, Model):
+        if isinstance(self.kmodel, Sequential):
+            bmodel = self._construct_bigdl_sequence()
+        elif isinstance(self.kmodel, ):
             bmodel = self._construct_bigdl_model()
-        elif isinstance(self.kmodel, Sequential):
-            bmodel = self. _construct_bigdl_sequence()
         return bmodel
 
 
 class LayerConverter:
 
-    def create(self, class_name, klayer, kclayer):
+    def __check_is_share_weights(self, kclayer):
         # For Merge layer len(kclayer["inbound_nodes"]) is equal to 1
         # "inbound_nodes": [
         #                      [
@@ -290,11 +315,22 @@ class LayerConverter:
         #                          ]
         #                      ]
         #                  ],
-        if len(kclayer["inbound_nodes"]) > 1:
-            raise Exception("We don't support shared weights style for now")
+        if "inbound_nodes" in kclayer and len(kclayer["inbound_nodes"]) > 1:
+            raise Exception(
+                "%s doesn't support multiple inputs with shared weights" % kclayer["class_name"])
+
+
+    def create(self, klayer, kclayer):
+        class_name = kclayer["class_name"]
+
+        self.__check_is_share_weights(kclayer)
+
         if (hasattr(klayer, "b_constraint") and klayer.b_constraint) or \
            (hasattr(klayer, "W_constraint") and klayer.W_constraint):
             raise Exception("We don't support constraint for now")
+
+        if (hasattr(klayer, "activity_regularizer") and klayer.activity_regularizer):
+            raise Exception("We don't support activity_regularizer for now")
 
         function_name = "create_" + class_name.lower()
         if not hasattr(self, function_name):
@@ -322,6 +358,34 @@ class LayerConverter:
         )
         return self.combo_parameter_layer(blayer, config)
 
+    def create_embedding(self, klayer, kclayer):
+        config = kclayer["config"]
+        input_shape = klayer.get_input_shape_at(0) # batch, seq_len
+        seq_len = input_shape[1]
+        if klayer.input_length and klayer.input_length != seq_len:
+            raise Exception(
+                "The input_length doesn't match: %s vs %s" % (seq_len, klayer.input_length))
+
+        if (hasattr(klayer, "dropout") and klayer.dropout != 0):
+            raise Exception("We don't support dropout for now")
+
+        if (hasattr(klayer, "mask_zero") and klayer.mask_zero != False):
+            raise Exception("We don't support mask_zero for now")
+
+        bseq = BLayer.Sequential()
+        blayer = BLayer.LookupTable(
+                 n_index = klayer.input_dim,
+                 n_output = klayer.output_dim,
+                 padding_value=0.0,
+                 norm_type=2.0,
+                 should_scale_grad_by_freq=False,
+                 wRegularizer= self.to_bigdl_reg(config["W_regularizer"]),
+                 bigdl_type="float")
+        bseq.add(BLayer.AddConstant(1.0, inplace=True)) # Add 1 as BigDL is one-based index
+        bseq.add(blayer)
+        return bseq
+
+
     def create_activation(self, klayer, kclayer):
         return self.to_bigdl_activation(klayer.activation, klayer.name)
 
@@ -329,23 +393,30 @@ class LayerConverter:
         return BLayer.Dropout(klayer.p).setName(klayer.name)
 
     def create_flatten(self, klayer, kclayer):
-        if len(kclayer["inbound_nodes"]) > 1:
-            raise Exception("Flatten doesn't support multiple inputs")
+        self.__check_is_share_weights(kclayer)
         input_shape = klayer.input_shape
         blayer = BLayer.Reshape([np.prod(input_shape[1:])], None)
         return blayer
 
     def create_reshape(self, klayer, kclayer):
-        if len(kclayer["inbound_nodes"]) > 1:
-            raise Exception("Reshpae doesn't support multiple inputs")
+        self.__check_is_share_weights(kclayer)
         blayer = BLayer.Reshape(klayer.target_shape, None)
+        return blayer
+
+    def create_merge(self, klayer, kclayer):
+        self.__check_is_share_weights(kclayer)
+        if klayer.mode == "concat":
+            blayer = BLayer.Concat(
+                 dimension = klayer.concat_axis,
+                 bigdl_type="float")
+        else:
+            raise Exception("We don't support % right now" % kclayer.mode)
         return blayer
 
     def create_batchnormalization(self, klayer, kclayer):
         config = kclayer["config"]
 
-        if len(kclayer["inbound_nodes"]) > 1:
-            raise Exception("batchnormalization doesn't support multiple inputs")
+        self.__check_is_share_weights(kclayer)
 
         if klayer.mode != 2:
             raise Exception(
