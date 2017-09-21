@@ -117,7 +117,7 @@ class TestLoadModel():
                       metrics=['accuracy'])
 
         bigdl_common.init_engine()
-        bigdl_backend.install_bigdl_backend(model)
+        bigdl_backend.use_bigdl_backend(model)
         input_data = np.random.random([4, 20])
         output_data = np.random.randint(1, 5, [4, 5])
         model.fit(input_data, output_data, batch_size=4, nb_epoch=2)

@@ -158,6 +158,16 @@ class TestLayer(BigDLTestCase):
         # layer = Convolution1D(64, 3, border_mode='same', input_shape=(10, 32))
         # self.__modelTestSingleLayer(input_data, layer, dump_weights=True)
 
+        layer = Convolution1D(64, 3, border_mode='same', input_shape=(10, 32))
+        self.__modelTestSingleLayer(input_data, layer, dump_weights=True, predict_precision=1e-1)
+
+    def _load_keras(self, json_path, hdf5_path):
+        with open(json_path, "r") as jp:
+            kmodel = model_from_json(jp.read())
+        kmodel.load_weights(hdf5_path)
+        bmodel = ModelLoader.load_def_from_json(json_path)
+        ModelLoader.load_weights(bmodel, kmodel, hdf5_path) # TODO: refactor reability of this api
+        return kmodel, bmodel
 
     def test_conv2D(self):
         image_dim_orders = ["tf", "th"]
@@ -247,11 +257,39 @@ class TestLayer(BigDLTestCase):
         self.__modelTestSingleLayer(input_data, layer)
 
     def test_merge_concat(self):
+        # input_data1 = np.random.random_sample([2, 3, 5])
+        # input_data2 = np.random.random_sample([2, 3, 6])
+        # model1 = Sequential()
+        # model1.add(Dense(20, input_dim=2))
+        # model1.add(Dense(20, input_dim=2))
+        #
+        # model2 = Sequential()
+        # model2.add(Input(input_dim=32))
+        #
+        # merged_model = Sequential()
+        # merged_model.add(Merge([model1, model2], mode='concat', concat_axis=0))
+
         inputLayer1 = InputLayer(input_shape=(3, 6, 7))
         inputLayer2 = InputLayer(input_shape=(3, 6, 8))
-        # the index including batch and start from zero which is the index to be merge
-        layer = Merge([inputLayer1, inputLayer2], mode='concat', concat_axis=3)
-        input_data = [np.random.random_sample([2, 3, 6, 7]), np.random.random([2, 3, 6, 8])]
+        inputLayer3 = InputLayer(input_shape=(3, 6, 9))
+
+        layer = Merge([inputLayer1, inputLayer2, inputLayer3], mode='concat', concat_axis=3)
+        # the index including batch and start from zero, and it's the index to be merge
+        input_data = [np.random.random_sample([2, 3, 6, 7]),
+                      np.random.random([2, 3, 6, 8]),
+                      np.random.random([2, 3, 6, 9])]
+        self.__modelTestSingleLayer(input_data, layer, functional_api=False)
+
+    def test_merge_sum(self):
+        inputLayer1 = InputLayer(input_shape=(3, 6, 7))
+        inputLayer2 = InputLayer(input_shape=(3, 6, 7))
+        inputLayer3 = InputLayer(input_shape=(3, 6, 7))
+
+        layer = Merge([inputLayer1, inputLayer2, inputLayer3], mode='sum')
+        # the index including batch and start from zero, and it's the index to be merge
+        input_data = [np.random.random_sample([2, 3, 6, 7]),
+                      np.random.random([2, 3, 6, 7]),
+                      np.random.random([2, 3, 6, 7])]
         self.__modelTestSingleLayer(input_data, layer, functional_api=False)
 
     # TODO: Support share weights training.

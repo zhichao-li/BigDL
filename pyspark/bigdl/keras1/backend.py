@@ -11,7 +11,7 @@ import bigdl.util.common as bcommon
 import keras.optimizers as koptimizers
 from keras.models import model_from_json
 from bigdl.keras1.converter import ModelLoader
-from bigdl.keras1.converter import OptimConverter
+from bigdl.keras1.converter import OptimConverter, unsupport_exp
 
 
 
@@ -27,13 +27,21 @@ def to_sample_rdd(sc, x, y):
     y_rdd = sc.parallelize(y)
     return x_rdd.zip(y_rdd).map(lambda item: Sample.from_ndarray(item[0], item[1]))
 
-def install_bigdl_backend(kmodel):
-    def bevaluate(self, x, y, batch_size=32, verbose=1, sample_weight=None):
-        sc = get_spark_context()
-        sample_rdd = Model._to_sample_rdd(sc, x, y)
-        return [r.result for r in self.B.test(sample_rdd, batch_size, self.metrics)]
 
-    def bpredict(self, x, batch_size=32, verbose=0):
+class BigDLModel():
+    def __init__(self, kmodel):
+        self.bmodel = ModelLoader.load_def_from_kmodel(kmodel)
+        self.criterion = OptimConverter.to_bigdl_criterion(kmodel.loss)
+        self.optim_method = OptimConverter.to_bigdl_optim_method(kmodel.optimizer)
+        self.metrics = OptimConverter.to_bigdl_metrics(kmodel.metrics)
+
+    def evaluate(self, x, y, batch_size=32, verbose=1, sample_weight=None):
+        sc = get_spark_context()
+        sample_rdd = to_sample_rdd(sc, x, y)
+        return [r.result for r in self.bmodel.test(sample_rdd, batch_size, self.metrics)] # TODO: find the metrics
+
+    # TODO: Support batch_size??
+    def predict(self, x, batch_size=32, verbose=0):
         """Generates output predictions for the input samples,
         processing the samples in a batched way.
 
@@ -49,29 +57,50 @@ def install_bigdl_backend(kmodel):
         sc = get_spark_context()
         x_rdd = sc.parallelize(x).map(
             lambda i: bcommon.Sample.from_ndarray(i, np.zeros((1))))
-        return np.asarray(self.B.predict(x_rdd).collect())
+        return np.asarray(self.bmodel.predict(x_rdd).collect())
 
 
-    def bfit(x, y, batch_size=32, nb_epoch=10, verbose=1, callbacks=None,
+    def fit(self, x, y, batch_size=32, nb_epoch=10, verbose=1, callbacks=None,
             validation_split=0., validation_data=None, shuffle=True,
             class_weight=None, sample_weight=None, initial_epoch=0):
-        sc = get_spark_context()
-        # result = ModelLoader.to_sample_rdd(sc, x, y).collect()
+        if callbacks:
+            raise Exception("We don't support callbacks in fit for now")
+        if class_weight:
+            unsupport_exp("class_weight")
+        if sample_weight:
+            unsupport_exp("sample_weight")
+        if initial_epoch != 0:
+            unsupport_exp("initial_epoch")
+        if shuffle != True:
+            unsupport_exp("shuffle")
+        if validation_split != 0.:
+            unsupport_exp("validation_split")
 
-        boptimizer.Optimizer(
-            model=bmodel,
+
+        sc = get_spark_context()
+        bopt = boptimizer.Optimizer(
+            model=self.bmodel,
             training_rdd=to_sample_rdd(sc, x, y),
-            criterion=OptimConverter.to_bigdl_criterion(kmodel.loss),
+            criterion=self.criterion,
             end_trigger=boptimizer.MaxEpoch(nb_epoch),
             batch_size=batch_size,
-            optim_method=OptimConverter.to_bigdl_optim_method(kmodel.optimizer)
-        ).optimize()
+            optim_method=self.optim_method
+        )
+        bopt.set_validation(batch_size,
+                            val_rdd=to_sample_rdd(sc, *validation_data ),
+                            trigger=boptimizer.EveryEpoch(), # TODO: check if keras use the same strategy
+                            val_method=self.metrics)
+        bopt.optimize()
 
+
+def use_bigdl_backend(kmodel):
         # TODO: maybe we don't need batch_size, verbose and sample_weight
-    bmodel = ModelLoader.load_def_from_kmodel(kmodel)
-    kmodel.__old_fit = kmodel.fit
-    kmodel.fit = bfit
-    kmodel.predict = bpredict
-    kmodel.evaluate = bevaluate
-    kmodel.get_weights = bmodel.get_weights
+    bcommon.init_engine()
+    # bmodel = ModelLoader.load_def_from_kmodel(kmodel)
+    # kmodel.__old_fit = kmodel.fit
+    # kmodel.fit = bfit
+    # kmodel.predict = bpredict
+    # kmodel.evaluate = bevaluate
+    # kmodel.get_weights = bmodel.get_weights
+    return BigDLModel(kmodel)
 

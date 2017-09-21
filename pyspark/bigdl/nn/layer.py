@@ -432,7 +432,7 @@ class Layer(JavaValue):
     def is_training(self):
         '''
         :return: Whether this layer is in the training mode
-        
+
         >>> layer = Dropout()
         creating: createDropout
         >>> layer = layer.evaluate()
@@ -540,6 +540,15 @@ class Container(Layer):
         self.value.add(model.value)
         return self
 
+    def executions(self):
+        if isinstance(self, Sequential):
+            j_api = "seqExecutions"
+        else:
+            j_api = "modelForwardExecutions"
+        jlayers = callBigDlFunc(self.bigdl_type, j_api , self)
+        layers = [Layer.of(jlayer) for jlayer in jlayers]
+        return layers
+
     def training(self):
         '''
         Set this layer in the training mode
@@ -610,11 +619,6 @@ class Model(Container):
         model = Model([], [], jvalue=jvalue)
         model.value = jvalue
         return model
-
-    def executions(self):
-        jlayers = callBigDlFunc(self.bigdl_type, "modelForwardExecutions", self)
-        layers = [Layer.of(jlayer) for jlayer in jlayers]
-        return layers
 
     def __str__(self):
         return "->".join(self.executions())
@@ -1225,12 +1229,12 @@ class Recurrent(Container):
         
         :return: list of hidden state and cell
         """
-        state = callBigDlFunc(self.bigdl_type, "getHiddenState", self.value)        
+        state = callBigDlFunc(self.bigdl_type, "getHiddenState", self.value)
         for idx, tensor in enumerate(state):
             state[idx] = tensor.to_ndarray()
 
         return state
-    
+
     def set_hidden_state(self, states):
         """
         set hidden state and cell at first time step.
@@ -4295,11 +4299,11 @@ class ResizeBilinear(Layer):
     """
     Resize the input image with bilinear interpolation. The input image must be a float tensor with
     NHWC layout
-    
+
     :param output_height: output height
     :param output_width: output width
     :param align_corner: align corner or not
-    
+
     >>> resizeBilinear = ResizeBilinear(10, 20, False)
     creating: createResizeBilinear
     """

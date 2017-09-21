@@ -52,7 +52,7 @@ class TestModelOp():
                       metrics=['accuracy'])
 
         bigdl_common.init_engine()
-        bigdl_backend.install_bigdl_backend(model)
+        bigdl_backend.use_bigdl_backend(model)
         input_data = np.random.random([4, 20])
         output_data = np.random.randint(1, 5, [4, 5])
         model.fit(input_data, output_data, batch_size=4, nb_epoch=2)
@@ -64,7 +64,7 @@ class TestModelOp():
                       optimizer='sgd') # lr should be 0.01 otherwise the result is bad.
 
         bigdl_common.init_engine()
-        bigdl_backend.install_bigdl_backend(model)
+        bigdl_backend.use_bigdl_backend(model)
         input_data = np.random.uniform(0, 1, (1000, 3))
         expected_W = np.array([1, 2, 3]).transpose()
         output_data = np.dot(input_data, expected_W)

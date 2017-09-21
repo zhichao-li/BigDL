@@ -2036,7 +2036,12 @@ class PythonBigDL[T: ClassTag](implicit ev: TensorNumeric[T]) extends Serializab
   def modelForwardExecutions(graph: Graph[T]): JList[AbstractModule[Activity, Activity, T]] = {
     graph.modules.toList.asJava
   }
+
+  def seqExecutions(seq: Sequential[T]): JList[AbstractModule[Activity, Activity, T]] = {
+    seq.modules.toList.asJava
+  }
 }
+
 
 object PythonBigDLUtils {
   def toTensor[T: ClassTag](jTensor: JTensor, typeName: String)
