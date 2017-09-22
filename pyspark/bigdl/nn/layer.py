@@ -413,6 +413,15 @@ class Container(Layer):
         self.value.add(model.value)
         return self
 
+    def executions(self):
+        if isinstance(self, Sequential):
+            j_api = "seqExecutions"
+        else:
+            j_api = "modelForwardExecutions"
+        jlayers = callBigDlFunc(self.bigdl_type, j_api , self)
+        layers = [Layer.of(jlayer) for jlayer in jlayers]
+        return layers
+
 
 class Model(Container):
     """
@@ -469,11 +478,6 @@ class Model(Container):
         model = Model([], [], jvalue=jvalue)
         model.value = jvalue
         return model
-
-    def executions(self):
-        jlayers = callBigDlFunc(self.bigdl_type, "modelForwardExecutions", self)
-        layers = [Layer.of(jlayer) for jlayer in jlayers]
-        return layers
 
     def __str__(self):
         return "->".join(self.executions())

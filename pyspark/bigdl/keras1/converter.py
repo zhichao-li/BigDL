@@ -10,15 +10,32 @@ from keras.models import model_from_json
 from keras.models import Sequential, Model
 from bigdl.util.common import callBigDlFuncWithoutMappingReturn
 
+def unsupport_exp(name):
+    raise Exception("We don't support %s for now" % name)
+
+
 class OptimConverter:
 
     @staticmethod
+    def to_bigdl_metrics(metrics):
+        metrics = bcommon.to_list(metrics)
+        bmetrics = []
+        for metric in metrics:
+            if metric == "accuracy":
+                bmetrics.append(boptimizer.Top1Accuracy())
+            else:
+                unsupport_exp(metric)
+        return bmetrics
+
+    @staticmethod
     def to_bigdl_criterion(kloss):
-        # TODO: it may pass in an object
+        # TODO: it may pass in an object and with parameters
         if kloss == "categorical_crossentropy":
             return bcriterion.ClassNLLCriterion()
         elif kloss == "mse":
             return bcriterion.MSECriterion()
+        elif kloss == "binary_crossentropy":
+            return bcriterion.BCECriterion()
         else:
             raise Exception("Not supported type: %s" % kloss)
 
@@ -29,8 +46,10 @@ class OptimConverter:
             return boptimizer.Adagrad()
         elif isinstance(koptim_method, koptimizers.SGD):
             return boptimizer.SGD(learningrate=0.01)  # TODO: enrich parameters, sgd.lr return a variable!!!not float
+        elif isinstance(koptim_method, koptimizers.Adam):
+            return boptimizer.Adam()
         else:
-            raise Exception("Not supported type: %s" % koptim_method)
+            unsupport_exp(koptim_method)
 
 class ModelLoader:
 
@@ -282,7 +301,7 @@ class DefinitionLoader:
     def to_bigdl(self):
         if isinstance(self.kmodel, Sequential):
             bmodel = self._construct_bigdl_sequence()
-        elif isinstance(self.kmodel, ):
+        elif isinstance(self.kmodel, Model):
             bmodel = self._construct_bigdl_model()
         return bmodel
 
@@ -387,10 +406,11 @@ class LayerConverter:
 
 
     def create_activation(self, klayer, kclayer):
-        return self.to_bigdl_activation(klayer.activation, klayer.name)
+        config = kclayer["config"]
+        return self.to_bigdl_activation(config["activation"], klayer.name)
 
     def create_dropout(self, klayer, kclayer):
-        return BLayer.Dropout(klayer.p).setName(klayer.name)
+        return BLayer.Dropout(klayer.p)
 
     def create_flatten(self, klayer, kclayer):
         self.__check_is_share_weights(kclayer)
@@ -405,11 +425,18 @@ class LayerConverter:
 
     def create_merge(self, klayer, kclayer):
         self.__check_is_share_weights(kclayer)
+        input_shape = klayer.get_input_shape_at(0)
         if klayer.mode == "concat":
-            blayer = BLayer.Concat(
+            blayer = BLayer.JoinTable(
                  dimension = klayer.concat_axis,
+                n_input_dims = len(input_shape[0]) - 1,
+                 bigdl_type="float")
+        elif klayer.mode == "sum":
+            blayer = BLayer.CAddTable(
+                 inplace=False,
                  bigdl_type="float")
         else:
+            # TODO: Add more mode for this
             raise Exception("We don't support % right now" % kclayer.mode)
         return blayer
 
@@ -508,7 +535,7 @@ class LayerConverter:
         bpadW, bpadH = self.to_bigdl_2d_padding(klayer.border_mode)
         seq = BLayer.Sequential()
         seq.add(BLayer.View([input_shape[1], 1, input_shape[2]], num_input_dims=3))
-        raise Exception("What !!!!")
+        # TODO: Check why it would work without the View layer!!
         blayer = BLayer.SpatialConvolution(
                  n_input_plane = stack_size,
                  n_output_plane = klayer.nb_filter,

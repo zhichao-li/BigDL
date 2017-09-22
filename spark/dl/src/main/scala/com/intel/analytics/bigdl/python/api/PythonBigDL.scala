@@ -1913,4 +1913,7 @@ class PythonBigDL[T: ClassTag](implicit ev: TensorNumeric[T]) extends Serializab
     graph.getForwardExecutions.map{node => node.element}.toList.asJava
   }
 
+  def seqExecutions(seq: Sequential[T]): JList[AbstractModule[Activity, Activity, T]] = {
+    seq.modules.toList.asJava
+  }
 }
