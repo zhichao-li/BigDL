@@ -189,6 +189,10 @@ class PythonBigDL[T: ClassTag](implicit ev: TensorNumeric[T]) extends Serializab
     Sample[T](record.features.asScala.toArray.map(toTensor(_)), toTensor(record.label))
   }
 
+  def toSample(psamples: RDD[PSample]): RDD[Sample[T]] = {
+    psamples.map(toSample(_))
+  }
+
   // The first dimension is batch for both X and y
   private def toSampleArray(X: Tensor[T], y: Tensor[T]): Array[Sample[T]] = {
     require(X.size()(0) == y.size()(0),
@@ -203,14 +207,6 @@ class PythonBigDL[T: ClassTag](implicit ev: TensorNumeric[T]) extends Serializab
     samples
   }
 
-  private def toSampleDataSet(rdd: RDD[PSample]): DataSet[Sample[T]] = {
-    val recordRDD = rdd.map(toSample(_))
-    DataSet.rdd(recordRDD)
-  }
-
-  private def toSampleDataSet(data: Array[Sample[T]]): DataSet[Sample[T]] = {
-    DataSet.array(data)
-  }
 
   private def batching(dataset: DataSet[Sample[T]], batchSize: Int)
   : DataSet[MiniBatch[T]] = {
@@ -1621,7 +1617,8 @@ class PythonBigDL[T: ClassTag](implicit ev: TensorNumeric[T]) extends Serializab
 
   def modelPredictClass(model: AbstractModule[Activity, Activity, T],
                       dataRdd: JavaRDD[PSample]): JavaRDD[Int] = {
-    val tensorRDD = model.predictClass(dataRdd.rdd.map(toSample(_)))
+    val sampleRdd = toSample(dataRdd)
+    val tensorRDD = model.predictClass(sampleRdd)
     new JavaRDD[Int](tensorRDD)
   }
 
@@ -1832,8 +1829,8 @@ class PythonBigDL[T: ClassTag](implicit ev: TensorNumeric[T]) extends Serializab
 
     val context = new Context[T]()
     val session = new BigDLSessionImpl[T](nodeList.asScala, context, ByteOrder.LITTLE_ENDIAN)
-    val dataset = batching(toSampleDataSet(samples), batchSize)
-
+    val dataset = batching(DataSet.rdd(toSample(samples)),
+      batchSize).asInstanceOf[DistributedDataSet[MiniBatch[T]]]
     val model = session.train(Seq(output), dataset,
       optMethod, criterion, endWhen)
     model
@@ -1850,7 +1847,7 @@ class PythonBigDL[T: ClassTag](implicit ev: TensorNumeric[T]) extends Serializab
     val sampleArray = toSampleArray(toTensor(X), toTensor(y))
     val optimizer = new LocalOptimizer[T](
       model,
-      batching(toSampleDataSet(sampleArray), batchSize)
+      batching(DataSet.array(sampleArray), batchSize)
         .asInstanceOf[LocalDataSet[MiniBatch[T]]],
       criterion
     ).asInstanceOf[Optimizer[T, MiniBatch[T]]]
@@ -1864,9 +1861,11 @@ class PythonBigDL[T: ClassTag](implicit ev: TensorNumeric[T]) extends Serializab
                             optimMethod: OptimMethod[T],
                             endTrigger: Trigger,
                             batchSize: Int): Optimizer[T, MiniBatch[T]] = {
+    val sampleRDD = toSample(trainingRdd)
+
     val optimizer = new DistriOptimizer(
       _model = model,
-      dataset = batching(toSampleDataSet(trainingRdd.rdd), batchSize)
+      dataset = batching(DataSet.rdd(sampleRDD), batchSize)
         .asInstanceOf[DistributedDataSet[MiniBatch[T]]],
       criterion = criterion
     ).asInstanceOf[Optimizer[T, MiniBatch[T]]]
@@ -1890,7 +1889,8 @@ class PythonBigDL[T: ClassTag](implicit ev: TensorNumeric[T]) extends Serializab
                     trigger: Trigger,
                     valRdd: JavaRDD[PSample],
                     vMethods: JList[ValidationMethod[T]]): Unit = {
-    optimizer.setValidation(trigger, batching(toSampleDataSet(valRdd.rdd), batchSize.toInt),
+    val sampleRDD = toSample(valRdd)
+    optimizer.setValidation(trigger, batching(DataSet.rdd(sampleRDD), batchSize.toInt),
       vMethods.asScala.toArray)
   }
 
