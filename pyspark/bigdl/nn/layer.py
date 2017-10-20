@@ -48,6 +48,10 @@ class Node(JavaValue):
 
     def element(self):
         return Layer.of(self.value.element())
+    # Node doesn't have set name method
+    # def set_name(self, name):
+    #     callJavaFunc(get_spark_context(), self.value.setName, name)
+    #     return self
 
 
 class Layer(JavaValue):
@@ -560,8 +564,12 @@ class Model(Container):
     def __init__(self,
                  inputs,
                  outputs,
+                 jvalue=None,
                  bigdl_type="float", byte_order="little_endian", model_type="bigdl"):
-        if model_type == "bigdl":
+        if jvalue:
+            self.value = jvalue
+            self.bigdl_type = bigdl_type
+        elif model_type == "bigdl":
             super(Model, self).__init__(None, bigdl_type,
                                     to_list(inputs),
                                     to_list(outputs))
@@ -570,6 +578,25 @@ class Model(Container):
             model = convert(to_list(inputs), to_list(outputs), byte_order, bigdl_type)
             super(Model, self).__init__(model, bigdl_type)
 
+
+    @staticmethod
+    def from_jvalue(jvalue, bigdl_type="float"):
+        """
+        Create a Python Model base on the given java value
+        :param jvalue: Java object create by Py4j
+        :return: A Python Model
+        """
+        model = Model([], [], jvalue=jvalue)
+        model.value = jvalue
+        return model
+
+    def executions(self):
+        jlayers = callBigDlFunc(self.bigdl_type, "modelForwardExecutions", self)
+        layers = [Layer.of(jlayer) for jlayer in jlayers]
+        return layers
+
+    def __str__(self):
+        return "->".join(self.executions())
 
     @staticmethod
     def load(path, bigdl_type="float"):

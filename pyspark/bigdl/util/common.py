@@ -28,7 +28,8 @@ from pyspark.mllib.common import callJavaFunc
 from pyspark import SparkConf
 import numpy as np
 import threading
-from bigdl.util.engine import get_bigdl_classpath, is_spark_below_2_2
+import tempfile
+from bigdl.util.engine import prepare_env, get_bigdl_classpath, is_spark_below_2_2
 
 INTMAX = 2147483647
 INTMIN = -2147483648
@@ -441,6 +442,18 @@ def callBigDlFunc(bigdl_type, name, *args):
     api = getattr(jinstance, name)
     return callJavaFunc(sc, api, *args)
 
+def callBigDlFuncWithoutMappingReturn(bigdl_type, name, *args):
+    """ Call API in PythonBigDL """
+    jinstance = JavaCreator.instance(bigdl_type=bigdl_type).value
+    sc = get_spark_context()
+    func = getattr(jinstance, name)
+    """ Call Java Function """
+    args = [_py2java(sc, a) for a in args]
+    result = func(*args)
+    return result
+
+
+
 
 def _java2py(sc, r, encoding="bytes"):
     if isinstance(r, JavaObject):
@@ -518,6 +531,11 @@ def _py2java(sc, obj):
         data = bytearray(PickleSerializer().dumps(obj))
         obj = sc._jvm.org.apache.spark.bigdl.api.python.BigDLSerDe.loads(data)
     return obj
+
+def create_tmp_path():
+    tmp_file = tempfile.NamedTemporaryFile(prefix="bigdl")
+    tmp_file.close()
+    return tmp_file.name
 
 
 def _test():

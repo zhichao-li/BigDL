@@ -1,0 +1,6369 @@
+{
+  "class_name": "Model",
+  "keras_version": "1.2.2",
+  "config": {
+    "layers": [
+      {
+        "class_name": "InputLayer",
+        "config": {
+          "batch_input_shape": [
+            null,
+            299,
+            299,
+            3
+          ],
+          "input_dtype": "float32",
+          "sparse": false,
+          "name": "input_3"
+        },
+        "inbound_nodes": [],
+        "name": "input_3"
+      },
+      {
+        "class_name": "Convolution2D",
+        "config": {
+          "W_constraint": null,
+          "b_constraint": null,
+          "name": "convolution2d_189",
+          "activity_regularizer": null,
+          "trainable": true,
+          "dim_ordering": "tf",
+          "nb_col": 3,
+          "subsample": [
+            2,
+            2
+          ],
+          "init": "glorot_uniform",
+          "bias": true,
+          "nb_filter": 32,
+          "border_mode": "valid",
+          "b_regularizer": null,
+          "W_regularizer": null,
+          "activation": "relu",
+          "nb_row": 3
+        },
+        "inbound_nodes": [
+          [
+            [
+              "input_3",
+              0,
+              0
+            ]
+          ]
+        ],
+        "name": "convolution2d_189"
+      },
+      {
+        "class_name": "BatchNormalization",
+        "config": {
+          "gamma_regularizer": null,
+          "name": "batchnormalization_189",
+          "epsilon": 0.001,
+          "trainable": true,
+          "mode": 0,
+          "beta_regularizer": null,
+          "momentum": 0.99,
+          "axis": 3
+        },
+        "inbound_nodes": [
+          [
+            [
+              "convolution2d_189",
+              0,
+              0
+            ]
+          ]
+        ],
+        "name": "batchnormalization_189"
+      },
+      {
+        "class_name": "Convolution2D",
+        "config": {
+          "W_constraint": null,
+          "b_constraint": null,
+          "name": "convolution2d_190",
+          "activity_regularizer": null,
+          "trainable": true,
+          "dim_ordering": "tf",
+          "nb_col": 3,
+          "subsample": [
+            1,
+            1
+          ],
+          "init": "glorot_uniform",
+          "bias": true,
+          "nb_filter": 32,
+          "border_mode": "valid",
+          "b_regularizer": null,
+          "W_regularizer": null,
+          "activation": "relu",
+          "nb_row": 3
+        },
+        "inbound_nodes": [
+          [
+            [
+              "batchnormalization_189",
+              0,
+              0
+            ]
+          ]
+        ],
+        "name": "convolution2d_190"
+      },
+      {
+        "class_name": "BatchNormalization",
+        "config": {
+          "gamma_regularizer": null,
+          "name": "batchnormalization_190",
+          "epsilon": 0.001,
+          "trainable": true,
+          "mode": 0,
+          "beta_regularizer": null,
+          "momentum": 0.99,
+          "axis": 3
+        },
+        "inbound_nodes": [
+          [
+            [
+              "convolution2d_190",
+              0,
+              0
+            ]
+          ]
+        ],
+        "name": "batchnormalization_190"
+      },
+      {
+        "class_name": "Convolution2D",
+        "config": {
+          "W_constraint": null,
+          "b_constraint": null,
+          "name": "convolution2d_191",
+          "activity_regularizer": null,
+          "trainable": true,
+          "dim_ordering": "tf",
+          "nb_col": 3,
+          "subsample": [
+            1,
+            1
+          ],
+          "init": "glorot_uniform",
+          "bias": true,
+          "nb_filter": 64,
+          "border_mode": "same",
+          "b_regularizer": null,
+          "W_regularizer": null,
+          "activation": "relu",
+          "nb_row": 3
+        },
+        "inbound_nodes": [
+          [
+            [
+              "batchnormalization_190",
+              0,
+              0
+            ]
+          ]
+        ],
+        "name": "convolution2d_191"
+      },
+      {
+        "class_name": "BatchNormalization",
+        "config": {
+          "gamma_regularizer": null,
+          "name": "batchnormalization_191",
+          "epsilon": 0.001,
+          "trainable": true,
+          "mode": 0,
+          "beta_regularizer": null,
+          "momentum": 0.99,
+          "axis": 3
+        },
+        "inbound_nodes": [
+          [
+            [
+              "convolution2d_191",
+              0,
+              0
+            ]
+          ]
+        ],
+        "name": "batchnormalization_191"
+      },
+      {
+        "class_name": "MaxPooling2D",
+        "config": {
+          "name": "maxpooling2d_7",
+          "trainable": true,
+          "dim_ordering": "tf",
+          "pool_size": [
+            3,
+            3
+          ],
+          "strides": [
+            2,
+            2
+          ],
+          "border_mode": "valid"
+        },
+        "inbound_nodes": [
+          [
+            [
+              "batchnormalization_191",
+              0,
+              0
+            ]
+          ]
+        ],
+        "name": "maxpooling2d_7"
+      },
+      {
+        "class_name": "Convolution2D",
+        "config": {
+          "W_constraint": null,
+          "b_constraint": null,
+          "name": "convolution2d_192",
+          "activity_regularizer": null,
+          "trainable": true,
+          "dim_ordering": "tf",
+          "nb_col": 1,
+          "subsample": [
+            1,
+            1
+          ],
+          "init": "glorot_uniform",
+          "bias": true,
+          "nb_filter": 80,
+          "border_mode": "valid",
+          "b_regularizer": null,
+          "W_regularizer": null,
+          "activation": "relu",
+          "nb_row": 1
+        },
+        "inbound_nodes": [
+          [
+            [
+              "maxpooling2d_7",
+              0,
+              0
+            ]
+          ]
+        ],
+        "name": "convolution2d_192"
+      },
+      {
+        "class_name": "BatchNormalization",
+        "config": {
+          "gamma_regularizer": null,
+          "name": "batchnormalization_192",
+          "epsilon": 0.001,
+          "trainable": true,
+          "mode": 0,
+          "beta_regularizer": null,
+          "momentum": 0.99,
+          "axis": 3
+        },
+        "inbound_nodes": [
+          [
+            [
+              "convolution2d_192",
+              0,
+              0
+            ]
+          ]
+        ],
+        "name": "batchnormalization_192"
+      },
+      {
+        "class_name": "Convolution2D",
+        "config": {
+          "W_constraint": null,
+          "b_constraint": null,
+          "name": "convolution2d_193",
+          "activity_regularizer": null,
+          "trainable": true,
+          "dim_ordering": "tf",
+          "nb_col": 3,
+          "subsample": [
+            1,
+            1
+          ],
+          "init": "glorot_uniform",
+          "bias": true,
+          "nb_filter": 192,
+          "border_mode": "valid",
+          "b_regularizer": null,
+          "W_regularizer": null,
+          "activation": "relu",
+          "nb_row": 3
+        },
+        "inbound_nodes": [
+          [
+            [
+              "batchnormalization_192",
+              0,
+              0
+            ]
+          ]
+        ],
+        "name": "convolution2d_193"
+      },
+      {
+        "class_name": "BatchNormalization",
+        "config": {
+          "gamma_regularizer": null,
+          "name": "batchnormalization_193",
+          "epsilon": 0.001,
+          "trainable": true,
+          "mode": 0,
+          "beta_regularizer": null,
+          "momentum": 0.99,
+          "axis": 3
+        },
+        "inbound_nodes": [
+          [
+            [
+              "convolution2d_193",
+              0,
+              0
+            ]
+          ]
+        ],
+        "name": "batchnormalization_193"
+      },
+      {
+        "class_name": "MaxPooling2D",
+        "config": {
+          "name": "maxpooling2d_8",
+          "trainable": true,
+          "dim_ordering": "tf",
+          "pool_size": [
+            3,
+            3
+          ],
+          "strides": [
+            2,
+            2
+          ],
+          "border_mode": "valid"
+        },
+        "inbound_nodes": [
+          [
+            [
+              "batchnormalization_193",
+              0,
+              0
+            ]
+          ]
+        ],
+        "name": "maxpooling2d_8"
+      },
+      {
+        "class_name": "Convolution2D",
+        "config": {
+          "W_constraint": null,
+          "b_constraint": null,
+          "name": "convolution2d_197",
+          "activity_regularizer": null,
+          "trainable": true,
+          "dim_ordering": "tf",
+          "nb_col": 1,
+          "subsample": [
+            1,
+            1
+          ],
+          "init": "glorot_uniform",
+          "bias": true,
+          "nb_filter": 64,
+          "border_mode": "same",
+          "b_regularizer": null,
+          "W_regularizer": null,
+          "activation": "relu",
+          "nb_row": 1
+        },
+        "inbound_nodes": [
+          [
+            [
+              "maxpooling2d_8",
+              0,
+              0
+            ]
+          ]
+        ],
+        "name": "convolution2d_197"
+      },
+      {
+        "class_name": "BatchNormalization",
+        "config": {
+          "gamma_regularizer": null,
+          "name": "batchnormalization_197",
+          "epsilon": 0.001,
+          "trainable": true,
+          "mode": 0,
+          "beta_regularizer": null,
+          "momentum": 0.99,
+          "axis": 3
+        },
+        "inbound_nodes": [
+          [
+            [
+              "convolution2d_197",
+              0,
+              0
+            ]
+          ]
+        ],
+        "name": "batchnormalization_197"
+      },
+      {
+        "class_name": "Convolution2D",
+        "config": {
+          "W_constraint": null,
+          "b_constraint": null,
+          "name": "convolution2d_195",
+          "activity_regularizer": null,
+          "trainable": true,
+          "dim_ordering": "tf",
+          "nb_col": 1,
+          "subsample": [
+            1,
+            1
+          ],
+          "init": "glorot_uniform",
+          "bias": true,
+          "nb_filter": 48,
+          "border_mode": "same",
+          "b_regularizer": null,
+          "W_regularizer": null,
+          "activation": "relu",
+          "nb_row": 1
+        },
+        "inbound_nodes": [
+          [
+            [
+              "maxpooling2d_8",
+              0,
+              0
+            ]
+          ]
+        ],
+        "name": "convolution2d_195"
+      },
+      {
+        "class_name": "Convolution2D",
+        "config": {
+          "W_constraint": null,
+          "b_constraint": null,
+          "name": "convolution2d_198",
+          "activity_regularizer": null,
+          "trainable": true,
+          "dim_ordering": "tf",
+          "nb_col": 3,
+          "subsample": [
+            1,
+            1
+          ],
+          "init": "glorot_uniform",
+          "bias": true,
+          "nb_filter": 96,
+          "border_mode": "same",
+          "b_regularizer": null,
+          "W_regularizer": null,
+          "activation": "relu",
+          "nb_row": 3
+        },
+        "inbound_nodes": [
+          [
+            [
+              "batchnormalization_197",
+              0,
+              0
+            ]
+          ]
+        ],
+        "name": "convolution2d_198"
+      },
+      {
+        "class_name": "BatchNormalization",
+        "config": {
+          "gamma_regularizer": null,
+          "name": "batchnormalization_195",
+          "epsilon": 0.001,
+          "trainable": true,
+          "mode": 0,
+          "beta_regularizer": null,
+          "momentum": 0.99,
+          "axis": 3
+        },
+        "inbound_nodes": [
+          [
+            [
+              "convolution2d_195",
+              0,
+              0
+            ]
+          ]
+        ],
+        "name": "batchnormalization_195"
+      },
+      {
+        "class_name": "BatchNormalization",
+        "config": {
+          "gamma_regularizer": null,
+          "name": "batchnormalization_198",
+          "epsilon": 0.001,
+          "trainable": true,
+          "mode": 0,
+          "beta_regularizer": null,
+          "momentum": 0.99,
+          "axis": 3
+        },
+        "inbound_nodes": [
+          [
+            [
+              "convolution2d_198",
+              0,
+              0
+            ]
+          ]
+        ],
+        "name": "batchnormalization_198"
+      },
+      {
+        "class_name": "AveragePooling2D",
+        "config": {
+          "name": "averagepooling2d_21",
+          "trainable": true,
+          "dim_ordering": "tf",
+          "pool_size": [
+            3,
+            3
+          ],
+          "strides": [
+            1,
+            1
+          ],
+          "border_mode": "same"
+        },
+        "inbound_nodes": [
+          [
+            [
+              "maxpooling2d_8",
+              0,
+              0
+            ]
+          ]
+        ],
+        "name": "averagepooling2d_21"
+      },
+      {
+        "class_name": "Convolution2D",
+        "config": {
+          "W_constraint": null,
+          "b_constraint": null,
+          "name": "convolution2d_194",
+          "activity_regularizer": null,
+          "trainable": true,
+          "dim_ordering": "tf",
+          "nb_col": 1,
+          "subsample": [
+            1,
+            1
+          ],
+          "init": "glorot_uniform",
+          "bias": true,
+          "nb_filter": 64,
+          "border_mode": "same",
+          "b_regularizer": null,
+          "W_regularizer": null,
+          "activation": "relu",
+          "nb_row": 1
+        },
+        "inbound_nodes": [
+          [
+            [
+              "maxpooling2d_8",
+              0,
+              0
+            ]
+          ]
+        ],
+        "name": "convolution2d_194"
+      },
+      {
+        "class_name": "Convolution2D",
+        "config": {
+          "W_constraint": null,
+          "b_constraint": null,
+          "name": "convolution2d_196",
+          "activity_regularizer": null,
+          "trainable": true,
+          "dim_ordering": "tf",
+          "nb_col": 5,
+          "subsample": [
+            1,
+            1
+          ],
+          "init": "glorot_uniform",
+          "bias": true,
+          "nb_filter": 64,
+          "border_mode": "same",
+          "b_regularizer": null,
+          "W_regularizer": null,
+          "activation": "relu",
+          "nb_row": 5
+        },
+        "inbound_nodes": [
+          [
+            [
+              "batchnormalization_195",
+              0,
+              0
+            ]
+          ]
+        ],
+        "name": "convolution2d_196"
+      },
+      {
+        "class_name": "Convolution2D",
+        "config": {
+          "W_constraint": null,
+          "b_constraint": null,
+          "name": "convolution2d_199",
+          "activity_regularizer": null,
+          "trainable": true,
+          "dim_ordering": "tf",
+          "nb_col": 3,
+          "subsample": [
+            1,
+            1
+          ],
+          "init": "glorot_uniform",
+          "bias": true,
+          "nb_filter": 96,
+          "border_mode": "same",
+          "b_regularizer": null,
+          "W_regularizer": null,
+          "activation": "relu",
+          "nb_row": 3
+        },
+        "inbound_nodes": [
+          [
+            [
+              "batchnormalization_198",
+              0,
+              0
+            ]
+          ]
+        ],
+        "name": "convolution2d_199"
+      },
+      {
+        "class_name": "Convolution2D",
+        "config": {
+          "W_constraint": null,
+          "b_constraint": null,
+          "name": "convolution2d_200",
+          "activity_regularizer": null,
+          "trainable": true,
+          "dim_ordering": "tf",
+          "nb_col": 1,
+          "subsample": [
+            1,
+            1
+          ],
+          "init": "glorot_uniform",
+          "bias": true,
+          "nb_filter": 32,
+          "border_mode": "same",
+          "b_regularizer": null,
+          "W_regularizer": null,
+          "activation": "relu",
+          "nb_row": 1
+        },
+        "inbound_nodes": [
+          [
+            [
+              "averagepooling2d_21",
+              0,
+              0
+            ]
+          ]
+        ],
+        "name": "convolution2d_200"
+      },
+      {
+        "class_name": "BatchNormalization",
+        "config": {
+          "gamma_regularizer": null,
+          "name": "batchnormalization_194",
+          "epsilon": 0.001,
+          "trainable": true,
+          "mode": 0,
+          "beta_regularizer": null,
+          "momentum": 0.99,
+          "axis": 3
+        },
+        "inbound_nodes": [
+          [
+            [
+              "convolution2d_194",
+              0,
+              0
+            ]
+          ]
+        ],
+        "name": "batchnormalization_194"
+      },
+      {
+        "class_name": "BatchNormalization",
+        "config": {
+          "gamma_regularizer": null,
+          "name": "batchnormalization_196",
+          "epsilon": 0.001,
+          "trainable": true,
+          "mode": 0,
+          "beta_regularizer": null,
+          "momentum": 0.99,
+          "axis": 3
+        },
+        "inbound_nodes": [
+          [
+            [
+              "convolution2d_196",
+              0,
+              0
+            ]
+          ]
+        ],
+        "name": "batchnormalization_196"
+      },
+      {
+        "class_name": "BatchNormalization",
+        "config": {
+          "gamma_regularizer": null,
+          "name": "batchnormalization_199",
+          "epsilon": 0.001,
+          "trainable": true,
+          "mode": 0,
+          "beta_regularizer": null,
+          "momentum": 0.99,
+          "axis": 3
+        },
+        "inbound_nodes": [
+          [
+            [
+              "convolution2d_199",
+              0,
+              0
+            ]
+          ]
+        ],
+        "name": "batchnormalization_199"
+      },
+      {
+        "class_name": "BatchNormalization",
+        "config": {
+          "gamma_regularizer": null,
+          "name": "batchnormalization_200",
+          "epsilon": 0.001,
+          "trainable": true,
+          "mode": 0,
+          "beta_regularizer": null,
+          "momentum": 0.99,
+          "axis": 3
+        },
+        "inbound_nodes": [
+          [
+            [
+              "convolution2d_200",
+              0,
+              0
+            ]
+          ]
+        ],
+        "name": "batchnormalization_200"
+      },
+      {
+        "class_name": "Merge",
+        "config": {
+          "name": "mixed0",
+          "concat_axis": 3,
+          "mode_type": "raw",
+          "dot_axes": -1,
+          "output_mask_type": "raw",
+          "arguments": {},
+          "output_mask": null,
+          "mode": "concat",
+          "output_shape": null,
+          "output_shape_type": "raw"
+        },
+        "inbound_nodes": [
+          [
+            [
+              "batchnormalization_194",
+              0,
+              0
+            ],
+            [
+              "batchnormalization_196",
+              0,
+              0
+            ],
+            [
+              "batchnormalization_199",
+              0,
+              0
+            ],
+            [
+              "batchnormalization_200",
+              0,
+              0
+            ]
+          ]
+        ],
+        "name": "mixed0"
+      },
+      {
+        "class_name": "Convolution2D",
+        "config": {
+          "W_constraint": null,
+          "b_constraint": null,
+          "name": "convolution2d_204",
+          "activity_regularizer": null,
+          "trainable": true,
+          "dim_ordering": "tf",
+          "nb_col": 1,
+          "subsample": [
+            1,
+            1
+          ],
+          "init": "glorot_uniform",
+          "bias": true,
+          "nb_filter": 64,
+          "border_mode": "same",
+          "b_regularizer": null,
+          "W_regularizer": null,
+          "activation": "relu",
+          "nb_row": 1
+        },
+        "inbound_nodes": [
+          [
+            [
+              "mixed0",
+              0,
+              0
+            ]
+          ]
+        ],
+        "name": "convolution2d_204"
+      },
+      {
+        "class_name": "BatchNormalization",
+        "config": {
+          "gamma_regularizer": null,
+          "name": "batchnormalization_204",
+          "epsilon": 0.001,
+          "trainable": true,
+          "mode": 0,
+          "beta_regularizer": null,
+          "momentum": 0.99,
+          "axis": 3
+        },
+        "inbound_nodes": [
+          [
+            [
+              "convolution2d_204",
+              0,
+              0
+            ]
+          ]
+        ],
+        "name": "batchnormalization_204"
+      },
+      {
+        "class_name": "Convolution2D",
+        "config": {
+          "W_constraint": null,
+          "b_constraint": null,
+          "name": "convolution2d_202",
+          "activity_regularizer": null,
+          "trainable": true,
+          "dim_ordering": "tf",
+          "nb_col": 1,
+          "subsample": [
+            1,
+            1
+          ],
+          "init": "glorot_uniform",
+          "bias": true,
+          "nb_filter": 48,
+          "border_mode": "same",
+          "b_regularizer": null,
+          "W_regularizer": null,
+          "activation": "relu",
+          "nb_row": 1
+        },
+        "inbound_nodes": [
+          [
+            [
+              "mixed0",
+              0,
+              0
+            ]
+          ]
+        ],
+        "name": "convolution2d_202"
+      },
+      {
+        "class_name": "Convolution2D",
+        "config": {
+          "W_constraint": null,
+          "b_constraint": null,
+          "name": "convolution2d_205",
+          "activity_regularizer": null,
+          "trainable": true,
+          "dim_ordering": "tf",
+          "nb_col": 3,
+          "subsample": [
+            1,
+            1
+          ],
+          "init": "glorot_uniform",
+          "bias": true,
+          "nb_filter": 96,
+          "border_mode": "same",
+          "b_regularizer": null,
+          "W_regularizer": null,
+          "activation": "relu",
+          "nb_row": 3
+        },
+        "inbound_nodes": [
+          [
+            [
+              "batchnormalization_204",
+              0,
+              0
+            ]
+          ]
+        ],
+        "name": "convolution2d_205"
+      },
+      {
+        "class_name": "BatchNormalization",
+        "config": {
+          "gamma_regularizer": null,
+          "name": "batchnormalization_202",
+          "epsilon": 0.001,
+          "trainable": true,
+          "mode": 0,
+          "beta_regularizer": null,
+          "momentum": 0.99,
+          "axis": 3
+        },
+        "inbound_nodes": [
+          [
+            [
+              "convolution2d_202",
+              0,
+              0
+            ]
+          ]
+        ],
+        "name": "batchnormalization_202"
+      },
+      {
+        "class_name": "BatchNormalization",
+        "config": {
+          "gamma_regularizer": null,
+          "name": "batchnormalization_205",
+          "epsilon": 0.001,
+          "trainable": true,
+          "mode": 0,
+          "beta_regularizer": null,
+          "momentum": 0.99,
+          "axis": 3
+        },
+        "inbound_nodes": [
+          [
+            [
+              "convolution2d_205",
+              0,
+              0
+            ]
+          ]
+        ],
+        "name": "batchnormalization_205"
+      },
+      {
+        "class_name": "AveragePooling2D",
+        "config": {
+          "name": "averagepooling2d_22",
+          "trainable": true,
+          "dim_ordering": "tf",
+          "pool_size": [
+            3,
+            3
+          ],
+          "strides": [
+            1,
+            1
+          ],
+          "border_mode": "same"
+        },
+        "inbound_nodes": [
+          [
+            [
+              "mixed0",
+              0,
+              0
+            ]
+          ]
+        ],
+        "name": "averagepooling2d_22"
+      },
+      {
+        "class_name": "Convolution2D",
+        "config": {
+          "W_constraint": null,
+          "b_constraint": null,
+          "name": "convolution2d_201",
+          "activity_regularizer": null,
+          "trainable": true,
+          "dim_ordering": "tf",
+          "nb_col": 1,
+          "subsample": [
+            1,
+            1
+          ],
+          "init": "glorot_uniform",
+          "bias": true,
+          "nb_filter": 64,
+          "border_mode": "same",
+          "b_regularizer": null,
+          "W_regularizer": null,
+          "activation": "relu",
+          "nb_row": 1
+        },
+        "inbound_nodes": [
+          [
+            [
+              "mixed0",
+              0,
+              0
+            ]
+          ]
+        ],
+        "name": "convolution2d_201"
+      },
+      {
+        "class_name": "Convolution2D",
+        "config": {
+          "W_constraint": null,
+          "b_constraint": null,
+          "name": "convolution2d_203",
+          "activity_regularizer": null,
+          "trainable": true,
+          "dim_ordering": "tf",
+          "nb_col": 5,
+          "subsample": [
+            1,
+            1
+          ],
+          "init": "glorot_uniform",
+          "bias": true,
+          "nb_filter": 64,
+          "border_mode": "same",
+          "b_regularizer": null,
+          "W_regularizer": null,
+          "activation": "relu",
+          "nb_row": 5
+        },
+        "inbound_nodes": [
+          [
+            [
+              "batchnormalization_202",
+              0,
+              0
+            ]
+          ]
+        ],
+        "name": "convolution2d_203"
+      },
+      {
+        "class_name": "Convolution2D",
+        "config": {
+          "W_constraint": null,
+          "b_constraint": null,
+          "name": "convolution2d_206",
+          "activity_regularizer": null,
+          "trainable": true,
+          "dim_ordering": "tf",
+          "nb_col": 3,
+          "subsample": [
+            1,
+            1
+          ],
+          "init": "glorot_uniform",
+          "bias": true,
+          "nb_filter": 96,
+          "border_mode": "same",
+          "b_regularizer": null,
+          "W_regularizer": null,
+          "activation": "relu",
+          "nb_row": 3
+        },
+        "inbound_nodes": [
+          [
+            [
+              "batchnormalization_205",
+              0,
+              0
+            ]
+          ]
+        ],
+        "name": "convolution2d_206"
+      },
+      {
+        "class_name": "Convolution2D",
+        "config": {
+          "W_constraint": null,
+          "b_constraint": null,
+          "name": "convolution2d_207",
+          "activity_regularizer": null,
+          "trainable": true,
+          "dim_ordering": "tf",
+          "nb_col": 1,
+          "subsample": [
+            1,
+            1
+          ],
+          "init": "glorot_uniform",
+          "bias": true,
+          "nb_filter": 32,
+          "border_mode": "same",
+          "b_regularizer": null,
+          "W_regularizer": null,
+          "activation": "relu",
+          "nb_row": 1
+        },
+        "inbound_nodes": [
+          [
+            [
+              "averagepooling2d_22",
+              0,
+              0
+            ]
+          ]
+        ],
+        "name": "convolution2d_207"
+      },
+      {
+        "class_name": "BatchNormalization",
+        "config": {
+          "gamma_regularizer": null,
+          "name": "batchnormalization_201",
+          "epsilon": 0.001,
+          "trainable": true,
+          "mode": 0,
+          "beta_regularizer": null,
+          "momentum": 0.99,
+          "axis": 3
+        },
+        "inbound_nodes": [
+          [
+            [
+              "convolution2d_201",
+              0,
+              0
+            ]
+          ]
+        ],
+        "name": "batchnormalization_201"
+      },
+      {
+        "class_name": "BatchNormalization",
+        "config": {
+          "gamma_regularizer": null,
+          "name": "batchnormalization_203",
+          "epsilon": 0.001,
+          "trainable": true,
+          "mode": 0,
+          "beta_regularizer": null,
+          "momentum": 0.99,
+          "axis": 3
+        },
+        "inbound_nodes": [
+          [
+            [
+              "convolution2d_203",
+              0,
+              0
+            ]
+          ]
+        ],
+        "name": "batchnormalization_203"
+      },
+      {
+        "class_name": "BatchNormalization",
+        "config": {
+          "gamma_regularizer": null,
+          "name": "batchnormalization_206",
+          "epsilon": 0.001,
+          "trainable": true,
+          "mode": 0,
+          "beta_regularizer": null,
+          "momentum": 0.99,
+          "axis": 3
+        },
+        "inbound_nodes": [
+          [
+            [
+              "convolution2d_206",
+              0,
+              0
+            ]
+          ]
+        ],
+        "name": "batchnormalization_206"
+      },
+      {
+        "class_name": "BatchNormalization",
+        "config": {
+          "gamma_regularizer": null,
+          "name": "batchnormalization_207",
+          "epsilon": 0.001,
+          "trainable": true,
+          "mode": 0,
+          "beta_regularizer": null,
+          "momentum": 0.99,
+          "axis": 3
+        },
+        "inbound_nodes": [
+          [
+            [
+              "convolution2d_207",
+              0,
+              0
+            ]
+          ]
+        ],
+        "name": "batchnormalization_207"
+      },
+      {
+        "class_name": "Merge",
+        "config": {
+          "name": "mixed1",
+          "concat_axis": 3,
+          "mode_type": "raw",
+          "dot_axes": -1,
+          "output_mask_type": "raw",
+          "arguments": {},
+          "output_mask": null,
+          "mode": "concat",
+          "output_shape": null,
+          "output_shape_type": "raw"
+        },
+        "inbound_nodes": [
+          [
+            [
+              "batchnormalization_201",
+              0,
+              0
+            ],
+            [
+              "batchnormalization_203",
+              0,
+              0
+            ],
+            [
+              "batchnormalization_206",
+              0,
+              0
+            ],
+            [
+              "batchnormalization_207",
+              0,
+              0
+            ]
+          ]
+        ],
+        "name": "mixed1"
+      },
+      {
+        "class_name": "Convolution2D",
+        "config": {
+          "W_constraint": null,
+          "b_constraint": null,
+          "name": "convolution2d_211",
+          "activity_regularizer": null,
+          "trainable": true,
+          "dim_ordering": "tf",
+          "nb_col": 1,
+          "subsample": [
+            1,
+            1
+          ],
+          "init": "glorot_uniform",
+          "bias": true,
+          "nb_filter": 64,
+          "border_mode": "same",
+          "b_regularizer": null,
+          "W_regularizer": null,
+          "activation": "relu",
+          "nb_row": 1
+        },
+        "inbound_nodes": [
+          [
+            [
+              "mixed1",
+              0,
+              0
+            ]
+          ]
+        ],
+        "name": "convolution2d_211"
+      },
+      {
+        "class_name": "BatchNormalization",
+        "config": {
+          "gamma_regularizer": null,
+          "name": "batchnormalization_211",
+          "epsilon": 0.001,
+          "trainable": true,
+          "mode": 0,
+          "beta_regularizer": null,
+          "momentum": 0.99,
+          "axis": 3
+        },
+        "inbound_nodes": [
+          [
+            [
+              "convolution2d_211",
+              0,
+              0
+            ]
+          ]
+        ],
+        "name": "batchnormalization_211"
+      },
+      {
+        "class_name": "Convolution2D",
+        "config": {
+          "W_constraint": null,
+          "b_constraint": null,
+          "name": "convolution2d_209",
+          "activity_regularizer": null,
+          "trainable": true,
+          "dim_ordering": "tf",
+          "nb_col": 1,
+          "subsample": [
+            1,
+            1
+          ],
+          "init": "glorot_uniform",
+          "bias": true,
+          "nb_filter": 48,
+          "border_mode": "same",
+          "b_regularizer": null,
+          "W_regularizer": null,
+          "activation": "relu",
+          "nb_row": 1
+        },
+        "inbound_nodes": [
+          [
+            [
+              "mixed1",
+              0,
+              0
+            ]
+          ]
+        ],
+        "name": "convolution2d_209"
+      },
+      {
+        "class_name": "Convolution2D",
+        "config": {
+          "W_constraint": null,
+          "b_constraint": null,
+          "name": "convolution2d_212",
+          "activity_regularizer": null,
+          "trainable": true,
+          "dim_ordering": "tf",
+          "nb_col": 3,
+          "subsample": [
+            1,
+            1
+          ],
+          "init": "glorot_uniform",
+          "bias": true,
+          "nb_filter": 96,
+          "border_mode": "same",
+          "b_regularizer": null,
+          "W_regularizer": null,
+          "activation": "relu",
+          "nb_row": 3
+        },
+        "inbound_nodes": [
+          [
+            [
+              "batchnormalization_211",
+              0,
+              0
+            ]
+          ]
+        ],
+        "name": "convolution2d_212"
+      },
+      {
+        "class_name": "BatchNormalization",
+        "config": {
+          "gamma_regularizer": null,
+          "name": "batchnormalization_209",
+          "epsilon": 0.001,
+          "trainable": true,
+          "mode": 0,
+          "beta_regularizer": null,
+          "momentum": 0.99,
+          "axis": 3
+        },
+        "inbound_nodes": [
+          [
+            [
+              "convolution2d_209",
+              0,
+              0
+            ]
+          ]
+        ],
+        "name": "batchnormalization_209"
+      },
+      {
+        "class_name": "BatchNormalization",
+        "config": {
+          "gamma_regularizer": null,
+          "name": "batchnormalization_212",
+          "epsilon": 0.001,
+          "trainable": true,
+          "mode": 0,
+          "beta_regularizer": null,
+          "momentum": 0.99,
+          "axis": 3
+        },
+        "inbound_nodes": [
+          [
+            [
+              "convolution2d_212",
+              0,
+              0
+            ]
+          ]
+        ],
+        "name": "batchnormalization_212"
+      },
+      {
+        "class_name": "AveragePooling2D",
+        "config": {
+          "name": "averagepooling2d_23",
+          "trainable": true,
+          "dim_ordering": "tf",
+          "pool_size": [
+            3,
+            3
+          ],
+          "strides": [
+            1,
+            1
+          ],
+          "border_mode": "same"
+        },
+        "inbound_nodes": [
+          [
+            [
+              "mixed1",
+              0,
+              0
+            ]
+          ]
+        ],
+        "name": "averagepooling2d_23"
+      },
+      {
+        "class_name": "Convolution2D",
+        "config": {
+          "W_constraint": null,
+          "b_constraint": null,
+          "name": "convolution2d_208",
+          "activity_regularizer": null,
+          "trainable": true,
+          "dim_ordering": "tf",
+          "nb_col": 1,
+          "subsample": [
+            1,
+            1
+          ],
+          "init": "glorot_uniform",
+          "bias": true,
+          "nb_filter": 64,
+          "border_mode": "same",
+          "b_regularizer": null,
+          "W_regularizer": null,
+          "activation": "relu",
+          "nb_row": 1
+        },
+        "inbound_nodes": [
+          [
+            [
+              "mixed1",
+              0,
+              0
+            ]
+          ]
+        ],
+        "name": "convolution2d_208"
+      },
+      {
+        "class_name": "Convolution2D",
+        "config": {
+          "W_constraint": null,
+          "b_constraint": null,
+          "name": "convolution2d_210",
+          "activity_regularizer": null,
+          "trainable": true,
+          "dim_ordering": "tf",
+          "nb_col": 5,
+          "subsample": [
+            1,
+            1
+          ],
+          "init": "glorot_uniform",
+          "bias": true,
+          "nb_filter": 64,
+          "border_mode": "same",
+          "b_regularizer": null,
+          "W_regularizer": null,
+          "activation": "relu",
+          "nb_row": 5
+        },
+        "inbound_nodes": [
+          [
+            [
+              "batchnormalization_209",
+              0,
+              0
+            ]
+          ]
+        ],
+        "name": "convolution2d_210"
+      },
+      {
+        "class_name": "Convolution2D",
+        "config": {
+          "W_constraint": null,
+          "b_constraint": null,
+          "name": "convolution2d_213",
+          "activity_regularizer": null,
+          "trainable": true,
+          "dim_ordering": "tf",
+          "nb_col": 3,
+          "subsample": [
+            1,
+            1
+          ],
+          "init": "glorot_uniform",
+          "bias": true,
+          "nb_filter": 96,
+          "border_mode": "same",
+          "b_regularizer": null,
+          "W_regularizer": null,
+          "activation": "relu",
+          "nb_row": 3
+        },
+        "inbound_nodes": [
+          [
+            [
+              "batchnormalization_212",
+              0,
+              0
+            ]
+          ]
+        ],
+        "name": "convolution2d_213"
+      },
+      {
+        "class_name": "Convolution2D",
+        "config": {
+          "W_constraint": null,
+          "b_constraint": null,
+          "name": "convolution2d_214",
+          "activity_regularizer": null,
+          "trainable": true,
+          "dim_ordering": "tf",
+          "nb_col": 1,
+          "subsample": [
+            1,
+            1
+          ],
+          "init": "glorot_uniform",
+          "bias": true,
+          "nb_filter": 32,
+          "border_mode": "same",
+          "b_regularizer": null,
+          "W_regularizer": null,
+          "activation": "relu",
+          "nb_row": 1
+        },
+        "inbound_nodes": [
+          [
+            [
+              "averagepooling2d_23",
+              0,
+              0
+            ]
+          ]
+        ],
+        "name": "convolution2d_214"
+      },
+      {
+        "class_name": "BatchNormalization",
+        "config": {
+          "gamma_regularizer": null,
+          "name": "batchnormalization_208",
+          "epsilon": 0.001,
+          "trainable": true,
+          "mode": 0,
+          "beta_regularizer": null,
+          "momentum": 0.99,
+          "axis": 3
+        },
+        "inbound_nodes": [
+          [
+            [
+              "convolution2d_208",
+              0,
+              0
+            ]
+          ]
+        ],
+        "name": "batchnormalization_208"
+      },
+      {
+        "class_name": "BatchNormalization",
+        "config": {
+          "gamma_regularizer": null,
+          "name": "batchnormalization_210",
+          "epsilon": 0.001,
+          "trainable": true,
+          "mode": 0,
+          "beta_regularizer": null,
+          "momentum": 0.99,
+          "axis": 3
+        },
+        "inbound_nodes": [
+          [
+            [
+              "convolution2d_210",
+              0,
+              0
+            ]
+          ]
+        ],
+        "name": "batchnormalization_210"
+      },
+      {
+        "class_name": "BatchNormalization",
+        "config": {
+          "gamma_regularizer": null,
+          "name": "batchnormalization_213",
+          "epsilon": 0.001,
+          "trainable": true,
+          "mode": 0,
+          "beta_regularizer": null,
+          "momentum": 0.99,
+          "axis": 3
+        },
+        "inbound_nodes": [
+          [
+            [
+              "convolution2d_213",
+              0,
+              0
+            ]
+          ]
+        ],
+        "name": "batchnormalization_213"
+      },
+      {
+        "class_name": "BatchNormalization",
+        "config": {
+          "gamma_regularizer": null,
+          "name": "batchnormalization_214",
+          "epsilon": 0.001,
+          "trainable": true,
+          "mode": 0,
+          "beta_regularizer": null,
+          "momentum": 0.99,
+          "axis": 3
+        },
+        "inbound_nodes": [
+          [
+            [
+              "convolution2d_214",
+              0,
+              0
+            ]
+          ]
+        ],
+        "name": "batchnormalization_214"
+      },
+      {
+        "class_name": "Merge",
+        "config": {
+          "name": "mixed2",
+          "concat_axis": 3,
+          "mode_type": "raw",
+          "dot_axes": -1,
+          "output_mask_type": "raw",
+          "arguments": {},
+          "output_mask": null,
+          "mode": "concat",
+          "output_shape": null,
+          "output_shape_type": "raw"
+        },
+        "inbound_nodes": [
+          [
+            [
+              "batchnormalization_208",
+              0,
+              0
+            ],
+            [
+              "batchnormalization_210",
+              0,
+              0
+            ],
+            [
+              "batchnormalization_213",
+              0,
+              0
+            ],
+            [
+              "batchnormalization_214",
+              0,
+              0
+            ]
+          ]
+        ],
+        "name": "mixed2"
+      },
+      {
+        "class_name": "Convolution2D",
+        "config": {
+          "W_constraint": null,
+          "b_constraint": null,
+          "name": "convolution2d_216",
+          "activity_regularizer": null,
+          "trainable": true,
+          "dim_ordering": "tf",
+          "nb_col": 1,
+          "subsample": [
+            1,
+            1
+          ],
+          "init": "glorot_uniform",
+          "bias": true,
+          "nb_filter": 64,
+          "border_mode": "same",
+          "b_regularizer": null,
+          "W_regularizer": null,
+          "activation": "relu",
+          "nb_row": 1
+        },
+        "inbound_nodes": [
+          [
+            [
+              "mixed2",
+              0,
+              0
+            ]
+          ]
+        ],
+        "name": "convolution2d_216"
+      },
+      {
+        "class_name": "BatchNormalization",
+        "config": {
+          "gamma_regularizer": null,
+          "name": "batchnormalization_216",
+          "epsilon": 0.001,
+          "trainable": true,
+          "mode": 0,
+          "beta_regularizer": null,
+          "momentum": 0.99,
+          "axis": 3
+        },
+        "inbound_nodes": [
+          [
+            [
+              "convolution2d_216",
+              0,
+              0
+            ]
+          ]
+        ],
+        "name": "batchnormalization_216"
+      },
+      {
+        "class_name": "Convolution2D",
+        "config": {
+          "W_constraint": null,
+          "b_constraint": null,
+          "name": "convolution2d_217",
+          "activity_regularizer": null,
+          "trainable": true,
+          "dim_ordering": "tf",
+          "nb_col": 3,
+          "subsample": [
+            1,
+            1
+          ],
+          "init": "glorot_uniform",
+          "bias": true,
+          "nb_filter": 96,
+          "border_mode": "same",
+          "b_regularizer": null,
+          "W_regularizer": null,
+          "activation": "relu",
+          "nb_row": 3
+        },
+        "inbound_nodes": [
+          [
+            [
+              "batchnormalization_216",
+              0,
+              0
+            ]
+          ]
+        ],
+        "name": "convolution2d_217"
+      },
+      {
+        "class_name": "BatchNormalization",
+        "config": {
+          "gamma_regularizer": null,
+          "name": "batchnormalization_217",
+          "epsilon": 0.001,
+          "trainable": true,
+          "mode": 0,
+          "beta_regularizer": null,
+          "momentum": 0.99,
+          "axis": 3
+        },
+        "inbound_nodes": [
+          [
+            [
+              "convolution2d_217",
+              0,
+              0
+            ]
+          ]
+        ],
+        "name": "batchnormalization_217"
+      },
+      {
+        "class_name": "Convolution2D",
+        "config": {
+          "W_constraint": null,
+          "b_constraint": null,
+          "name": "convolution2d_215",
+          "activity_regularizer": null,
+          "trainable": true,
+          "dim_ordering": "tf",
+          "nb_col": 3,
+          "subsample": [
+            2,
+            2
+          ],
+          "init": "glorot_uniform",
+          "bias": true,
+          "nb_filter": 384,
+          "border_mode": "valid",
+          "b_regularizer": null,
+          "W_regularizer": null,
+          "activation": "relu",
+          "nb_row": 3
+        },
+        "inbound_nodes": [
+          [
+            [
+              "mixed2",
+              0,
+              0
+            ]
+          ]
+        ],
+        "name": "convolution2d_215"
+      },
+      {
+        "class_name": "Convolution2D",
+        "config": {
+          "W_constraint": null,
+          "b_constraint": null,
+          "name": "convolution2d_218",
+          "activity_regularizer": null,
+          "trainable": true,
+          "dim_ordering": "tf",
+          "nb_col": 3,
+          "subsample": [
+            2,
+            2
+          ],
+          "init": "glorot_uniform",
+          "bias": true,
+          "nb_filter": 96,
+          "border_mode": "valid",
+          "b_regularizer": null,
+          "W_regularizer": null,
+          "activation": "relu",
+          "nb_row": 3
+        },
+        "inbound_nodes": [
+          [
+            [
+              "batchnormalization_217",
+              0,
+              0
+            ]
+          ]
+        ],
+        "name": "convolution2d_218"
+      },
+      {
+        "class_name": "BatchNormalization",
+        "config": {
+          "gamma_regularizer": null,
+          "name": "batchnormalization_215",
+          "epsilon": 0.001,
+          "trainable": true,
+          "mode": 0,
+          "beta_regularizer": null,
+          "momentum": 0.99,
+          "axis": 3
+        },
+        "inbound_nodes": [
+          [
+            [
+              "convolution2d_215",
+              0,
+              0
+            ]
+          ]
+        ],
+        "name": "batchnormalization_215"
+      },
+      {
+        "class_name": "BatchNormalization",
+        "config": {
+          "gamma_regularizer": null,
+          "name": "batchnormalization_218",
+          "epsilon": 0.001,
+          "trainable": true,
+          "mode": 0,
+          "beta_regularizer": null,
+          "momentum": 0.99,
+          "axis": 3
+        },
+        "inbound_nodes": [
+          [
+            [
+              "convolution2d_218",
+              0,
+              0
+            ]
+          ]
+        ],
+        "name": "batchnormalization_218"
+      },
+      {
+        "class_name": "MaxPooling2D",
+        "config": {
+          "name": "maxpooling2d_9",
+          "trainable": true,
+          "dim_ordering": "tf",
+          "pool_size": [
+            3,
+            3
+          ],
+          "strides": [
+            2,
+            2
+          ],
+          "border_mode": "valid"
+        },
+        "inbound_nodes": [
+          [
+            [
+              "mixed2",
+              0,
+              0
+            ]
+          ]
+        ],
+        "name": "maxpooling2d_9"
+      },
+      {
+        "class_name": "Merge",
+        "config": {
+          "name": "mixed3",
+          "concat_axis": 3,
+          "mode_type": "raw",
+          "dot_axes": -1,
+          "output_mask_type": "raw",
+          "arguments": {},
+          "output_mask": null,
+          "mode": "concat",
+          "output_shape": null,
+          "output_shape_type": "raw"
+        },
+        "inbound_nodes": [
+          [
+            [
+              "batchnormalization_215",
+              0,
+              0
+            ],
+            [
+              "batchnormalization_218",
+              0,
+              0
+            ],
+            [
+              "maxpooling2d_9",
+              0,
+              0
+            ]
+          ]
+        ],
+        "name": "mixed3"
+      },
+      {
+        "class_name": "Convolution2D",
+        "config": {
+          "W_constraint": null,
+          "b_constraint": null,
+          "name": "convolution2d_223",
+          "activity_regularizer": null,
+          "trainable": true,
+          "dim_ordering": "tf",
+          "nb_col": 1,
+          "subsample": [
+            1,
+            1
+          ],
+          "init": "glorot_uniform",
+          "bias": true,
+          "nb_filter": 128,
+          "border_mode": "same",
+          "b_regularizer": null,
+          "W_regularizer": null,
+          "activation": "relu",
+          "nb_row": 1
+        },
+        "inbound_nodes": [
+          [
+            [
+              "mixed3",
+              0,
+              0
+            ]
+          ]
+        ],
+        "name": "convolution2d_223"
+      },
+      {
+        "class_name": "BatchNormalization",
+        "config": {
+          "gamma_regularizer": null,
+          "name": "batchnormalization_223",
+          "epsilon": 0.001,
+          "trainable": true,
+          "mode": 0,
+          "beta_regularizer": null,
+          "momentum": 0.99,
+          "axis": 3
+        },
+        "inbound_nodes": [
+          [
+            [
+              "convolution2d_223",
+              0,
+              0
+            ]
+          ]
+        ],
+        "name": "batchnormalization_223"
+      },
+      {
+        "class_name": "Convolution2D",
+        "config": {
+          "W_constraint": null,
+          "b_constraint": null,
+          "name": "convolution2d_224",
+          "activity_regularizer": null,
+          "trainable": true,
+          "dim_ordering": "tf",
+          "nb_col": 1,
+          "subsample": [
+            1,
+            1
+          ],
+          "init": "glorot_uniform",
+          "bias": true,
+          "nb_filter": 128,
+          "border_mode": "same",
+          "b_regularizer": null,
+          "W_regularizer": null,
+          "activation": "relu",
+          "nb_row": 7
+        },
+        "inbound_nodes": [
+          [
+            [
+              "batchnormalization_223",
+              0,
+              0
+            ]
+          ]
+        ],
+        "name": "convolution2d_224"
+      },
+      {
+        "class_name": "BatchNormalization",
+        "config": {
+          "gamma_regularizer": null,
+          "name": "batchnormalization_224",
+          "epsilon": 0.001,
+          "trainable": true,
+          "mode": 0,
+          "beta_regularizer": null,
+          "momentum": 0.99,
+          "axis": 3
+        },
+        "inbound_nodes": [
+          [
+            [
+              "convolution2d_224",
+              0,
+              0
+            ]
+          ]
+        ],
+        "name": "batchnormalization_224"
+      },
+      {
+        "class_name": "Convolution2D",
+        "config": {
+          "W_constraint": null,
+          "b_constraint": null,
+          "name": "convolution2d_220",
+          "activity_regularizer": null,
+          "trainable": true,
+          "dim_ordering": "tf",
+          "nb_col": 1,
+          "subsample": [
+            1,
+            1
+          ],
+          "init": "glorot_uniform",
+          "bias": true,
+          "nb_filter": 128,
+          "border_mode": "same",
+          "b_regularizer": null,
+          "W_regularizer": null,
+          "activation": "relu",
+          "nb_row": 1
+        },
+        "inbound_nodes": [
+          [
+            [
+              "mixed3",
+              0,
+              0
+            ]
+          ]
+        ],
+        "name": "convolution2d_220"
+      },
+      {
+        "class_name": "Convolution2D",
+        "config": {
+          "W_constraint": null,
+          "b_constraint": null,
+          "name": "convolution2d_225",
+          "activity_regularizer": null,
+          "trainable": true,
+          "dim_ordering": "tf",
+          "nb_col": 7,
+          "subsample": [
+            1,
+            1
+          ],
+          "init": "glorot_uniform",
+          "bias": true,
+          "nb_filter": 128,
+          "border_mode": "same",
+          "b_regularizer": null,
+          "W_regularizer": null,
+          "activation": "relu",
+          "nb_row": 1
+        },
+        "inbound_nodes": [
+          [
+            [
+              "batchnormalization_224",
+              0,
+              0
+            ]
+          ]
+        ],
+        "name": "convolution2d_225"
+      },
+      {
+        "class_name": "BatchNormalization",
+        "config": {
+          "gamma_regularizer": null,
+          "name": "batchnormalization_220",
+          "epsilon": 0.001,
+          "trainable": true,
+          "mode": 0,
+          "beta_regularizer": null,
+          "momentum": 0.99,
+          "axis": 3
+        },
+        "inbound_nodes": [
+          [
+            [
+              "convolution2d_220",
+              0,
+              0
+            ]
+          ]
+        ],
+        "name": "batchnormalization_220"
+      },
+      {
+        "class_name": "BatchNormalization",
+        "config": {
+          "gamma_regularizer": null,
+          "name": "batchnormalization_225",
+          "epsilon": 0.001,
+          "trainable": true,
+          "mode": 0,
+          "beta_regularizer": null,
+          "momentum": 0.99,
+          "axis": 3
+        },
+        "inbound_nodes": [
+          [
+            [
+              "convolution2d_225",
+              0,
+              0
+            ]
+          ]
+        ],
+        "name": "batchnormalization_225"
+      },
+      {
+        "class_name": "Convolution2D",
+        "config": {
+          "W_constraint": null,
+          "b_constraint": null,
+          "name": "convolution2d_221",
+          "activity_regularizer": null,
+          "trainable": true,
+          "dim_ordering": "tf",
+          "nb_col": 7,
+          "subsample": [
+            1,
+            1
+          ],
+          "init": "glorot_uniform",
+          "bias": true,
+          "nb_filter": 128,
+          "border_mode": "same",
+          "b_regularizer": null,
+          "W_regularizer": null,
+          "activation": "relu",
+          "nb_row": 1
+        },
+        "inbound_nodes": [
+          [
+            [
+              "batchnormalization_220",
+              0,
+              0
+            ]
+          ]
+        ],
+        "name": "convolution2d_221"
+      },
+      {
+        "class_name": "Convolution2D",
+        "config": {
+          "W_constraint": null,
+          "b_constraint": null,
+          "name": "convolution2d_226",
+          "activity_regularizer": null,
+          "trainable": true,
+          "dim_ordering": "tf",
+          "nb_col": 1,
+          "subsample": [
+            1,
+            1
+          ],
+          "init": "glorot_uniform",
+          "bias": true,
+          "nb_filter": 128,
+          "border_mode": "same",
+          "b_regularizer": null,
+          "W_regularizer": null,
+          "activation": "relu",
+          "nb_row": 7
+        },
+        "inbound_nodes": [
+          [
+            [
+              "batchnormalization_225",
+              0,
+              0
+            ]
+          ]
+        ],
+        "name": "convolution2d_226"
+      },
+      {
+        "class_name": "BatchNormalization",
+        "config": {
+          "gamma_regularizer": null,
+          "name": "batchnormalization_221",
+          "epsilon": 0.001,
+          "trainable": true,
+          "mode": 0,
+          "beta_regularizer": null,
+          "momentum": 0.99,
+          "axis": 3
+        },
+        "inbound_nodes": [
+          [
+            [
+              "convolution2d_221",
+              0,
+              0
+            ]
+          ]
+        ],
+        "name": "batchnormalization_221"
+      },
+      {
+        "class_name": "BatchNormalization",
+        "config": {
+          "gamma_regularizer": null,
+          "name": "batchnormalization_226",
+          "epsilon": 0.001,
+          "trainable": true,
+          "mode": 0,
+          "beta_regularizer": null,
+          "momentum": 0.99,
+          "axis": 3
+        },
+        "inbound_nodes": [
+          [
+            [
+              "convolution2d_226",
+              0,
+              0
+            ]
+          ]
+        ],
+        "name": "batchnormalization_226"
+      },
+      {
+        "class_name": "AveragePooling2D",
+        "config": {
+          "name": "averagepooling2d_24",
+          "trainable": true,
+          "dim_ordering": "tf",
+          "pool_size": [
+            3,
+            3
+          ],
+          "strides": [
+            1,
+            1
+          ],
+          "border_mode": "same"
+        },
+        "inbound_nodes": [
+          [
+            [
+              "mixed3",
+              0,
+              0
+            ]
+          ]
+        ],
+        "name": "averagepooling2d_24"
+      },
+      {
+        "class_name": "Convolution2D",
+        "config": {
+          "W_constraint": null,
+          "b_constraint": null,
+          "name": "convolution2d_219",
+          "activity_regularizer": null,
+          "trainable": true,
+          "dim_ordering": "tf",
+          "nb_col": 1,
+          "subsample": [
+            1,
+            1
+          ],
+          "init": "glorot_uniform",
+          "bias": true,
+          "nb_filter": 192,
+          "border_mode": "same",
+          "b_regularizer": null,
+          "W_regularizer": null,
+          "activation": "relu",
+          "nb_row": 1
+        },
+        "inbound_nodes": [
+          [
+            [
+              "mixed3",
+              0,
+              0
+            ]
+          ]
+        ],
+        "name": "convolution2d_219"
+      },
+      {
+        "class_name": "Convolution2D",
+        "config": {
+          "W_constraint": null,
+          "b_constraint": null,
+          "name": "convolution2d_222",
+          "activity_regularizer": null,
+          "trainable": true,
+          "dim_ordering": "tf",
+          "nb_col": 1,
+          "subsample": [
+            1,
+            1
+          ],
+          "init": "glorot_uniform",
+          "bias": true,
+          "nb_filter": 192,
+          "border_mode": "same",
+          "b_regularizer": null,
+          "W_regularizer": null,
+          "activation": "relu",
+          "nb_row": 7
+        },
+        "inbound_nodes": [
+          [
+            [
+              "batchnormalization_221",
+              0,
+              0
+            ]
+          ]
+        ],
+        "name": "convolution2d_222"
+      },
+      {
+        "class_name": "Convolution2D",
+        "config": {
+          "W_constraint": null,
+          "b_constraint": null,
+          "name": "convolution2d_227",
+          "activity_regularizer": null,
+          "trainable": true,
+          "dim_ordering": "tf",
+          "nb_col": 7,
+          "subsample": [
+            1,
+            1
+          ],
+          "init": "glorot_uniform",
+          "bias": true,
+          "nb_filter": 192,
+          "border_mode": "same",
+          "b_regularizer": null,
+          "W_regularizer": null,
+          "activation": "relu",
+          "nb_row": 1
+        },
+        "inbound_nodes": [
+          [
+            [
+              "batchnormalization_226",
+              0,
+              0
+            ]
+          ]
+        ],
+        "name": "convolution2d_227"
+      },
+      {
+        "class_name": "Convolution2D",
+        "config": {
+          "W_constraint": null,
+          "b_constraint": null,
+          "name": "convolution2d_228",
+          "activity_regularizer": null,
+          "trainable": true,
+          "dim_ordering": "tf",
+          "nb_col": 1,
+          "subsample": [
+            1,
+            1
+          ],
+          "init": "glorot_uniform",
+          "bias": true,
+          "nb_filter": 192,
+          "border_mode": "same",
+          "b_regularizer": null,
+          "W_regularizer": null,
+          "activation": "relu",
+          "nb_row": 1
+        },
+        "inbound_nodes": [
+          [
+            [
+              "averagepooling2d_24",
+              0,
+              0
+            ]
+          ]
+        ],
+        "name": "convolution2d_228"
+      },
+      {
+        "class_name": "BatchNormalization",
+        "config": {
+          "gamma_regularizer": null,
+          "name": "batchnormalization_219",
+          "epsilon": 0.001,
+          "trainable": true,
+          "mode": 0,
+          "beta_regularizer": null,
+          "momentum": 0.99,
+          "axis": 3
+        },
+        "inbound_nodes": [
+          [
+            [
+              "convolution2d_219",
+              0,
+              0
+            ]
+          ]
+        ],
+        "name": "batchnormalization_219"
+      },
+      {
+        "class_name": "BatchNormalization",
+        "config": {
+          "gamma_regularizer": null,
+          "name": "batchnormalization_222",
+          "epsilon": 0.001,
+          "trainable": true,
+          "mode": 0,
+          "beta_regularizer": null,
+          "momentum": 0.99,
+          "axis": 3
+        },
+        "inbound_nodes": [
+          [
+            [
+              "convolution2d_222",
+              0,
+              0
+            ]
+          ]
+        ],
+        "name": "batchnormalization_222"
+      },
+      {
+        "class_name": "BatchNormalization",
+        "config": {
+          "gamma_regularizer": null,
+          "name": "batchnormalization_227",
+          "epsilon": 0.001,
+          "trainable": true,
+          "mode": 0,
+          "beta_regularizer": null,
+          "momentum": 0.99,
+          "axis": 3
+        },
+        "inbound_nodes": [
+          [
+            [
+              "convolution2d_227",
+              0,
+              0
+            ]
+          ]
+        ],
+        "name": "batchnormalization_227"
+      },
+      {
+        "class_name": "BatchNormalization",
+        "config": {
+          "gamma_regularizer": null,
+          "name": "batchnormalization_228",
+          "epsilon": 0.001,
+          "trainable": true,
+          "mode": 0,
+          "beta_regularizer": null,
+          "momentum": 0.99,
+          "axis": 3
+        },
+        "inbound_nodes": [
+          [
+            [
+              "convolution2d_228",
+              0,
+              0
+            ]
+          ]
+        ],
+        "name": "batchnormalization_228"
+      },
+      {
+        "class_name": "Merge",
+        "config": {
+          "name": "mixed4",
+          "concat_axis": 3,
+          "mode_type": "raw",
+          "dot_axes": -1,
+          "output_mask_type": "raw",
+          "arguments": {},
+          "output_mask": null,
+          "mode": "concat",
+          "output_shape": null,
+          "output_shape_type": "raw"
+        },
+        "inbound_nodes": [
+          [
+            [
+              "batchnormalization_219",
+              0,
+              0
+            ],
+            [
+              "batchnormalization_222",
+              0,
+              0
+            ],
+            [
+              "batchnormalization_227",
+              0,
+              0
+            ],
+            [
+              "batchnormalization_228",
+              0,
+              0
+            ]
+          ]
+        ],
+        "name": "mixed4"
+      },
+      {
+        "class_name": "Convolution2D",
+        "config": {
+          "W_constraint": null,
+          "b_constraint": null,
+          "name": "convolution2d_233",
+          "activity_regularizer": null,
+          "trainable": true,
+          "dim_ordering": "tf",
+          "nb_col": 1,
+          "subsample": [
+            1,
+            1
+          ],
+          "init": "glorot_uniform",
+          "bias": true,
+          "nb_filter": 160,
+          "border_mode": "same",
+          "b_regularizer": null,
+          "W_regularizer": null,
+          "activation": "relu",
+          "nb_row": 1
+        },
+        "inbound_nodes": [
+          [
+            [
+              "mixed4",
+              0,
+              0
+            ]
+          ]
+        ],
+        "name": "convolution2d_233"
+      },
+      {
+        "class_name": "BatchNormalization",
+        "config": {
+          "gamma_regularizer": null,
+          "name": "batchnormalization_233",
+          "epsilon": 0.001,
+          "trainable": true,
+          "mode": 0,
+          "beta_regularizer": null,
+          "momentum": 0.99,
+          "axis": 3
+        },
+        "inbound_nodes": [
+          [
+            [
+              "convolution2d_233",
+              0,
+              0
+            ]
+          ]
+        ],
+        "name": "batchnormalization_233"
+      },
+      {
+        "class_name": "Convolution2D",
+        "config": {
+          "W_constraint": null,
+          "b_constraint": null,
+          "name": "convolution2d_234",
+          "activity_regularizer": null,
+          "trainable": true,
+          "dim_ordering": "tf",
+          "nb_col": 1,
+          "subsample": [
+            1,
+            1
+          ],
+          "init": "glorot_uniform",
+          "bias": true,
+          "nb_filter": 160,
+          "border_mode": "same",
+          "b_regularizer": null,
+          "W_regularizer": null,
+          "activation": "relu",
+          "nb_row": 7
+        },
+        "inbound_nodes": [
+          [
+            [
+              "batchnormalization_233",
+              0,
+              0
+            ]
+          ]
+        ],
+        "name": "convolution2d_234"
+      },
+      {
+        "class_name": "BatchNormalization",
+        "config": {
+          "gamma_regularizer": null,
+          "name": "batchnormalization_234",
+          "epsilon": 0.001,
+          "trainable": true,
+          "mode": 0,
+          "beta_regularizer": null,
+          "momentum": 0.99,
+          "axis": 3
+        },
+        "inbound_nodes": [
+          [
+            [
+              "convolution2d_234",
+              0,
+              0
+            ]
+          ]
+        ],
+        "name": "batchnormalization_234"
+      },
+      {
+        "class_name": "Convolution2D",
+        "config": {
+          "W_constraint": null,
+          "b_constraint": null,
+          "name": "convolution2d_230",
+          "activity_regularizer": null,
+          "trainable": true,
+          "dim_ordering": "tf",
+          "nb_col": 1,
+          "subsample": [
+            1,
+            1
+          ],
+          "init": "glorot_uniform",
+          "bias": true,
+          "nb_filter": 160,
+          "border_mode": "same",
+          "b_regularizer": null,
+          "W_regularizer": null,
+          "activation": "relu",
+          "nb_row": 1
+        },
+        "inbound_nodes": [
+          [
+            [
+              "mixed4",
+              0,
+              0
+            ]
+          ]
+        ],
+        "name": "convolution2d_230"
+      },
+      {
+        "class_name": "Convolution2D",
+        "config": {
+          "W_constraint": null,
+          "b_constraint": null,
+          "name": "convolution2d_235",
+          "activity_regularizer": null,
+          "trainable": true,
+          "dim_ordering": "tf",
+          "nb_col": 7,
+          "subsample": [
+            1,
+            1
+          ],
+          "init": "glorot_uniform",
+          "bias": true,
+          "nb_filter": 160,
+          "border_mode": "same",
+          "b_regularizer": null,
+          "W_regularizer": null,
+          "activation": "relu",
+          "nb_row": 1
+        },
+        "inbound_nodes": [
+          [
+            [
+              "batchnormalization_234",
+              0,
+              0
+            ]
+          ]
+        ],
+        "name": "convolution2d_235"
+      },
+      {
+        "class_name": "BatchNormalization",
+        "config": {
+          "gamma_regularizer": null,
+          "name": "batchnormalization_230",
+          "epsilon": 0.001,
+          "trainable": true,
+          "mode": 0,
+          "beta_regularizer": null,
+          "momentum": 0.99,
+          "axis": 3
+        },
+        "inbound_nodes": [
+          [
+            [
+              "convolution2d_230",
+              0,
+              0
+            ]
+          ]
+        ],
+        "name": "batchnormalization_230"
+      },
+      {
+        "class_name": "BatchNormalization",
+        "config": {
+          "gamma_regularizer": null,
+          "name": "batchnormalization_235",
+          "epsilon": 0.001,
+          "trainable": true,
+          "mode": 0,
+          "beta_regularizer": null,
+          "momentum": 0.99,
+          "axis": 3
+        },
+        "inbound_nodes": [
+          [
+            [
+              "convolution2d_235",
+              0,
+              0
+            ]
+          ]
+        ],
+        "name": "batchnormalization_235"
+      },
+      {
+        "class_name": "Convolution2D",
+        "config": {
+          "W_constraint": null,
+          "b_constraint": null,
+          "name": "convolution2d_231",
+          "activity_regularizer": null,
+          "trainable": true,
+          "dim_ordering": "tf",
+          "nb_col": 7,
+          "subsample": [
+            1,
+            1
+          ],
+          "init": "glorot_uniform",
+          "bias": true,
+          "nb_filter": 160,
+          "border_mode": "same",
+          "b_regularizer": null,
+          "W_regularizer": null,
+          "activation": "relu",
+          "nb_row": 1
+        },
+        "inbound_nodes": [
+          [
+            [
+              "batchnormalization_230",
+              0,
+              0
+            ]
+          ]
+        ],
+        "name": "convolution2d_231"
+      },
+      {
+        "class_name": "Convolution2D",
+        "config": {
+          "W_constraint": null,
+          "b_constraint": null,
+          "name": "convolution2d_236",
+          "activity_regularizer": null,
+          "trainable": true,
+          "dim_ordering": "tf",
+          "nb_col": 1,
+          "subsample": [
+            1,
+            1
+          ],
+          "init": "glorot_uniform",
+          "bias": true,
+          "nb_filter": 160,
+          "border_mode": "same",
+          "b_regularizer": null,
+          "W_regularizer": null,
+          "activation": "relu",
+          "nb_row": 7
+        },
+        "inbound_nodes": [
+          [
+            [
+              "batchnormalization_235",
+              0,
+              0
+            ]
+          ]
+        ],
+        "name": "convolution2d_236"
+      },
+      {
+        "class_name": "BatchNormalization",
+        "config": {
+          "gamma_regularizer": null,
+          "name": "batchnormalization_231",
+          "epsilon": 0.001,
+          "trainable": true,
+          "mode": 0,
+          "beta_regularizer": null,
+          "momentum": 0.99,
+          "axis": 3
+        },
+        "inbound_nodes": [
+          [
+            [
+              "convolution2d_231",
+              0,
+              0
+            ]
+          ]
+        ],
+        "name": "batchnormalization_231"
+      },
+      {
+        "class_name": "BatchNormalization",
+        "config": {
+          "gamma_regularizer": null,
+          "name": "batchnormalization_236",
+          "epsilon": 0.001,
+          "trainable": true,
+          "mode": 0,
+          "beta_regularizer": null,
+          "momentum": 0.99,
+          "axis": 3
+        },
+        "inbound_nodes": [
+          [
+            [
+              "convolution2d_236",
+              0,
+              0
+            ]
+          ]
+        ],
+        "name": "batchnormalization_236"
+      },
+      {
+        "class_name": "AveragePooling2D",
+        "config": {
+          "name": "averagepooling2d_25",
+          "trainable": true,
+          "dim_ordering": "tf",
+          "pool_size": [
+            3,
+            3
+          ],
+          "strides": [
+            1,
+            1
+          ],
+          "border_mode": "same"
+        },
+        "inbound_nodes": [
+          [
+            [
+              "mixed4",
+              0,
+              0
+            ]
+          ]
+        ],
+        "name": "averagepooling2d_25"
+      },
+      {
+        "class_name": "Convolution2D",
+        "config": {
+          "W_constraint": null,
+          "b_constraint": null,
+          "name": "convolution2d_229",
+          "activity_regularizer": null,
+          "trainable": true,
+          "dim_ordering": "tf",
+          "nb_col": 1,
+          "subsample": [
+            1,
+            1
+          ],
+          "init": "glorot_uniform",
+          "bias": true,
+          "nb_filter": 192,
+          "border_mode": "same",
+          "b_regularizer": null,
+          "W_regularizer": null,
+          "activation": "relu",
+          "nb_row": 1
+        },
+        "inbound_nodes": [
+          [
+            [
+              "mixed4",
+              0,
+              0
+            ]
+          ]
+        ],
+        "name": "convolution2d_229"
+      },
+      {
+        "class_name": "Convolution2D",
+        "config": {
+          "W_constraint": null,
+          "b_constraint": null,
+          "name": "convolution2d_232",
+          "activity_regularizer": null,
+          "trainable": true,
+          "dim_ordering": "tf",
+          "nb_col": 1,
+          "subsample": [
+            1,
+            1
+          ],
+          "init": "glorot_uniform",
+          "bias": true,
+          "nb_filter": 192,
+          "border_mode": "same",
+          "b_regularizer": null,
+          "W_regularizer": null,
+          "activation": "relu",
+          "nb_row": 7
+        },
+        "inbound_nodes": [
+          [
+            [
+              "batchnormalization_231",
+              0,
+              0
+            ]
+          ]
+        ],
+        "name": "convolution2d_232"
+      },
+      {
+        "class_name": "Convolution2D",
+        "config": {
+          "W_constraint": null,
+          "b_constraint": null,
+          "name": "convolution2d_237",
+          "activity_regularizer": null,
+          "trainable": true,
+          "dim_ordering": "tf",
+          "nb_col": 7,
+          "subsample": [
+            1,
+            1
+          ],
+          "init": "glorot_uniform",
+          "bias": true,
+          "nb_filter": 192,
+          "border_mode": "same",
+          "b_regularizer": null,
+          "W_regularizer": null,
+          "activation": "relu",
+          "nb_row": 1
+        },
+        "inbound_nodes": [
+          [
+            [
+              "batchnormalization_236",
+              0,
+              0
+            ]
+          ]
+        ],
+        "name": "convolution2d_237"
+      },
+      {
+        "class_name": "Convolution2D",
+        "config": {
+          "W_constraint": null,
+          "b_constraint": null,
+          "name": "convolution2d_238",
+          "activity_regularizer": null,
+          "trainable": true,
+          "dim_ordering": "tf",
+          "nb_col": 1,
+          "subsample": [
+            1,
+            1
+          ],
+          "init": "glorot_uniform",
+          "bias": true,
+          "nb_filter": 192,
+          "border_mode": "same",
+          "b_regularizer": null,
+          "W_regularizer": null,
+          "activation": "relu",
+          "nb_row": 1
+        },
+        "inbound_nodes": [
+          [
+            [
+              "averagepooling2d_25",
+              0,
+              0
+            ]
+          ]
+        ],
+        "name": "convolution2d_238"
+      },
+      {
+        "class_name": "BatchNormalization",
+        "config": {
+          "gamma_regularizer": null,
+          "name": "batchnormalization_229",
+          "epsilon": 0.001,
+          "trainable": true,
+          "mode": 0,
+          "beta_regularizer": null,
+          "momentum": 0.99,
+          "axis": 3
+        },
+        "inbound_nodes": [
+          [
+            [
+              "convolution2d_229",
+              0,
+              0
+            ]
+          ]
+        ],
+        "name": "batchnormalization_229"
+      },
+      {
+        "class_name": "BatchNormalization",
+        "config": {
+          "gamma_regularizer": null,
+          "name": "batchnormalization_232",
+          "epsilon": 0.001,
+          "trainable": true,
+          "mode": 0,
+          "beta_regularizer": null,
+          "momentum": 0.99,
+          "axis": 3
+        },
+        "inbound_nodes": [
+          [
+            [
+              "convolution2d_232",
+              0,
+              0
+            ]
+          ]
+        ],
+        "name": "batchnormalization_232"
+      },
+      {
+        "class_name": "BatchNormalization",
+        "config": {
+          "gamma_regularizer": null,
+          "name": "batchnormalization_237",
+          "epsilon": 0.001,
+          "trainable": true,
+          "mode": 0,
+          "beta_regularizer": null,
+          "momentum": 0.99,
+          "axis": 3
+        },
+        "inbound_nodes": [
+          [
+            [
+              "convolution2d_237",
+              0,
+              0
+            ]
+          ]
+        ],
+        "name": "batchnormalization_237"
+      },
+      {
+        "class_name": "BatchNormalization",
+        "config": {
+          "gamma_regularizer": null,
+          "name": "batchnormalization_238",
+          "epsilon": 0.001,
+          "trainable": true,
+          "mode": 0,
+          "beta_regularizer": null,
+          "momentum": 0.99,
+          "axis": 3
+        },
+        "inbound_nodes": [
+          [
+            [
+              "convolution2d_238",
+              0,
+              0
+            ]
+          ]
+        ],
+        "name": "batchnormalization_238"
+      },
+      {
+        "class_name": "Merge",
+        "config": {
+          "name": "mixed5",
+          "concat_axis": 3,
+          "mode_type": "raw",
+          "dot_axes": -1,
+          "output_mask_type": "raw",
+          "arguments": {},
+          "output_mask": null,
+          "mode": "concat",
+          "output_shape": null,
+          "output_shape_type": "raw"
+        },
+        "inbound_nodes": [
+          [
+            [
+              "batchnormalization_229",
+              0,
+              0
+            ],
+            [
+              "batchnormalization_232",
+              0,
+              0
+            ],
+            [
+              "batchnormalization_237",
+              0,
+              0
+            ],
+            [
+              "batchnormalization_238",
+              0,
+              0
+            ]
+          ]
+        ],
+        "name": "mixed5"
+      },
+      {
+        "class_name": "Convolution2D",
+        "config": {
+          "W_constraint": null,
+          "b_constraint": null,
+          "name": "convolution2d_243",
+          "activity_regularizer": null,
+          "trainable": true,
+          "dim_ordering": "tf",
+          "nb_col": 1,
+          "subsample": [
+            1,
+            1
+          ],
+          "init": "glorot_uniform",
+          "bias": true,
+          "nb_filter": 160,
+          "border_mode": "same",
+          "b_regularizer": null,
+          "W_regularizer": null,
+          "activation": "relu",
+          "nb_row": 1
+        },
+        "inbound_nodes": [
+          [
+            [
+              "mixed5",
+              0,
+              0
+            ]
+          ]
+        ],
+        "name": "convolution2d_243"
+      },
+      {
+        "class_name": "BatchNormalization",
+        "config": {
+          "gamma_regularizer": null,
+          "name": "batchnormalization_243",
+          "epsilon": 0.001,
+          "trainable": true,
+          "mode": 0,
+          "beta_regularizer": null,
+          "momentum": 0.99,
+          "axis": 3
+        },
+        "inbound_nodes": [
+          [
+            [
+              "convolution2d_243",
+              0,
+              0
+            ]
+          ]
+        ],
+        "name": "batchnormalization_243"
+      },
+      {
+        "class_name": "Convolution2D",
+        "config": {
+          "W_constraint": null,
+          "b_constraint": null,
+          "name": "convolution2d_244",
+          "activity_regularizer": null,
+          "trainable": true,
+          "dim_ordering": "tf",
+          "nb_col": 1,
+          "subsample": [
+            1,
+            1
+          ],
+          "init": "glorot_uniform",
+          "bias": true,
+          "nb_filter": 160,
+          "border_mode": "same",
+          "b_regularizer": null,
+          "W_regularizer": null,
+          "activation": "relu",
+          "nb_row": 7
+        },
+        "inbound_nodes": [
+          [
+            [
+              "batchnormalization_243",
+              0,
+              0
+            ]
+          ]
+        ],
+        "name": "convolution2d_244"
+      },
+      {
+        "class_name": "BatchNormalization",
+        "config": {
+          "gamma_regularizer": null,
+          "name": "batchnormalization_244",
+          "epsilon": 0.001,
+          "trainable": true,
+          "mode": 0,
+          "beta_regularizer": null,
+          "momentum": 0.99,
+          "axis": 3
+        },
+        "inbound_nodes": [
+          [
+            [
+              "convolution2d_244",
+              0,
+              0
+            ]
+          ]
+        ],
+        "name": "batchnormalization_244"
+      },
+      {
+        "class_name": "Convolution2D",
+        "config": {
+          "W_constraint": null,
+          "b_constraint": null,
+          "name": "convolution2d_240",
+          "activity_regularizer": null,
+          "trainable": true,
+          "dim_ordering": "tf",
+          "nb_col": 1,
+          "subsample": [
+            1,
+            1
+          ],
+          "init": "glorot_uniform",
+          "bias": true,
+          "nb_filter": 160,
+          "border_mode": "same",
+          "b_regularizer": null,
+          "W_regularizer": null,
+          "activation": "relu",
+          "nb_row": 1
+        },
+        "inbound_nodes": [
+          [
+            [
+              "mixed5",
+              0,
+              0
+            ]
+          ]
+        ],
+        "name": "convolution2d_240"
+      },
+      {
+        "class_name": "Convolution2D",
+        "config": {
+          "W_constraint": null,
+          "b_constraint": null,
+          "name": "convolution2d_245",
+          "activity_regularizer": null,
+          "trainable": true,
+          "dim_ordering": "tf",
+          "nb_col": 7,
+          "subsample": [
+            1,
+            1
+          ],
+          "init": "glorot_uniform",
+          "bias": true,
+          "nb_filter": 160,
+          "border_mode": "same",
+          "b_regularizer": null,
+          "W_regularizer": null,
+          "activation": "relu",
+          "nb_row": 1
+        },
+        "inbound_nodes": [
+          [
+            [
+              "batchnormalization_244",
+              0,
+              0
+            ]
+          ]
+        ],
+        "name": "convolution2d_245"
+      },
+      {
+        "class_name": "BatchNormalization",
+        "config": {
+          "gamma_regularizer": null,
+          "name": "batchnormalization_240",
+          "epsilon": 0.001,
+          "trainable": true,
+          "mode": 0,
+          "beta_regularizer": null,
+          "momentum": 0.99,
+          "axis": 3
+        },
+        "inbound_nodes": [
+          [
+            [
+              "convolution2d_240",
+              0,
+              0
+            ]
+          ]
+        ],
+        "name": "batchnormalization_240"
+      },
+      {
+        "class_name": "BatchNormalization",
+        "config": {
+          "gamma_regularizer": null,
+          "name": "batchnormalization_245",
+          "epsilon": 0.001,
+          "trainable": true,
+          "mode": 0,
+          "beta_regularizer": null,
+          "momentum": 0.99,
+          "axis": 3
+        },
+        "inbound_nodes": [
+          [
+            [
+              "convolution2d_245",
+              0,
+              0
+            ]
+          ]
+        ],
+        "name": "batchnormalization_245"
+      },
+      {
+        "class_name": "Convolution2D",
+        "config": {
+          "W_constraint": null,
+          "b_constraint": null,
+          "name": "convolution2d_241",
+          "activity_regularizer": null,
+          "trainable": true,
+          "dim_ordering": "tf",
+          "nb_col": 7,
+          "subsample": [
+            1,
+            1
+          ],
+          "init": "glorot_uniform",
+          "bias": true,
+          "nb_filter": 160,
+          "border_mode": "same",
+          "b_regularizer": null,
+          "W_regularizer": null,
+          "activation": "relu",
+          "nb_row": 1
+        },
+        "inbound_nodes": [
+          [
+            [
+              "batchnormalization_240",
+              0,
+              0
+            ]
+          ]
+        ],
+        "name": "convolution2d_241"
+      },
+      {
+        "class_name": "Convolution2D",
+        "config": {
+          "W_constraint": null,
+          "b_constraint": null,
+          "name": "convolution2d_246",
+          "activity_regularizer": null,
+          "trainable": true,
+          "dim_ordering": "tf",
+          "nb_col": 1,
+          "subsample": [
+            1,
+            1
+          ],
+          "init": "glorot_uniform",
+          "bias": true,
+          "nb_filter": 160,
+          "border_mode": "same",
+          "b_regularizer": null,
+          "W_regularizer": null,
+          "activation": "relu",
+          "nb_row": 7
+        },
+        "inbound_nodes": [
+          [
+            [
+              "batchnormalization_245",
+              0,
+              0
+            ]
+          ]
+        ],
+        "name": "convolution2d_246"
+      },
+      {
+        "class_name": "BatchNormalization",
+        "config": {
+          "gamma_regularizer": null,
+          "name": "batchnormalization_241",
+          "epsilon": 0.001,
+          "trainable": true,
+          "mode": 0,
+          "beta_regularizer": null,
+          "momentum": 0.99,
+          "axis": 3
+        },
+        "inbound_nodes": [
+          [
+            [
+              "convolution2d_241",
+              0,
+              0
+            ]
+          ]
+        ],
+        "name": "batchnormalization_241"
+      },
+      {
+        "class_name": "BatchNormalization",
+        "config": {
+          "gamma_regularizer": null,
+          "name": "batchnormalization_246",
+          "epsilon": 0.001,
+          "trainable": true,
+          "mode": 0,
+          "beta_regularizer": null,
+          "momentum": 0.99,
+          "axis": 3
+        },
+        "inbound_nodes": [
+          [
+            [
+              "convolution2d_246",
+              0,
+              0
+            ]
+          ]
+        ],
+        "name": "batchnormalization_246"
+      },
+      {
+        "class_name": "AveragePooling2D",
+        "config": {
+          "name": "averagepooling2d_26",
+          "trainable": true,
+          "dim_ordering": "tf",
+          "pool_size": [
+            3,
+            3
+          ],
+          "strides": [
+            1,
+            1
+          ],
+          "border_mode": "same"
+        },
+        "inbound_nodes": [
+          [
+            [
+              "mixed5",
+              0,
+              0
+            ]
+          ]
+        ],
+        "name": "averagepooling2d_26"
+      },
+      {
+        "class_name": "Convolution2D",
+        "config": {
+          "W_constraint": null,
+          "b_constraint": null,
+          "name": "convolution2d_239",
+          "activity_regularizer": null,
+          "trainable": true,
+          "dim_ordering": "tf",
+          "nb_col": 1,
+          "subsample": [
+            1,
+            1
+          ],
+          "init": "glorot_uniform",
+          "bias": true,
+          "nb_filter": 192,
+          "border_mode": "same",
+          "b_regularizer": null,
+          "W_regularizer": null,
+          "activation": "relu",
+          "nb_row": 1
+        },
+        "inbound_nodes": [
+          [
+            [
+              "mixed5",
+              0,
+              0
+            ]
+          ]
+        ],
+        "name": "convolution2d_239"
+      },
+      {
+        "class_name": "Convolution2D",
+        "config": {
+          "W_constraint": null,
+          "b_constraint": null,
+          "name": "convolution2d_242",
+          "activity_regularizer": null,
+          "trainable": true,
+          "dim_ordering": "tf",
+          "nb_col": 1,
+          "subsample": [
+            1,
+            1
+          ],
+          "init": "glorot_uniform",
+          "bias": true,
+          "nb_filter": 192,
+          "border_mode": "same",
+          "b_regularizer": null,
+          "W_regularizer": null,
+          "activation": "relu",
+          "nb_row": 7
+        },
+        "inbound_nodes": [
+          [
+            [
+              "batchnormalization_241",
+              0,
+              0
+            ]
+          ]
+        ],
+        "name": "convolution2d_242"
+      },
+      {
+        "class_name": "Convolution2D",
+        "config": {
+          "W_constraint": null,
+          "b_constraint": null,
+          "name": "convolution2d_247",
+          "activity_regularizer": null,
+          "trainable": true,
+          "dim_ordering": "tf",
+          "nb_col": 7,
+          "subsample": [
+            1,
+            1
+          ],
+          "init": "glorot_uniform",
+          "bias": true,
+          "nb_filter": 192,
+          "border_mode": "same",
+          "b_regularizer": null,
+          "W_regularizer": null,
+          "activation": "relu",
+          "nb_row": 1
+        },
+        "inbound_nodes": [
+          [
+            [
+              "batchnormalization_246",
+              0,
+              0
+            ]
+          ]
+        ],
+        "name": "convolution2d_247"
+      },
+      {
+        "class_name": "Convolution2D",
+        "config": {
+          "W_constraint": null,
+          "b_constraint": null,
+          "name": "convolution2d_248",
+          "activity_regularizer": null,
+          "trainable": true,
+          "dim_ordering": "tf",
+          "nb_col": 1,
+          "subsample": [
+            1,
+            1
+          ],
+          "init": "glorot_uniform",
+          "bias": true,
+          "nb_filter": 192,
+          "border_mode": "same",
+          "b_regularizer": null,
+          "W_regularizer": null,
+          "activation": "relu",
+          "nb_row": 1
+        },
+        "inbound_nodes": [
+          [
+            [
+              "averagepooling2d_26",
+              0,
+              0
+            ]
+          ]
+        ],
+        "name": "convolution2d_248"
+      },
+      {
+        "class_name": "BatchNormalization",
+        "config": {
+          "gamma_regularizer": null,
+          "name": "batchnormalization_239",
+          "epsilon": 0.001,
+          "trainable": true,
+          "mode": 0,
+          "beta_regularizer": null,
+          "momentum": 0.99,
+          "axis": 3
+        },
+        "inbound_nodes": [
+          [
+            [
+              "convolution2d_239",
+              0,
+              0
+            ]
+          ]
+        ],
+        "name": "batchnormalization_239"
+      },
+      {
+        "class_name": "BatchNormalization",
+        "config": {
+          "gamma_regularizer": null,
+          "name": "batchnormalization_242",
+          "epsilon": 0.001,
+          "trainable": true,
+          "mode": 0,
+          "beta_regularizer": null,
+          "momentum": 0.99,
+          "axis": 3
+        },
+        "inbound_nodes": [
+          [
+            [
+              "convolution2d_242",
+              0,
+              0
+            ]
+          ]
+        ],
+        "name": "batchnormalization_242"
+      },
+      {
+        "class_name": "BatchNormalization",
+        "config": {
+          "gamma_regularizer": null,
+          "name": "batchnormalization_247",
+          "epsilon": 0.001,
+          "trainable": true,
+          "mode": 0,
+          "beta_regularizer": null,
+          "momentum": 0.99,
+          "axis": 3
+        },
+        "inbound_nodes": [
+          [
+            [
+              "convolution2d_247",
+              0,
+              0
+            ]
+          ]
+        ],
+        "name": "batchnormalization_247"
+      },
+      {
+        "class_name": "BatchNormalization",
+        "config": {
+          "gamma_regularizer": null,
+          "name": "batchnormalization_248",
+          "epsilon": 0.001,
+          "trainable": true,
+          "mode": 0,
+          "beta_regularizer": null,
+          "momentum": 0.99,
+          "axis": 3
+        },
+        "inbound_nodes": [
+          [
+            [
+              "convolution2d_248",
+              0,
+              0
+            ]
+          ]
+        ],
+        "name": "batchnormalization_248"
+      },
+      {
+        "class_name": "Merge",
+        "config": {
+          "name": "mixed6",
+          "concat_axis": 3,
+          "mode_type": "raw",
+          "dot_axes": -1,
+          "output_mask_type": "raw",
+          "arguments": {},
+          "output_mask": null,
+          "mode": "concat",
+          "output_shape": null,
+          "output_shape_type": "raw"
+        },
+        "inbound_nodes": [
+          [
+            [
+              "batchnormalization_239",
+              0,
+              0
+            ],
+            [
+              "batchnormalization_242",
+              0,
+              0
+            ],
+            [
+              "batchnormalization_247",
+              0,
+              0
+            ],
+            [
+              "batchnormalization_248",
+              0,
+              0
+            ]
+          ]
+        ],
+        "name": "mixed6"
+      },
+      {
+        "class_name": "Convolution2D",
+        "config": {
+          "W_constraint": null,
+          "b_constraint": null,
+          "name": "convolution2d_253",
+          "activity_regularizer": null,
+          "trainable": true,
+          "dim_ordering": "tf",
+          "nb_col": 1,
+          "subsample": [
+            1,
+            1
+          ],
+          "init": "glorot_uniform",
+          "bias": true,
+          "nb_filter": 160,
+          "border_mode": "same",
+          "b_regularizer": null,
+          "W_regularizer": null,
+          "activation": "relu",
+          "nb_row": 1
+        },
+        "inbound_nodes": [
+          [
+            [
+              "mixed6",
+              0,
+              0
+            ]
+          ]
+        ],
+        "name": "convolution2d_253"
+      },
+      {
+        "class_name": "BatchNormalization",
+        "config": {
+          "gamma_regularizer": null,
+          "name": "batchnormalization_253",
+          "epsilon": 0.001,
+          "trainable": true,
+          "mode": 0,
+          "beta_regularizer": null,
+          "momentum": 0.99,
+          "axis": 3
+        },
+        "inbound_nodes": [
+          [
+            [
+              "convolution2d_253",
+              0,
+              0
+            ]
+          ]
+        ],
+        "name": "batchnormalization_253"
+      },
+      {
+        "class_name": "Convolution2D",
+        "config": {
+          "W_constraint": null,
+          "b_constraint": null,
+          "name": "convolution2d_254",
+          "activity_regularizer": null,
+          "trainable": true,
+          "dim_ordering": "tf",
+          "nb_col": 1,
+          "subsample": [
+            1,
+            1
+          ],
+          "init": "glorot_uniform",
+          "bias": true,
+          "nb_filter": 192,
+          "border_mode": "same",
+          "b_regularizer": null,
+          "W_regularizer": null,
+          "activation": "relu",
+          "nb_row": 7
+        },
+        "inbound_nodes": [
+          [
+            [
+              "batchnormalization_253",
+              0,
+              0
+            ]
+          ]
+        ],
+        "name": "convolution2d_254"
+      },
+      {
+        "class_name": "BatchNormalization",
+        "config": {
+          "gamma_regularizer": null,
+          "name": "batchnormalization_254",
+          "epsilon": 0.001,
+          "trainable": true,
+          "mode": 0,
+          "beta_regularizer": null,
+          "momentum": 0.99,
+          "axis": 3
+        },
+        "inbound_nodes": [
+          [
+            [
+              "convolution2d_254",
+              0,
+              0
+            ]
+          ]
+        ],
+        "name": "batchnormalization_254"
+      },
+      {
+        "class_name": "Convolution2D",
+        "config": {
+          "W_constraint": null,
+          "b_constraint": null,
+          "name": "convolution2d_250",
+          "activity_regularizer": null,
+          "trainable": true,
+          "dim_ordering": "tf",
+          "nb_col": 1,
+          "subsample": [
+            1,
+            1
+          ],
+          "init": "glorot_uniform",
+          "bias": true,
+          "nb_filter": 192,
+          "border_mode": "same",
+          "b_regularizer": null,
+          "W_regularizer": null,
+          "activation": "relu",
+          "nb_row": 1
+        },
+        "inbound_nodes": [
+          [
+            [
+              "mixed6",
+              0,
+              0
+            ]
+          ]
+        ],
+        "name": "convolution2d_250"
+      },
+      {
+        "class_name": "Convolution2D",
+        "config": {
+          "W_constraint": null,
+          "b_constraint": null,
+          "name": "convolution2d_255",
+          "activity_regularizer": null,
+          "trainable": true,
+          "dim_ordering": "tf",
+          "nb_col": 7,
+          "subsample": [
+            1,
+            1
+          ],
+          "init": "glorot_uniform",
+          "bias": true,
+          "nb_filter": 192,
+          "border_mode": "same",
+          "b_regularizer": null,
+          "W_regularizer": null,
+          "activation": "relu",
+          "nb_row": 1
+        },
+        "inbound_nodes": [
+          [
+            [
+              "batchnormalization_254",
+              0,
+              0
+            ]
+          ]
+        ],
+        "name": "convolution2d_255"
+      },
+      {
+        "class_name": "BatchNormalization",
+        "config": {
+          "gamma_regularizer": null,
+          "name": "batchnormalization_250",
+          "epsilon": 0.001,
+          "trainable": true,
+          "mode": 0,
+          "beta_regularizer": null,
+          "momentum": 0.99,
+          "axis": 3
+        },
+        "inbound_nodes": [
+          [
+            [
+              "convolution2d_250",
+              0,
+              0
+            ]
+          ]
+        ],
+        "name": "batchnormalization_250"
+      },
+      {
+        "class_name": "BatchNormalization",
+        "config": {
+          "gamma_regularizer": null,
+          "name": "batchnormalization_255",
+          "epsilon": 0.001,
+          "trainable": true,
+          "mode": 0,
+          "beta_regularizer": null,
+          "momentum": 0.99,
+          "axis": 3
+        },
+        "inbound_nodes": [
+          [
+            [
+              "convolution2d_255",
+              0,
+              0
+            ]
+          ]
+        ],
+        "name": "batchnormalization_255"
+      },
+      {
+        "class_name": "Convolution2D",
+        "config": {
+          "W_constraint": null,
+          "b_constraint": null,
+          "name": "convolution2d_251",
+          "activity_regularizer": null,
+          "trainable": true,
+          "dim_ordering": "tf",
+          "nb_col": 7,
+          "subsample": [
+            1,
+            1
+          ],
+          "init": "glorot_uniform",
+          "bias": true,
+          "nb_filter": 192,
+          "border_mode": "same",
+          "b_regularizer": null,
+          "W_regularizer": null,
+          "activation": "relu",
+          "nb_row": 1
+        },
+        "inbound_nodes": [
+          [
+            [
+              "batchnormalization_250",
+              0,
+              0
+            ]
+          ]
+        ],
+        "name": "convolution2d_251"
+      },
+      {
+        "class_name": "Convolution2D",
+        "config": {
+          "W_constraint": null,
+          "b_constraint": null,
+          "name": "convolution2d_256",
+          "activity_regularizer": null,
+          "trainable": true,
+          "dim_ordering": "tf",
+          "nb_col": 1,
+          "subsample": [
+            1,
+            1
+          ],
+          "init": "glorot_uniform",
+          "bias": true,
+          "nb_filter": 192,
+          "border_mode": "same",
+          "b_regularizer": null,
+          "W_regularizer": null,
+          "activation": "relu",
+          "nb_row": 7
+        },
+        "inbound_nodes": [
+          [
+            [
+              "batchnormalization_255",
+              0,
+              0
+            ]
+          ]
+        ],
+        "name": "convolution2d_256"
+      },
+      {
+        "class_name": "BatchNormalization",
+        "config": {
+          "gamma_regularizer": null,
+          "name": "batchnormalization_251",
+          "epsilon": 0.001,
+          "trainable": true,
+          "mode": 0,
+          "beta_regularizer": null,
+          "momentum": 0.99,
+          "axis": 3
+        },
+        "inbound_nodes": [
+          [
+            [
+              "convolution2d_251",
+              0,
+              0
+            ]
+          ]
+        ],
+        "name": "batchnormalization_251"
+      },
+      {
+        "class_name": "BatchNormalization",
+        "config": {
+          "gamma_regularizer": null,
+          "name": "batchnormalization_256",
+          "epsilon": 0.001,
+          "trainable": true,
+          "mode": 0,
+          "beta_regularizer": null,
+          "momentum": 0.99,
+          "axis": 3
+        },
+        "inbound_nodes": [
+          [
+            [
+              "convolution2d_256",
+              0,
+              0
+            ]
+          ]
+        ],
+        "name": "batchnormalization_256"
+      },
+      {
+        "class_name": "AveragePooling2D",
+        "config": {
+          "name": "averagepooling2d_27",
+          "trainable": true,
+          "dim_ordering": "tf",
+          "pool_size": [
+            3,
+            3
+          ],
+          "strides": [
+            1,
+            1
+          ],
+          "border_mode": "same"
+        },
+        "inbound_nodes": [
+          [
+            [
+              "mixed6",
+              0,
+              0
+            ]
+          ]
+        ],
+        "name": "averagepooling2d_27"
+      },
+      {
+        "class_name": "Convolution2D",
+        "config": {
+          "W_constraint": null,
+          "b_constraint": null,
+          "name": "convolution2d_249",
+          "activity_regularizer": null,
+          "trainable": true,
+          "dim_ordering": "tf",
+          "nb_col": 1,
+          "subsample": [
+            1,
+            1
+          ],
+          "init": "glorot_uniform",
+          "bias": true,
+          "nb_filter": 192,
+          "border_mode": "same",
+          "b_regularizer": null,
+          "W_regularizer": null,
+          "activation": "relu",
+          "nb_row": 1
+        },
+        "inbound_nodes": [
+          [
+            [
+              "mixed6",
+              0,
+              0
+            ]
+          ]
+        ],
+        "name": "convolution2d_249"
+      },
+      {
+        "class_name": "Convolution2D",
+        "config": {
+          "W_constraint": null,
+          "b_constraint": null,
+          "name": "convolution2d_252",
+          "activity_regularizer": null,
+          "trainable": true,
+          "dim_ordering": "tf",
+          "nb_col": 1,
+          "subsample": [
+            1,
+            1
+          ],
+          "init": "glorot_uniform",
+          "bias": true,
+          "nb_filter": 192,
+          "border_mode": "same",
+          "b_regularizer": null,
+          "W_regularizer": null,
+          "activation": "relu",
+          "nb_row": 7
+        },
+        "inbound_nodes": [
+          [
+            [
+              "batchnormalization_251",
+              0,
+              0
+            ]
+          ]
+        ],
+        "name": "convolution2d_252"
+      },
+      {
+        "class_name": "Convolution2D",
+        "config": {
+          "W_constraint": null,
+          "b_constraint": null,
+          "name": "convolution2d_257",
+          "activity_regularizer": null,
+          "trainable": true,
+          "dim_ordering": "tf",
+          "nb_col": 7,
+          "subsample": [
+            1,
+            1
+          ],
+          "init": "glorot_uniform",
+          "bias": true,
+          "nb_filter": 192,
+          "border_mode": "same",
+          "b_regularizer": null,
+          "W_regularizer": null,
+          "activation": "relu",
+          "nb_row": 1
+        },
+        "inbound_nodes": [
+          [
+            [
+              "batchnormalization_256",
+              0,
+              0
+            ]
+          ]
+        ],
+        "name": "convolution2d_257"
+      },
+      {
+        "class_name": "Convolution2D",
+        "config": {
+          "W_constraint": null,
+          "b_constraint": null,
+          "name": "convolution2d_258",
+          "activity_regularizer": null,
+          "trainable": true,
+          "dim_ordering": "tf",
+          "nb_col": 1,
+          "subsample": [
+            1,
+            1
+          ],
+          "init": "glorot_uniform",
+          "bias": true,
+          "nb_filter": 192,
+          "border_mode": "same",
+          "b_regularizer": null,
+          "W_regularizer": null,
+          "activation": "relu",
+          "nb_row": 1
+        },
+        "inbound_nodes": [
+          [
+            [
+              "averagepooling2d_27",
+              0,
+              0
+            ]
+          ]
+        ],
+        "name": "convolution2d_258"
+      },
+      {
+        "class_name": "BatchNormalization",
+        "config": {
+          "gamma_regularizer": null,
+          "name": "batchnormalization_249",
+          "epsilon": 0.001,
+          "trainable": true,
+          "mode": 0,
+          "beta_regularizer": null,
+          "momentum": 0.99,
+          "axis": 3
+        },
+        "inbound_nodes": [
+          [
+            [
+              "convolution2d_249",
+              0,
+              0
+            ]
+          ]
+        ],
+        "name": "batchnormalization_249"
+      },
+      {
+        "class_name": "BatchNormalization",
+        "config": {
+          "gamma_regularizer": null,
+          "name": "batchnormalization_252",
+          "epsilon": 0.001,
+          "trainable": true,
+          "mode": 0,
+          "beta_regularizer": null,
+          "momentum": 0.99,
+          "axis": 3
+        },
+        "inbound_nodes": [
+          [
+            [
+              "convolution2d_252",
+              0,
+              0
+            ]
+          ]
+        ],
+        "name": "batchnormalization_252"
+      },
+      {
+        "class_name": "BatchNormalization",
+        "config": {
+          "gamma_regularizer": null,
+          "name": "batchnormalization_257",
+          "epsilon": 0.001,
+          "trainable": true,
+          "mode": 0,
+          "beta_regularizer": null,
+          "momentum": 0.99,
+          "axis": 3
+        },
+        "inbound_nodes": [
+          [
+            [
+              "convolution2d_257",
+              0,
+              0
+            ]
+          ]
+        ],
+        "name": "batchnormalization_257"
+      },
+      {
+        "class_name": "BatchNormalization",
+        "config": {
+          "gamma_regularizer": null,
+          "name": "batchnormalization_258",
+          "epsilon": 0.001,
+          "trainable": true,
+          "mode": 0,
+          "beta_regularizer": null,
+          "momentum": 0.99,
+          "axis": 3
+        },
+        "inbound_nodes": [
+          [
+            [
+              "convolution2d_258",
+              0,
+              0
+            ]
+          ]
+        ],
+        "name": "batchnormalization_258"
+      },
+      {
+        "class_name": "Merge",
+        "config": {
+          "name": "mixed7",
+          "concat_axis": 3,
+          "mode_type": "raw",
+          "dot_axes": -1,
+          "output_mask_type": "raw",
+          "arguments": {},
+          "output_mask": null,
+          "mode": "concat",
+          "output_shape": null,
+          "output_shape_type": "raw"
+        },
+        "inbound_nodes": [
+          [
+            [
+              "batchnormalization_249",
+              0,
+              0
+            ],
+            [
+              "batchnormalization_252",
+              0,
+              0
+            ],
+            [
+              "batchnormalization_257",
+              0,
+              0
+            ],
+            [
+              "batchnormalization_258",
+              0,
+              0
+            ]
+          ]
+        ],
+        "name": "mixed7"
+      },
+      {
+        "class_name": "Convolution2D",
+        "config": {
+          "W_constraint": null,
+          "b_constraint": null,
+          "name": "convolution2d_261",
+          "activity_regularizer": null,
+          "trainable": true,
+          "dim_ordering": "tf",
+          "nb_col": 1,
+          "subsample": [
+            1,
+            1
+          ],
+          "init": "glorot_uniform",
+          "bias": true,
+          "nb_filter": 192,
+          "border_mode": "same",
+          "b_regularizer": null,
+          "W_regularizer": null,
+          "activation": "relu",
+          "nb_row": 1
+        },
+        "inbound_nodes": [
+          [
+            [
+              "mixed7",
+              0,
+              0
+            ]
+          ]
+        ],
+        "name": "convolution2d_261"
+      },
+      {
+        "class_name": "BatchNormalization",
+        "config": {
+          "gamma_regularizer": null,
+          "name": "batchnormalization_261",
+          "epsilon": 0.001,
+          "trainable": true,
+          "mode": 0,
+          "beta_regularizer": null,
+          "momentum": 0.99,
+          "axis": 3
+        },
+        "inbound_nodes": [
+          [
+            [
+              "convolution2d_261",
+              0,
+              0
+            ]
+          ]
+        ],
+        "name": "batchnormalization_261"
+      },
+      {
+        "class_name": "Convolution2D",
+        "config": {
+          "W_constraint": null,
+          "b_constraint": null,
+          "name": "convolution2d_262",
+          "activity_regularizer": null,
+          "trainable": true,
+          "dim_ordering": "tf",
+          "nb_col": 7,
+          "subsample": [
+            1,
+            1
+          ],
+          "init": "glorot_uniform",
+          "bias": true,
+          "nb_filter": 192,
+          "border_mode": "same",
+          "b_regularizer": null,
+          "W_regularizer": null,
+          "activation": "relu",
+          "nb_row": 1
+        },
+        "inbound_nodes": [
+          [
+            [
+              "batchnormalization_261",
+              0,
+              0
+            ]
+          ]
+        ],
+        "name": "convolution2d_262"
+      },
+      {
+        "class_name": "BatchNormalization",
+        "config": {
+          "gamma_regularizer": null,
+          "name": "batchnormalization_262",
+          "epsilon": 0.001,
+          "trainable": true,
+          "mode": 0,
+          "beta_regularizer": null,
+          "momentum": 0.99,
+          "axis": 3
+        },
+        "inbound_nodes": [
+          [
+            [
+              "convolution2d_262",
+              0,
+              0
+            ]
+          ]
+        ],
+        "name": "batchnormalization_262"
+      },
+      {
+        "class_name": "Convolution2D",
+        "config": {
+          "W_constraint": null,
+          "b_constraint": null,
+          "name": "convolution2d_259",
+          "activity_regularizer": null,
+          "trainable": true,
+          "dim_ordering": "tf",
+          "nb_col": 1,
+          "subsample": [
+            1,
+            1
+          ],
+          "init": "glorot_uniform",
+          "bias": true,
+          "nb_filter": 192,
+          "border_mode": "same",
+          "b_regularizer": null,
+          "W_regularizer": null,
+          "activation": "relu",
+          "nb_row": 1
+        },
+        "inbound_nodes": [
+          [
+            [
+              "mixed7",
+              0,
+              0
+            ]
+          ]
+        ],
+        "name": "convolution2d_259"
+      },
+      {
+        "class_name": "Convolution2D",
+        "config": {
+          "W_constraint": null,
+          "b_constraint": null,
+          "name": "convolution2d_263",
+          "activity_regularizer": null,
+          "trainable": true,
+          "dim_ordering": "tf",
+          "nb_col": 1,
+          "subsample": [
+            1,
+            1
+          ],
+          "init": "glorot_uniform",
+          "bias": true,
+          "nb_filter": 192,
+          "border_mode": "same",
+          "b_regularizer": null,
+          "W_regularizer": null,
+          "activation": "relu",
+          "nb_row": 7
+        },
+        "inbound_nodes": [
+          [
+            [
+              "batchnormalization_262",
+              0,
+              0
+            ]
+          ]
+        ],
+        "name": "convolution2d_263"
+      },
+      {
+        "class_name": "BatchNormalization",
+        "config": {
+          "gamma_regularizer": null,
+          "name": "batchnormalization_259",
+          "epsilon": 0.001,
+          "trainable": true,
+          "mode": 0,
+          "beta_regularizer": null,
+          "momentum": 0.99,
+          "axis": 3
+        },
+        "inbound_nodes": [
+          [
+            [
+              "convolution2d_259",
+              0,
+              0
+            ]
+          ]
+        ],
+        "name": "batchnormalization_259"
+      },
+      {
+        "class_name": "BatchNormalization",
+        "config": {
+          "gamma_regularizer": null,
+          "name": "batchnormalization_263",
+          "epsilon": 0.001,
+          "trainable": true,
+          "mode": 0,
+          "beta_regularizer": null,
+          "momentum": 0.99,
+          "axis": 3
+        },
+        "inbound_nodes": [
+          [
+            [
+              "convolution2d_263",
+              0,
+              0
+            ]
+          ]
+        ],
+        "name": "batchnormalization_263"
+      },
+      {
+        "class_name": "Convolution2D",
+        "config": {
+          "W_constraint": null,
+          "b_constraint": null,
+          "name": "convolution2d_260",
+          "activity_regularizer": null,
+          "trainable": true,
+          "dim_ordering": "tf",
+          "nb_col": 3,
+          "subsample": [
+            2,
+            2
+          ],
+          "init": "glorot_uniform",
+          "bias": true,
+          "nb_filter": 320,
+          "border_mode": "valid",
+          "b_regularizer": null,
+          "W_regularizer": null,
+          "activation": "relu",
+          "nb_row": 3
+        },
+        "inbound_nodes": [
+          [
+            [
+              "batchnormalization_259",
+              0,
+              0
+            ]
+          ]
+        ],
+        "name": "convolution2d_260"
+      },
+      {
+        "class_name": "Convolution2D",
+        "config": {
+          "W_constraint": null,
+          "b_constraint": null,
+          "name": "convolution2d_264",
+          "activity_regularizer": null,
+          "trainable": true,
+          "dim_ordering": "tf",
+          "nb_col": 3,
+          "subsample": [
+            2,
+            2
+          ],
+          "init": "glorot_uniform",
+          "bias": true,
+          "nb_filter": 192,
+          "border_mode": "valid",
+          "b_regularizer": null,
+          "W_regularizer": null,
+          "activation": "relu",
+          "nb_row": 3
+        },
+        "inbound_nodes": [
+          [
+            [
+              "batchnormalization_263",
+              0,
+              0
+            ]
+          ]
+        ],
+        "name": "convolution2d_264"
+      },
+      {
+        "class_name": "BatchNormalization",
+        "config": {
+          "gamma_regularizer": null,
+          "name": "batchnormalization_260",
+          "epsilon": 0.001,
+          "trainable": true,
+          "mode": 0,
+          "beta_regularizer": null,
+          "momentum": 0.99,
+          "axis": 3
+        },
+        "inbound_nodes": [
+          [
+            [
+              "convolution2d_260",
+              0,
+              0
+            ]
+          ]
+        ],
+        "name": "batchnormalization_260"
+      },
+      {
+        "class_name": "BatchNormalization",
+        "config": {
+          "gamma_regularizer": null,
+          "name": "batchnormalization_264",
+          "epsilon": 0.001,
+          "trainable": true,
+          "mode": 0,
+          "beta_regularizer": null,
+          "momentum": 0.99,
+          "axis": 3
+        },
+        "inbound_nodes": [
+          [
+            [
+              "convolution2d_264",
+              0,
+              0
+            ]
+          ]
+        ],
+        "name": "batchnormalization_264"
+      },
+      {
+        "class_name": "AveragePooling2D",
+        "config": {
+          "name": "averagepooling2d_28",
+          "trainable": true,
+          "dim_ordering": "tf",
+          "pool_size": [
+            3,
+            3
+          ],
+          "strides": [
+            2,
+            2
+          ],
+          "border_mode": "valid"
+        },
+        "inbound_nodes": [
+          [
+            [
+              "mixed7",
+              0,
+              0
+            ]
+          ]
+        ],
+        "name": "averagepooling2d_28"
+      },
+      {
+        "class_name": "Merge",
+        "config": {
+          "name": "mixed8",
+          "concat_axis": 3,
+          "mode_type": "raw",
+          "dot_axes": -1,
+          "output_mask_type": "raw",
+          "arguments": {},
+          "output_mask": null,
+          "mode": "concat",
+          "output_shape": null,
+          "output_shape_type": "raw"
+        },
+        "inbound_nodes": [
+          [
+            [
+              "batchnormalization_260",
+              0,
+              0
+            ],
+            [
+              "batchnormalization_264",
+              0,
+              0
+            ],
+            [
+              "averagepooling2d_28",
+              0,
+              0
+            ]
+          ]
+        ],
+        "name": "mixed8"
+      },
+      {
+        "class_name": "Convolution2D",
+        "config": {
+          "W_constraint": null,
+          "b_constraint": null,
+          "name": "convolution2d_269",
+          "activity_regularizer": null,
+          "trainable": true,
+          "dim_ordering": "tf",
+          "nb_col": 1,
+          "subsample": [
+            1,
+            1
+          ],
+          "init": "glorot_uniform",
+          "bias": true,
+          "nb_filter": 448,
+          "border_mode": "same",
+          "b_regularizer": null,
+          "W_regularizer": null,
+          "activation": "relu",
+          "nb_row": 1
+        },
+        "inbound_nodes": [
+          [
+            [
+              "mixed8",
+              0,
+              0
+            ]
+          ]
+        ],
+        "name": "convolution2d_269"
+      },
+      {
+        "class_name": "BatchNormalization",
+        "config": {
+          "gamma_regularizer": null,
+          "name": "batchnormalization_269",
+          "epsilon": 0.001,
+          "trainable": true,
+          "mode": 0,
+          "beta_regularizer": null,
+          "momentum": 0.99,
+          "axis": 3
+        },
+        "inbound_nodes": [
+          [
+            [
+              "convolution2d_269",
+              0,
+              0
+            ]
+          ]
+        ],
+        "name": "batchnormalization_269"
+      },
+      {
+        "class_name": "Convolution2D",
+        "config": {
+          "W_constraint": null,
+          "b_constraint": null,
+          "name": "convolution2d_266",
+          "activity_regularizer": null,
+          "trainable": true,
+          "dim_ordering": "tf",
+          "nb_col": 1,
+          "subsample": [
+            1,
+            1
+          ],
+          "init": "glorot_uniform",
+          "bias": true,
+          "nb_filter": 384,
+          "border_mode": "same",
+          "b_regularizer": null,
+          "W_regularizer": null,
+          "activation": "relu",
+          "nb_row": 1
+        },
+        "inbound_nodes": [
+          [
+            [
+              "mixed8",
+              0,
+              0
+            ]
+          ]
+        ],
+        "name": "convolution2d_266"
+      },
+      {
+        "class_name": "Convolution2D",
+        "config": {
+          "W_constraint": null,
+          "b_constraint": null,
+          "name": "convolution2d_270",
+          "activity_regularizer": null,
+          "trainable": true,
+          "dim_ordering": "tf",
+          "nb_col": 3,
+          "subsample": [
+            1,
+            1
+          ],
+          "init": "glorot_uniform",
+          "bias": true,
+          "nb_filter": 384,
+          "border_mode": "same",
+          "b_regularizer": null,
+          "W_regularizer": null,
+          "activation": "relu",
+          "nb_row": 3
+        },
+        "inbound_nodes": [
+          [
+            [
+              "batchnormalization_269",
+              0,
+              0
+            ]
+          ]
+        ],
+        "name": "convolution2d_270"
+      },
+      {
+        "class_name": "BatchNormalization",
+        "config": {
+          "gamma_regularizer": null,
+          "name": "batchnormalization_266",
+          "epsilon": 0.001,
+          "trainable": true,
+          "mode": 0,
+          "beta_regularizer": null,
+          "momentum": 0.99,
+          "axis": 3
+        },
+        "inbound_nodes": [
+          [
+            [
+              "convolution2d_266",
+              0,
+              0
+            ]
+          ]
+        ],
+        "name": "batchnormalization_266"
+      },
+      {
+        "class_name": "BatchNormalization",
+        "config": {
+          "gamma_regularizer": null,
+          "name": "batchnormalization_270",
+          "epsilon": 0.001,
+          "trainable": true,
+          "mode": 0,
+          "beta_regularizer": null,
+          "momentum": 0.99,
+          "axis": 3
+        },
+        "inbound_nodes": [
+          [
+            [
+              "convolution2d_270",
+              0,
+              0
+            ]
+          ]
+        ],
+        "name": "batchnormalization_270"
+      },
+      {
+        "class_name": "Convolution2D",
+        "config": {
+          "W_constraint": null,
+          "b_constraint": null,
+          "name": "convolution2d_267",
+          "activity_regularizer": null,
+          "trainable": true,
+          "dim_ordering": "tf",
+          "nb_col": 3,
+          "subsample": [
+            1,
+            1
+          ],
+          "init": "glorot_uniform",
+          "bias": true,
+          "nb_filter": 384,
+          "border_mode": "same",
+          "b_regularizer": null,
+          "W_regularizer": null,
+          "activation": "relu",
+          "nb_row": 1
+        },
+        "inbound_nodes": [
+          [
+            [
+              "batchnormalization_266",
+              0,
+              0
+            ]
+          ]
+        ],
+        "name": "convolution2d_267"
+      },
+      {
+        "class_name": "Convolution2D",
+        "config": {
+          "W_constraint": null,
+          "b_constraint": null,
+          "name": "convolution2d_268",
+          "activity_regularizer": null,
+          "trainable": true,
+          "dim_ordering": "tf",
+          "nb_col": 1,
+          "subsample": [
+            1,
+            1
+          ],
+          "init": "glorot_uniform",
+          "bias": true,
+          "nb_filter": 384,
+          "border_mode": "same",
+          "b_regularizer": null,
+          "W_regularizer": null,
+          "activation": "relu",
+          "nb_row": 3
+        },
+        "inbound_nodes": [
+          [
+            [
+              "batchnormalization_266",
+              0,
+              0
+            ]
+          ]
+        ],
+        "name": "convolution2d_268"
+      },
+      {
+        "class_name": "Convolution2D",
+        "config": {
+          "W_constraint": null,
+          "b_constraint": null,
+          "name": "convolution2d_271",
+          "activity_regularizer": null,
+          "trainable": true,
+          "dim_ordering": "tf",
+          "nb_col": 3,
+          "subsample": [
+            1,
+            1
+          ],
+          "init": "glorot_uniform",
+          "bias": true,
+          "nb_filter": 384,
+          "border_mode": "same",
+          "b_regularizer": null,
+          "W_regularizer": null,
+          "activation": "relu",
+          "nb_row": 1
+        },
+        "inbound_nodes": [
+          [
+            [
+              "batchnormalization_270",
+              0,
+              0
+            ]
+          ]
+        ],
+        "name": "convolution2d_271"
+      },
+      {
+        "class_name": "Convolution2D",
+        "config": {
+          "W_constraint": null,
+          "b_constraint": null,
+          "name": "convolution2d_272",
+          "activity_regularizer": null,
+          "trainable": true,
+          "dim_ordering": "tf",
+          "nb_col": 1,
+          "subsample": [
+            1,
+            1
+          ],
+          "init": "glorot_uniform",
+          "bias": true,
+          "nb_filter": 384,
+          "border_mode": "same",
+          "b_regularizer": null,
+          "W_regularizer": null,
+          "activation": "relu",
+          "nb_row": 3
+        },
+        "inbound_nodes": [
+          [
+            [
+              "batchnormalization_270",
+              0,
+              0
+            ]
+          ]
+        ],
+        "name": "convolution2d_272"
+      },
+      {
+        "class_name": "AveragePooling2D",
+        "config": {
+          "name": "averagepooling2d_29",
+          "trainable": true,
+          "dim_ordering": "tf",
+          "pool_size": [
+            3,
+            3
+          ],
+          "strides": [
+            1,
+            1
+          ],
+          "border_mode": "same"
+        },
+        "inbound_nodes": [
+          [
+            [
+              "mixed8",
+              0,
+              0
+            ]
+          ]
+        ],
+        "name": "averagepooling2d_29"
+      },
+      {
+        "class_name": "Convolution2D",
+        "config": {
+          "W_constraint": null,
+          "b_constraint": null,
+          "name": "convolution2d_265",
+          "activity_regularizer": null,
+          "trainable": true,
+          "dim_ordering": "tf",
+          "nb_col": 1,
+          "subsample": [
+            1,
+            1
+          ],
+          "init": "glorot_uniform",
+          "bias": true,
+          "nb_filter": 320,
+          "border_mode": "same",
+          "b_regularizer": null,
+          "W_regularizer": null,
+          "activation": "relu",
+          "nb_row": 1
+        },
+        "inbound_nodes": [
+          [
+            [
+              "mixed8",
+              0,
+              0
+            ]
+          ]
+        ],
+        "name": "convolution2d_265"
+      },
+      {
+        "class_name": "BatchNormalization",
+        "config": {
+          "gamma_regularizer": null,
+          "name": "batchnormalization_267",
+          "epsilon": 0.001,
+          "trainable": true,
+          "mode": 0,
+          "beta_regularizer": null,
+          "momentum": 0.99,
+          "axis": 3
+        },
+        "inbound_nodes": [
+          [
+            [
+              "convolution2d_267",
+              0,
+              0
+            ]
+          ]
+        ],
+        "name": "batchnormalization_267"
+      },
+      {
+        "class_name": "BatchNormalization",
+        "config": {
+          "gamma_regularizer": null,
+          "name": "batchnormalization_268",
+          "epsilon": 0.001,
+          "trainable": true,
+          "mode": 0,
+          "beta_regularizer": null,
+          "momentum": 0.99,
+          "axis": 3
+        },
+        "inbound_nodes": [
+          [
+            [
+              "convolution2d_268",
+              0,
+              0
+            ]
+          ]
+        ],
+        "name": "batchnormalization_268"
+      },
+      {
+        "class_name": "BatchNormalization",
+        "config": {
+          "gamma_regularizer": null,
+          "name": "batchnormalization_271",
+          "epsilon": 0.001,
+          "trainable": true,
+          "mode": 0,
+          "beta_regularizer": null,
+          "momentum": 0.99,
+          "axis": 3
+        },
+        "inbound_nodes": [
+          [
+            [
+              "convolution2d_271",
+              0,
+              0
+            ]
+          ]
+        ],
+        "name": "batchnormalization_271"
+      },
+      {
+        "class_name": "BatchNormalization",
+        "config": {
+          "gamma_regularizer": null,
+          "name": "batchnormalization_272",
+          "epsilon": 0.001,
+          "trainable": true,
+          "mode": 0,
+          "beta_regularizer": null,
+          "momentum": 0.99,
+          "axis": 3
+        },
+        "inbound_nodes": [
+          [
+            [
+              "convolution2d_272",
+              0,
+              0
+            ]
+          ]
+        ],
+        "name": "batchnormalization_272"
+      },
+      {
+        "class_name": "Convolution2D",
+        "config": {
+          "W_constraint": null,
+          "b_constraint": null,
+          "name": "convolution2d_273",
+          "activity_regularizer": null,
+          "trainable": true,
+          "dim_ordering": "tf",
+          "nb_col": 1,
+          "subsample": [
+            1,
+            1
+          ],
+          "init": "glorot_uniform",
+          "bias": true,
+          "nb_filter": 192,
+          "border_mode": "same",
+          "b_regularizer": null,
+          "W_regularizer": null,
+          "activation": "relu",
+          "nb_row": 1
+        },
+        "inbound_nodes": [
+          [
+            [
+              "averagepooling2d_29",
+              0,
+              0
+            ]
+          ]
+        ],
+        "name": "convolution2d_273"
+      },
+      {
+        "class_name": "BatchNormalization",
+        "config": {
+          "gamma_regularizer": null,
+          "name": "batchnormalization_265",
+          "epsilon": 0.001,
+          "trainable": true,
+          "mode": 0,
+          "beta_regularizer": null,
+          "momentum": 0.99,
+          "axis": 3
+        },
+        "inbound_nodes": [
+          [
+            [
+              "convolution2d_265",
+              0,
+              0
+            ]
+          ]
+        ],
+        "name": "batchnormalization_265"
+      },
+      {
+        "class_name": "Merge",
+        "config": {
+          "name": "mixed9_0",
+          "concat_axis": 3,
+          "mode_type": "raw",
+          "dot_axes": -1,
+          "output_mask_type": "raw",
+          "arguments": {},
+          "output_mask": null,
+          "mode": "concat",
+          "output_shape": null,
+          "output_shape_type": "raw"
+        },
+        "inbound_nodes": [
+          [
+            [
+              "batchnormalization_267",
+              0,
+              0
+            ],
+            [
+              "batchnormalization_268",
+              0,
+              0
+            ]
+          ]
+        ],
+        "name": "mixed9_0"
+      },
+      {
+        "class_name": "Merge",
+        "config": {
+          "name": "merge_5",
+          "concat_axis": 3,
+          "mode_type": "raw",
+          "dot_axes": -1,
+          "output_mask_type": "raw",
+          "arguments": {},
+          "output_mask": null,
+          "mode": "concat",
+          "output_shape": null,
+          "output_shape_type": "raw"
+        },
+        "inbound_nodes": [
+          [
+            [
+              "batchnormalization_271",
+              0,
+              0
+            ],
+            [
+              "batchnormalization_272",
+              0,
+              0
+            ]
+          ]
+        ],
+        "name": "merge_5"
+      },
+      {
+        "class_name": "BatchNormalization",
+        "config": {
+          "gamma_regularizer": null,
+          "name": "batchnormalization_273",
+          "epsilon": 0.001,
+          "trainable": true,
+          "mode": 0,
+          "beta_regularizer": null,
+          "momentum": 0.99,
+          "axis": 3
+        },
+        "inbound_nodes": [
+          [
+            [
+              "convolution2d_273",
+              0,
+              0
+            ]
+          ]
+        ],
+        "name": "batchnormalization_273"
+      },
+      {
+        "class_name": "Merge",
+        "config": {
+          "name": "mixed9",
+          "concat_axis": 3,
+          "mode_type": "raw",
+          "dot_axes": -1,
+          "output_mask_type": "raw",
+          "arguments": {},
+          "output_mask": null,
+          "mode": "concat",
+          "output_shape": null,
+          "output_shape_type": "raw"
+        },
+        "inbound_nodes": [
+          [
+            [
+              "batchnormalization_265",
+              0,
+              0
+            ],
+            [
+              "mixed9_0",
+              0,
+              0
+            ],
+            [
+              "merge_5",
+              0,
+              0
+            ],
+            [
+              "batchnormalization_273",
+              0,
+              0
+            ]
+          ]
+        ],
+        "name": "mixed9"
+      },
+      {
+        "class_name": "Convolution2D",
+        "config": {
+          "W_constraint": null,
+          "b_constraint": null,
+          "name": "convolution2d_278",
+          "activity_regularizer": null,
+          "trainable": true,
+          "dim_ordering": "tf",
+          "nb_col": 1,
+          "subsample": [
+            1,
+            1
+          ],
+          "init": "glorot_uniform",
+          "bias": true,
+          "nb_filter": 448,
+          "border_mode": "same",
+          "b_regularizer": null,
+          "W_regularizer": null,
+          "activation": "relu",
+          "nb_row": 1
+        },
+        "inbound_nodes": [
+          [
+            [
+              "mixed9",
+              0,
+              0
+            ]
+          ]
+        ],
+        "name": "convolution2d_278"
+      },
+      {
+        "class_name": "BatchNormalization",
+        "config": {
+          "gamma_regularizer": null,
+          "name": "batchnormalization_278",
+          "epsilon": 0.001,
+          "trainable": true,
+          "mode": 0,
+          "beta_regularizer": null,
+          "momentum": 0.99,
+          "axis": 3
+        },
+        "inbound_nodes": [
+          [
+            [
+              "convolution2d_278",
+              0,
+              0
+            ]
+          ]
+        ],
+        "name": "batchnormalization_278"
+      },
+      {
+        "class_name": "Convolution2D",
+        "config": {
+          "W_constraint": null,
+          "b_constraint": null,
+          "name": "convolution2d_275",
+          "activity_regularizer": null,
+          "trainable": true,
+          "dim_ordering": "tf",
+          "nb_col": 1,
+          "subsample": [
+            1,
+            1
+          ],
+          "init": "glorot_uniform",
+          "bias": true,
+          "nb_filter": 384,
+          "border_mode": "same",
+          "b_regularizer": null,
+          "W_regularizer": null,
+          "activation": "relu",
+          "nb_row": 1
+        },
+        "inbound_nodes": [
+          [
+            [
+              "mixed9",
+              0,
+              0
+            ]
+          ]
+        ],
+        "name": "convolution2d_275"
+      },
+      {
+        "class_name": "Convolution2D",
+        "config": {
+          "W_constraint": null,
+          "b_constraint": null,
+          "name": "convolution2d_279",
+          "activity_regularizer": null,
+          "trainable": true,
+          "dim_ordering": "tf",
+          "nb_col": 3,
+          "subsample": [
+            1,
+            1
+          ],
+          "init": "glorot_uniform",
+          "bias": true,
+          "nb_filter": 384,
+          "border_mode": "same",
+          "b_regularizer": null,
+          "W_regularizer": null,
+          "activation": "relu",
+          "nb_row": 3
+        },
+        "inbound_nodes": [
+          [
+            [
+              "batchnormalization_278",
+              0,
+              0
+            ]
+          ]
+        ],
+        "name": "convolution2d_279"
+      },
+      {
+        "class_name": "BatchNormalization",
+        "config": {
+          "gamma_regularizer": null,
+          "name": "batchnormalization_275",
+          "epsilon": 0.001,
+          "trainable": true,
+          "mode": 0,
+          "beta_regularizer": null,
+          "momentum": 0.99,
+          "axis": 3
+        },
+        "inbound_nodes": [
+          [
+            [
+              "convolution2d_275",
+              0,
+              0
+            ]
+          ]
+        ],
+        "name": "batchnormalization_275"
+      },
+      {
+        "class_name": "BatchNormalization",
+        "config": {
+          "gamma_regularizer": null,
+          "name": "batchnormalization_279",
+          "epsilon": 0.001,
+          "trainable": true,
+          "mode": 0,
+          "beta_regularizer": null,
+          "momentum": 0.99,
+          "axis": 3
+        },
+        "inbound_nodes": [
+          [
+            [
+              "convolution2d_279",
+              0,
+              0
+            ]
+          ]
+        ],
+        "name": "batchnormalization_279"
+      },
+      {
+        "class_name": "Convolution2D",
+        "config": {
+          "W_constraint": null,
+          "b_constraint": null,
+          "name": "convolution2d_276",
+          "activity_regularizer": null,
+          "trainable": true,
+          "dim_ordering": "tf",
+          "nb_col": 3,
+          "subsample": [
+            1,
+            1
+          ],
+          "init": "glorot_uniform",
+          "bias": true,
+          "nb_filter": 384,
+          "border_mode": "same",
+          "b_regularizer": null,
+          "W_regularizer": null,
+          "activation": "relu",
+          "nb_row": 1
+        },
+        "inbound_nodes": [
+          [
+            [
+              "batchnormalization_275",
+              0,
+              0
+            ]
+          ]
+        ],
+        "name": "convolution2d_276"
+      },
+      {
+        "class_name": "Convolution2D",
+        "config": {
+          "W_constraint": null,
+          "b_constraint": null,
+          "name": "convolution2d_277",
+          "activity_regularizer": null,
+          "trainable": true,
+          "dim_ordering": "tf",
+          "nb_col": 1,
+          "subsample": [
+            1,
+            1
+          ],
+          "init": "glorot_uniform",
+          "bias": true,
+          "nb_filter": 384,
+          "border_mode": "same",
+          "b_regularizer": null,
+          "W_regularizer": null,
+          "activation": "relu",
+          "nb_row": 3
+        },
+        "inbound_nodes": [
+          [
+            [
+              "batchnormalization_275",
+              0,
+              0
+            ]
+          ]
+        ],
+        "name": "convolution2d_277"
+      },
+      {
+        "class_name": "Convolution2D",
+        "config": {
+          "W_constraint": null,
+          "b_constraint": null,
+          "name": "convolution2d_280",
+          "activity_regularizer": null,
+          "trainable": true,
+          "dim_ordering": "tf",
+          "nb_col": 3,
+          "subsample": [
+            1,
+            1
+          ],
+          "init": "glorot_uniform",
+          "bias": true,
+          "nb_filter": 384,
+          "border_mode": "same",
+          "b_regularizer": null,
+          "W_regularizer": null,
+          "activation": "relu",
+          "nb_row": 1
+        },
+        "inbound_nodes": [
+          [
+            [
+              "batchnormalization_279",
+              0,
+              0
+            ]
+          ]
+        ],
+        "name": "convolution2d_280"
+      },
+      {
+        "class_name": "Convolution2D",
+        "config": {
+          "W_constraint": null,
+          "b_constraint": null,
+          "name": "convolution2d_281",
+          "activity_regularizer": null,
+          "trainable": true,
+          "dim_ordering": "tf",
+          "nb_col": 1,
+          "subsample": [
+            1,
+            1
+          ],
+          "init": "glorot_uniform",
+          "bias": true,
+          "nb_filter": 384,
+          "border_mode": "same",
+          "b_regularizer": null,
+          "W_regularizer": null,
+          "activation": "relu",
+          "nb_row": 3
+        },
+        "inbound_nodes": [
+          [
+            [
+              "batchnormalization_279",
+              0,
+              0
+            ]
+          ]
+        ],
+        "name": "convolution2d_281"
+      },
+      {
+        "class_name": "AveragePooling2D",
+        "config": {
+          "name": "averagepooling2d_30",
+          "trainable": true,
+          "dim_ordering": "tf",
+          "pool_size": [
+            3,
+            3
+          ],
+          "strides": [
+            1,
+            1
+          ],
+          "border_mode": "same"
+        },
+        "inbound_nodes": [
+          [
+            [
+              "mixed9",
+              0,
+              0
+            ]
+          ]
+        ],
+        "name": "averagepooling2d_30"
+      },
+      {
+        "class_name": "Convolution2D",
+        "config": {
+          "W_constraint": null,
+          "b_constraint": null,
+          "name": "convolution2d_274",
+          "activity_regularizer": null,
+          "trainable": true,
+          "dim_ordering": "tf",
+          "nb_col": 1,
+          "subsample": [
+            1,
+            1
+          ],
+          "init": "glorot_uniform",
+          "bias": true,
+          "nb_filter": 320,
+          "border_mode": "same",
+          "b_regularizer": null,
+          "W_regularizer": null,
+          "activation": "relu",
+          "nb_row": 1
+        },
+        "inbound_nodes": [
+          [
+            [
+              "mixed9",
+              0,
+              0
+            ]
+          ]
+        ],
+        "name": "convolution2d_274"
+      },
+      {
+        "class_name": "BatchNormalization",
+        "config": {
+          "gamma_regularizer": null,
+          "name": "batchnormalization_276",
+          "epsilon": 0.001,
+          "trainable": true,
+          "mode": 0,
+          "beta_regularizer": null,
+          "momentum": 0.99,
+          "axis": 3
+        },
+        "inbound_nodes": [
+          [
+            [
+              "convolution2d_276",
+              0,
+              0
+            ]
+          ]
+        ],
+        "name": "batchnormalization_276"
+      },
+      {
+        "class_name": "BatchNormalization",
+        "config": {
+          "gamma_regularizer": null,
+          "name": "batchnormalization_277",
+          "epsilon": 0.001,
+          "trainable": true,
+          "mode": 0,
+          "beta_regularizer": null,
+          "momentum": 0.99,
+          "axis": 3
+        },
+        "inbound_nodes": [
+          [
+            [
+              "convolution2d_277",
+              0,
+              0
+            ]
+          ]
+        ],
+        "name": "batchnormalization_277"
+      },
+      {
+        "class_name": "BatchNormalization",
+        "config": {
+          "gamma_regularizer": null,
+          "name": "batchnormalization_280",
+          "epsilon": 0.001,
+          "trainable": true,
+          "mode": 0,
+          "beta_regularizer": null,
+          "momentum": 0.99,
+          "axis": 3
+        },
+        "inbound_nodes": [
+          [
+            [
+              "convolution2d_280",
+              0,
+              0
+            ]
+          ]
+        ],
+        "name": "batchnormalization_280"
+      },
+      {
+        "class_name": "BatchNormalization",
+        "config": {
+          "gamma_regularizer": null,
+          "name": "batchnormalization_281",
+          "epsilon": 0.001,
+          "trainable": true,
+          "mode": 0,
+          "beta_regularizer": null,
+          "momentum": 0.99,
+          "axis": 3
+        },
+        "inbound_nodes": [
+          [
+            [
+              "convolution2d_281",
+              0,
+              0
+            ]
+          ]
+        ],
+        "name": "batchnormalization_281"
+      },
+      {
+        "class_name": "Convolution2D",
+        "config": {
+          "W_constraint": null,
+          "b_constraint": null,
+          "name": "convolution2d_282",
+          "activity_regularizer": null,
+          "trainable": true,
+          "dim_ordering": "tf",
+          "nb_col": 1,
+          "subsample": [
+            1,
+            1
+          ],
+          "init": "glorot_uniform",
+          "bias": true,
+          "nb_filter": 192,
+          "border_mode": "same",
+          "b_regularizer": null,
+          "W_regularizer": null,
+          "activation": "relu",
+          "nb_row": 1
+        },
+        "inbound_nodes": [
+          [
+            [
+              "averagepooling2d_30",
+              0,
+              0
+            ]
+          ]
+        ],
+        "name": "convolution2d_282"
+      },
+      {
+        "class_name": "BatchNormalization",
+        "config": {
+          "gamma_regularizer": null,
+          "name": "batchnormalization_274",
+          "epsilon": 0.001,
+          "trainable": true,
+          "mode": 0,
+          "beta_regularizer": null,
+          "momentum": 0.99,
+          "axis": 3
+        },
+        "inbound_nodes": [
+          [
+            [
+              "convolution2d_274",
+              0,
+              0
+            ]
+          ]
+        ],
+        "name": "batchnormalization_274"
+      },
+      {
+        "class_name": "Merge",
+        "config": {
+          "name": "mixed9_1",
+          "concat_axis": 3,
+          "mode_type": "raw",
+          "dot_axes": -1,
+          "output_mask_type": "raw",
+          "arguments": {},
+          "output_mask": null,
+          "mode": "concat",
+          "output_shape": null,
+          "output_shape_type": "raw"
+        },
+        "inbound_nodes": [
+          [
+            [
+              "batchnormalization_276",
+              0,
+              0
+            ],
+            [
+              "batchnormalization_277",
+              0,
+              0
+            ]
+          ]
+        ],
+        "name": "mixed9_1"
+      },
+      {
+        "class_name": "Merge",
+        "config": {
+          "name": "merge_6",
+          "concat_axis": 3,
+          "mode_type": "raw",
+          "dot_axes": -1,
+          "output_mask_type": "raw",
+          "arguments": {},
+          "output_mask": null,
+          "mode": "concat",
+          "output_shape": null,
+          "output_shape_type": "raw"
+        },
+        "inbound_nodes": [
+          [
+            [
+              "batchnormalization_280",
+              0,
+              0
+            ],
+            [
+              "batchnormalization_281",
+              0,
+              0
+            ]
+          ]
+        ],
+        "name": "merge_6"
+      },
+      {
+        "class_name": "BatchNormalization",
+        "config": {
+          "gamma_regularizer": null,
+          "name": "batchnormalization_282",
+          "epsilon": 0.001,
+          "trainable": true,
+          "mode": 0,
+          "beta_regularizer": null,
+          "momentum": 0.99,
+          "axis": 3
+        },
+        "inbound_nodes": [
+          [
+            [
+              "convolution2d_282",
+              0,
+              0
+            ]
+          ]
+        ],
+        "name": "batchnormalization_282"
+      },
+      {
+        "class_name": "Merge",
+        "config": {
+          "name": "mixed10",
+          "concat_axis": 3,
+          "mode_type": "raw",
+          "dot_axes": -1,
+          "output_mask_type": "raw",
+          "arguments": {},
+          "output_mask": null,
+          "mode": "concat",
+          "output_shape": null,
+          "output_shape_type": "raw"
+        },
+        "inbound_nodes": [
+          [
+            [
+              "batchnormalization_274",
+              0,
+              0
+            ],
+            [
+              "mixed9_1",
+              0,
+              0
+            ],
+            [
+              "merge_6",
+              0,
+              0
+            ],
+            [
+              "batchnormalization_282",
+              0,
+              0
+            ]
+          ]
+        ],
+        "name": "mixed10"
+      },
+      {
+        "class_name": "AveragePooling2D",
+        "config": {
+          "name": "avg_pool",
+          "trainable": true,
+          "dim_ordering": "tf",
+          "pool_size": [
+            8,
+            8
+          ],
+          "strides": [
+            8,
+            8
+          ],
+          "border_mode": "valid"
+        },
+        "inbound_nodes": [
+          [
+            [
+              "mixed10",
+              0,
+              0
+            ]
+          ]
+        ],
+        "name": "avg_pool"
+      },
+      {
+        "class_name": "Flatten",
+        "config": {
+          "trainable": true,
+          "name": "flatten"
+        },
+        "inbound_nodes": [
+          [
+            [
+              "avg_pool",
+              0,
+              0
+            ]
+          ]
+        ],
+        "name": "flatten"
+      },
+      {
+        "class_name": "Dense",
+        "config": {
+          "W_constraint": null,
+          "b_constraint": null,
+          "name": "predictions",
+          "activity_regularizer": null,
+          "trainable": true,
+          "init": "glorot_uniform",
+          "bias": true,
+          "input_dim": 2048,
+          "b_regularizer": null,
+          "W_regularizer": null,
+          "activation": "softmax",
+          "output_dim": 1000
+        },
+        "inbound_nodes": [
+          [
+            [
+              "flatten",
+              0,
+              0
+            ]
+          ]
+        ],
+        "name": "predictions"
+      }
+    ],
+    "input_layers": [
+      [
+        "input_3",
+        0,
+        0
+      ]
+    ],
+    "output_layers": [
+      [
+        "predictions",
+        0,
+        0
+      ]
+    ],
+    "name": "inception_v3"
+  }
+}

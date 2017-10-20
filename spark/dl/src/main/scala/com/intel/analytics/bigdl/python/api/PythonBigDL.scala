@@ -36,6 +36,8 @@ import java.nio.ByteOrder
 
 import com.intel.analytics.bigdl.nn.Graph._
 import com.intel.analytics.bigdl.nn.tf.{Const, Fill, Shape, SplitAndSelect}
+import com.intel.analytics.bigdl.utils.keras.KerasLoader
+import com.intel.analytics.bigdl.utils.tf.{TensorflowDataFormat, TensorflowSaver}
 import com.intel.analytics.bigdl.utils.tf.TensorflowLoader.{buildBigDLModel, buildTFGraph, parse}
 import com.intel.analytics.bigdl.utils.tf.{BigDLSessionImpl, Context, TensorflowDataFormat, TensorflowSaver}
 import org.apache.log4j._
@@ -2025,6 +2027,14 @@ class PythonBigDL[T: ClassTag](implicit ev: TensorNumeric[T]) extends Serializab
 
   def quantize(module: AbstractModule[Activity, Activity, T]): Module[T] = {
     module.quantize()
+  }
+
+  def kerasLoadGraph(modelPath: String): Graph[T] = {
+    new KerasLoader(modelPath).loadModule()
+  }.asInstanceOf[Graph[T]]
+
+  def modelForwardExecutions(graph: Graph[T]): JList[AbstractModule[Activity, Activity, T]] = {
+    graph.getForwardExecutions.map{node => node.element}.toList.asJava
   }
 }
 
