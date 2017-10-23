@@ -265,6 +265,17 @@ class Layer(JavaValue):
         else:
             raise Exception("Error when calling evaluate(): it takes no argument or exactly three arguments only")
 
+    RDD[Sample]
+    Array[Sample]
+
+    def predict_local(self, X, batch=32):
+        result = callBigDlFunc(self.bigdl_type,
+                             "predict_local", self.value, X, batch)
+        return result.to_ndarray()
+
+    def predict_class_local(self, X, batch=32):
+        pass
+
     def predict(self, data_rdd):
         """
         Model inference base on the given data.

@@ -194,21 +194,31 @@ class PythonBigDL[T: ClassTag](implicit ev: TensorNumeric[T]) extends Serializab
   }
 
   // The first dimension is batch for both X and y
-  private def toSampleArray(X: Tensor[T], y: Tensor[T]): Array[Sample[T]] = {
-    require(X.size()(0) == y.size()(0),
-      s"The batch dim should be equal, but we got: ${X.size()(0)} vs ${y.size()(0)}")
+  private def toSampleArray(X: Tensor[T], y: Tensor[T] = null): Array[Sample[T]] = {
     val totalNum = X.size()(0)
     var i = 1
     val samples = new Array[Sample[T]](totalNum)
-    while (i <= totalNum) {
-      samples(i-1) = Sample(X.select(1, i), y.select(1, i))
-      i += 1
+
+    if (y != null) {
+      require(X.size()(0) == y.size()(0),
+        s"The batch dim should be equal, but we got: ${X.size()(0)} vs ${y.size()(0)}")
+      while (i <= totalNum) {
+        samples(i-1) = Sample(X.select(1, i), y.select(1, i))
+        i += 1
+      }
+    } else {
+      val dummyTensor = Tensor[T](1).fill(ev.fromType(1))
+      while (i <= totalNum) {
+        samples(i-1) = Sample(X.select(1, i), dummyTensor)
+        i += 1
+      }
     }
+
     samples
   }
 
 
-  private def batching(dataset: DataSet[Sample[T]], batchSize: Int)
+  def batching(dataset: DataSet[Sample[T]], batchSize: Int)
   : DataSet[MiniBatch[T]] = {
     dataset -> SampleToMiniBatch[T](batchSize)
   }
@@ -1596,6 +1606,19 @@ class PythonBigDL[T: ClassTag](implicit ev: TensorNumeric[T]) extends Serializab
       (name, shape.asScala)
     }
     model.saveTF(scalaInputs, path, order, format)
+  }
+
+  def predictLocal(model: AbstractModule[Activity, Activity, T],
+                   X: JTensor,
+                   batch: Int): JList[JTensor] = {
+    val sampleArray = toSampleArray(toTensor(X))
+    val batchedData = batching(DataSet.array(sampleArray), batch)
+      .asInstanceOf[LocalDataSet[MiniBatch[T]]]
+    val result = batchedData.data(false).map { batch =>
+      val tensor = model.forward(batch.getInput()).toTensor[T].clone()
+      toJTensor(tensor)
+    }.toList.asJava
+    result
   }
 
   def modelPredictRDD(model: AbstractModule[Activity, Activity, T],
