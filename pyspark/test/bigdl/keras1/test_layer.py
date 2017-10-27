@@ -14,34 +14,27 @@
 # limitations under the License.
 #
 from __future__ import print_function
-import bigdl.nn.layer as bigdl_layer
-import bigdl.optim.optimizer  as bigdl_optimizer
-import bigdl.util.common as bigdl_common
-import numpy as np
-import pytest
-import shutil
-import tempfile
-from numpy.testing import assert_allclose
-import bigdl.keras1.backend as bigdl_backend
-from bigdl.keras1.converter import ModelLoader
 
+import numpy as np
+import keras
+import pytest
 from keras.layers import *
 from keras.models import Sequential, Model
-import numpy as np
+
+from bigdl.keras1.converter import ModelLoader
+
 np.random.seed(1337)  # for reproducibility
 from keras.layers.core import *
 from keras.layers.convolutional import *
-from keras.layers import Dense, Dropout, Input, Lambda
+from keras.layers import Dense, Input
 from keras.models import model_from_json
-from keras.optimizers import RMSprop
-from keras.utils import np_utils
 from bigdl.util.common import create_tmp_path
 from bigdl.keras1.converter import DefinitionLoader
+from test.bigdl.test_utils import BigDLTestCase
 
 
+class TestLayer(BigDLTestCase):
 
-
-class TestLayer():
     def __dump_keras(self, keras_model, dump_weights=False):
         keras_model_path = create_tmp_path()
         keras_model_json_path = keras_model_path + ".json"
@@ -55,9 +48,15 @@ class TestLayer():
         return keras_model_json_path, keras_model_hdf5_path
 
     def __generate_model(self, input_data, output_layer):
-        input_node = [Input(shape=input_data.shape[1:]) for i in input_data] # it's a list incase of Merge Layer
-        out = output_layer(input_node)
-        return Model(input=input_node, output=out)
+        def without_batch(batch_shape):
+            return batch_shape[1:]
+        if isinstance(output_layer, keras.engine.Merge):  # it's a list in case of Merge Layer
+            assert isinstance(list, input_data)
+            input_tensor = [Input(shape=without_batch(input_data.shape)) for i in input_data]
+        else:
+            input_tensor = Input(shape=without_batch(input_data.shape))
+        out_tensor = output_layer(input_tensor)
+        return Model(input=input_tensor, output=out_tensor)
 
     def __generate_sequence(self, input_data, output_layer):
         seq = Sequential()
@@ -69,7 +68,9 @@ class TestLayer():
                                output_layer,
                                functional_api=True,
                                dump_weights=False,
-                               predict_precision=1e-4):
+                               is_training=False,
+                               rtol=1e-7,
+                               atol=1e-7):
         if functional_api:
             keras_model = self.__generate_model(input_data, output_layer)
         else:
@@ -77,34 +78,33 @@ class TestLayer():
 
         keras_model_json_path, keras_model_hdf5_path = self.__dump_keras(keras_model, dump_weights)
         bigdl_model = DefinitionLoader.from_json(keras_model_json_path).to_bigdl()
+        if not is_training:
+            bigdl_model.evaluate()
         bigdl_output = bigdl_model.forward(input_data)
         keras_output = keras_model.predict(input_data)
         assert bigdl_output.shape == keras_output.shape
-        # assert_allclose(bigdl_output, keras_output, rtol=1e-2)
         #  init result is not the same, so we disable it for now
         if dump_weights: # load weights if possible
             ModelLoader.load_weights(bigdl_model, keras_model, keras_model_hdf5_path)
             bweights = bigdl_model.get_weights()
             kweights = keras_model.get_weights()
-            self.bigdl_assert_allclose(bweights[0], kweights[0], rtol=1e-4)
+            self.bigdl_assert_allclose(bweights[0], kweights[0], rtol, atol)
             if isinstance(bweights, list) and len(bweights) > 1: # if has bias
-                self.bigdl_assert_allclose(bweights[1], kweights[1], rtol=1e-4)
+                self.bigdl_assert_allclose(bweights[1], kweights[1], rtol=rtol, atol=atol)
 
         bigdl_output2 = bigdl_model.forward(input_data)
+        self.assert_allclose(bigdl_output2,
+                                              keras_output,
+                                              rtol=rtol,
+                                              atol=atol)
 
-        # TODO: increase the presision?
-        d = ~np.isclose(bigdl_output2, keras_output, rtol=predict_precision)
-        np.where(d)
-        assert_allclose(bigdl_output2, keras_output, rtol=predict_precision)
-        # np.testing.assert_array_almost_equal(bigdl_output2, keras_output)
-
-    def bigdl_assert_allclose(self, a, b, rtol=1e-7):
+    def bigdl_assert_allclose(self, a, b, rtol=1e-7, atol=1e-7):
         if a.shape != b.shape and a.shape[0] == 1:
             a = a.squeeze(0) # bigdl has a leading 1 for conv2d
             b = b
         if a.shape != b.shape:
             a = a.transpose() # for Dense in keras and linear in bigdl has diff order
-        assert_allclose(a, b, rtol)
+        self.assert_allclose(a, b, rtol, atol)
 
     def _load_keras(self, json_path, hdf5_path):
         with open(json_path, "r") as jp:
@@ -153,37 +153,34 @@ class TestLayer():
     def test_conv1D(self):
         input_data = np.random.random_sample([1, 10, 32])
         layer = Convolution1D(64, 3, border_mode='valid', input_shape=(10, 32))
-        # TODO: increase the precision
-        self.__modelTestSingleLayer(input_data, layer, dump_weights=True, predict_precision=1e-1)
+        self.__modelTestSingleLayer(input_data, layer, dump_weights=True)
 
         layer = Convolution1D(64, 3, border_mode='same', input_shape=(10, 32))
-        self.__modelTestSingleLayer(input_data, layer, dump_weights=True, predict_precision=1e-1)
+        self.__modelTestSingleLayer(input_data, layer, dump_weights=True)
 
 
     def test_conv2D(self):
-        # TODO: the shape of weights is not the same if using theano backend.
-        input_data = np.random.random_sample([1, 3, 128, 128])
-        # json_path = "/tmp/bigdlYUOHqN.json"
-        # hdf5_path = "/tmp/bigdlYUOHqN.hdf5"
-        # kmodel, bmodel = self._load_keras(json_path, hdf5_path)
-        # koutput = kmodel.predict(input_data)
-        # boutput = bmodel.forward(input_data)
-        # assert_allclose(boutput, koutput, rtol=1e-4)
-
-
-
-        layer = Convolution2D(64, 4, 4,
-                    border_mode='valid')
-        self.__modelTestSingleLayer(input_data,
-                                    layer,
-                                    dump_weights=True, predict_precision=1e-4)
-        # Test if alias works or not
-        # layer = Conv2D(64, 3, 3,
-        #             border_mode='same',
-        #                         input_shape=(3, 128, 128))
-        # self.__modelTestSingleLayer(input_data,
-        #                             layer,
-        #                             dump_weights=True, predict_precision=1e-1)
+        image_dim_orders = ["tf", "th"]
+        modes = ["valid", "same"]
+        for order in image_dim_orders:
+            keras.backend.set_image_dim_ordering(order)
+            print("Testing with %s order" % keras.backend.image_dim_ordering())
+            for mode in modes:
+                print("Testing with mode %s" % mode)
+                input_data = np.random.random_sample([1,3, 128, 128])
+                layer = Convolution2D(64, 3, 3,
+                            border_mode=mode,
+                                        input_shape=(128, 128, 3))
+                self.__modelTestSingleLayer(input_data,
+                                            layer,
+                                            dump_weights=True, rtol=1e-5, atol=1e-5)
+                # # Test if alias works or not
+                layer = Conv2D(64, 3, 3,
+                            border_mode=mode,
+                                        input_shape=(3, 128, 128))
+                self.__modelTestSingleLayer(input_data,
+                                            layer,
+                                            dump_weights=True, rtol=1e-5, atol=1e-5)
 
 
     def test_maxpooling2d(self):
@@ -226,15 +223,18 @@ class TestLayer():
         layer = GlobalAveragePooling1D() # TODO: add dim_ordering as parameter?
         self.__modelTestSingleLayer(input_data, layer)
 
-    def test_batchnormalization(self): # test with channel first
-        # For debug: bigdl_model.executions()[1].value.runningMean()
-        # TODO mode=0 would fail 0 vs 2? oh, keras predict is in predict stage not the same as training.
-        input_data = np.random.random_sample([2, 3, 20, 20])
-        layer = BatchNormalization(input_shape=(3, 20, 20), epsilon=1e-3, mode=2, axis=1, momentum=0.99,
-                 weights=None, beta_init='zero', gamma_init='one',
-                 gamma_regularizer=None, beta_regularizer=None)
-        # TODO: increase the precision, 1e-4 would fail
-        self.__modelTestSingleLayer(input_data, layer, dump_weights=True, predict_precision=1e-3)
+    def test_batchnormalization(self):
+        # TODO: test training stage result, as the calc logic is not the same for mode 0
+        image_dim_orders = ["tf", "th"]
+        modes = ["valid", "same"]
+        for order in image_dim_orders:
+            keras.backend.set_image_dim_ordering(order)
+            print("Testing with %s order" % keras.backend.image_dim_ordering())
+            for mode in modes:
+                print("Testing with mode %s" % mode)
+                input_data = np.random.random_sample([2, 3, 20, 20])
+                layer = BatchNormalization(input_shape=(3, 20, 20))
+                self.__modelTestSingleLayer(input_data, layer, dump_weights=True)
 
     def test_flatten(self):
         input_data = np.random.random_sample([1, 2, 3])
@@ -247,24 +247,11 @@ class TestLayer():
         self.__modelTestSingleLayer(input_data, layer)
 
     def test_merge_concat(self):
-        # input_data1 = np.random.random_sample([2, 3, 5])
-        # input_data2 = np.random.random_sample([2, 3, 6])
-        # model1 = Sequential()
-        # model1.add(Dense(20, input_dim=2))
-        # model1.add(Dense(20, input_dim=2))
-        #
-        # model2 = Sequential()
-        # model2.add(Input(input_dim=32))
-        #
-        # merged_model = Sequential()
-        # merged_model.add(Merge([model1, model2], mode='concat', concat_axis=0))
-
         inputLayer1 = InputLayer(input_shape=(3, 6, 7))
         inputLayer2 = InputLayer(input_shape=(3, 6, 8))
-        layer = Merge([inputLayer1, inputLayer2], mode='concat', concat_axis=3) # the index including batch and start from zero, and it's the index to be merge
+        # the index including batch and start from zero which is the index to be merge
+        layer = Merge([inputLayer1, inputLayer2], mode='concat', concat_axis=3)
         input_data = [np.random.random_sample([2, 3, 6, 7]), np.random.random([2, 3, 6, 8])]
-        # r = seq.predict(input_data)
-        # print(r)
         self.__modelTestSingleLayer(input_data, layer, functional_api=False)
 
     # TODO: Support share weights training.
@@ -285,8 +272,6 @@ class TestLayer():
             model2 = Model(input=[input_node1, input_node2], output=[out3, out4])
             def_path, w_path = self.__dump_keras(model2)
             bigdl_model = DefinitionLoader.from_json(def_path).to_bigdl()
-
-
         assert str(excinfo.value) == """We don't support shared weights style for now"""
 
 if __name__ == "__main__":

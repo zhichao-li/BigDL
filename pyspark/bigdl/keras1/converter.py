@@ -154,6 +154,10 @@ class ModelLoader:
                 bigdl_layer.set_weights(bigdl_weights)
 
 class WeightsConverter:
+    """
+    The shape of weights would be changed if using different backend,
+    so we only test against TensorFlow backend.
+    """
 
     @staticmethod
     # weights is a list of ndarray to a ndarray
@@ -282,7 +286,7 @@ class DefinitionLoader:
     def to_bigdl(self):
         if isinstance(self.kmodel, Sequential):
             bmodel = self._construct_bigdl_sequence()
-        elif isinstance(self.kmodel, ):
+        elif isinstance(self.kmodel, Model):
             bmodel = self._construct_bigdl_model()
         return bmodel
 
@@ -418,11 +422,9 @@ class LayerConverter:
 
         self.__check_is_share_weights(kclayer)
 
-        if klayer.mode != 2:
+        if klayer.mode != 0:
             raise Exception(
                 "Only support mode = 0 for now, but the current mode is: %s", klayer.mode)
-        # TODO: affine meaning trainable?  weights? cannot get weights for now,
-
         if config["gamma_regularizer"]:
             raise Exception("We don't support gamma_regularizer for now")
 

@@ -417,9 +417,16 @@ class Layer(JavaValue):
 
     def training(self):
         '''
-        Set this layer in the training mode 
+        Set this layer in the training mode
         '''
         callJavaFunc(get_spark_context(), self.value.training)
+        return self
+
+    def evaluate(self):
+        '''
+        Set this layer in the evaluate  mode
+        '''
+        callJavaFunc(get_spark_context(), self.value.evaluate)
         return self
 
     def is_training(self):
@@ -531,6 +538,20 @@ class Container(Layer):
 
     def add(self, model):
         self.value.add(model.value)
+        return self
+
+    def training(self):
+        '''
+        Set this layer in the training mode
+        '''
+        callJavaFunc(get_spark_context(), self.value.training)
+        return self
+
+    def evaluate(self):
+        '''
+        Set this layer in the evaluate  mode
+        '''
+        callJavaFunc(get_spark_context(), self.value.evaluate)
         return self
 
 
