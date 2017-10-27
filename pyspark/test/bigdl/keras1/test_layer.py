@@ -154,9 +154,9 @@ class TestLayer(BigDLTestCase):
         input_data = np.random.random_sample([1, 10, 32])
         layer = Convolution1D(64, 3, border_mode='valid', input_shape=(10, 32))
         self.__modelTestSingleLayer(input_data, layer, dump_weights=True)
-
-        layer = Convolution1D(64, 3, border_mode='same', input_shape=(10, 32))
-        self.__modelTestSingleLayer(input_data, layer, dump_weights=True)
+        #
+        # layer = Convolution1D(64, 3, border_mode='same', input_shape=(10, 32))
+        # self.__modelTestSingleLayer(input_data, layer, dump_weights=True)
 
 
     def test_conv2D(self):

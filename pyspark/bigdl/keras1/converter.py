@@ -9,6 +9,7 @@ import keras.optimizers as koptimizers
 from keras.models import model_from_json
 from keras.models import Sequential, Model
 from bigdl.util.common import callBigDlFuncWithoutMappingReturn
+import keras
 
 class OptimConverter:
 
@@ -478,46 +479,28 @@ class LayerConverter:
 
 ################# Layers with weights ############################# noqa
 
-    # def create_convolution1d(self, klayer, kclayer):
-    #     config = kclayer["config"]
-    #     input_shape = klayer.get_input_shape_at(0) # (batch, step, dim_size)
-    #     stack_size = input_shape[2] # channel last ordering
-    #     if klayer.border_mode != "valid":
-    #         raise Exception("We don't support padding for now. please set border_mode to be valid")
-    #     # TODO: we should support klayer.init for layers !!! maybe we can just simply reload the keras weights.
-    #
-    #     blayer = BLayer.TemporalConvolution(
-    #              input_frame_size=stack_size,
-    #              output_frame_size=klayer.nb_filter,
-    #              kernel_w=klayer.filter_length,
-    #              stride_w=klayer.subsample_length,
-    #              propagate_back=True,
-    #              weight_regularizer=self.to_bigdl_reg(config["W_regularizer"]),
-    #              bias_regularizer=self.to_bigdl_reg(config["b_regularizer"]),
-    #              init_weight=None,
-    #              init_bias=None,
-    #              init_grad_weight=None,
-    #              init_grad_bias=None,
-    #              bigdl_type="float")
-    #
-    #     return self.combo_parameter_layer(blayer, config)
-
     def create_convolution1d(self, klayer, kclayer):
         config = kclayer["config"]
         input_shape = klayer.get_input_shape_at(0) # batch, steps, dim
         stack_size = input_shape[2]
-
         bpadW, bpadH = self.to_bigdl_2d_padding(klayer.border_mode)
         seq = BLayer.Sequential()
-        seq.add(BLayer.View([input_shape[1], 1, input_shape[2]], num_input_dims=3))
-        raise Exception("What !!!!")
+        data_format = self.to_bigdl_2d_ordering(keras.backend.image_dim_ordering())
+        if "NHWC" == data_format:
+            seq.add(BLayer.View([1, input_shape[1], input_shape[2]], num_input_dims=3))
+        elif "NCHW" == data_format:
+            seq.add(BLayer.View([input_shape[2], 1, input_shape[1]], num_input_dims=3))
+        else:
+            raise Exception("Not supported order: %s" % data_format)
+
+
         blayer = BLayer.SpatialConvolution(
                  n_input_plane = stack_size,
                  n_output_plane = klayer.nb_filter,
-                 kernel_w = klayer.filter_length,
-                 kernel_h = 1,
-                 stride_w= klayer.subsample_length,
-                 stride_h= 1,
+                kernel_w=klayer.filter_length,
+                kernel_h=1,
+                stride_w=klayer.subsample_length,
+                stride_h=1,
                  pad_w= bpadW,
                  pad_h= bpadH,
                  n_group=1,
@@ -529,10 +512,10 @@ class LayerConverter:
                  init_grad_weight=None,
                  init_grad_bias=None,
                  with_bias=config["bias"],
-                 data_format="NHWC",
+                 data_format=data_format,
                  bigdl_type="float")
-
-        return self.combo_parameter_layer(blayer, config)
+        seq.add(blayer)
+        return self.combo_parameter_layer(seq, config)
 
     def create_convolution2d(self, klayer, kclayer):
         config = kclayer["config"]
