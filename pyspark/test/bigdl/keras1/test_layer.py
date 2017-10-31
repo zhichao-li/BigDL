@@ -15,22 +15,15 @@
 #
 from __future__ import print_function
 
-import numpy as np
-import keras
 import pytest
 from keras.layers import *
-from keras.models import Sequential, Model
-
-from bigdl.keras1.converter import ModelLoader
 
 np.random.seed(1337)  # for reproducibility
 from keras.layers.core import *
 from keras.layers.convolutional import *
 from keras.layers import Dense, Input
-from keras.models import model_from_json
-from bigdl.util.common import create_tmp_path
 from bigdl.keras1.converter import *
-from test.bigdl.test_utils import BigDLTestCase, TestModels
+from test.bigdl.test_utils import BigDLTestCase
 
 
 class TestLayer(BigDLTestCase):
@@ -103,15 +96,15 @@ class TestLayer(BigDLTestCase):
                                       border_mode=mode,
                                       input_shape=(128, 128, 3))
                 self.modelTestSingleLayer(input_data,
-                                            layer,
-                                            dump_weights=True, rtol=1e-5, atol=1e-5)
+                                          layer,
+                                          dump_weights=True, rtol=1e-5, atol=1e-5)
         # Test if alias works or not
         layer = Conv2D(64, 3, 1,
-                          border_mode="valid",
+                       border_mode="valid",
                        input_shape=(3, 128, 128))
         self.modelTestSingleLayer(input_data,
-                                    layer,
-                                    dump_weights=True, rtol=1e-5, atol=1e-5)
+                                  layer,
+                                  dump_weights=True, rtol=1e-5, atol=1e-5)
 
     def test_maxpooling2d(self):
         input_data = np.random.random_sample([1, 3, 20, 20])

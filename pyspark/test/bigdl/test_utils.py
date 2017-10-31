@@ -14,27 +14,15 @@
 # limitations under the License.
 #
 from __future__ import print_function
-import bigdl.nn.layer as bigdl_layer
-import bigdl.optim.optimizer  as bigdl_optimizer
-import bigdl.util.common as bigdl_common
 import numpy as np
-import pytest
-import shutil
-import tempfile
-from numpy.testing import assert_allclose
-import bigdl.keras1.backend as bigdl_backend
-from bigdl.keras1.converter import ModelLoader, WeightsConverter
-
-from keras.layers import *
 from keras.models import Sequential, Model
-import numpy as np
+from bigdl.keras1.converter import ModelLoader, WeightsConverter
 np.random.seed(1337)  # for reproducibility
 from keras.layers.core import *
 from keras.layers.convolutional import *
-from keras.layers import Dense, Dropout, Input, Lambda
+from keras.layers import Dense, Dropout, Input
 from keras.models import model_from_json
 from keras.optimizers import RMSprop
-from keras.utils import np_utils
 from bigdl.util.common import create_tmp_path
 from bigdl.keras1.converter import DefinitionLoader
 import numpy as np
@@ -50,8 +38,8 @@ class TestModels:
         dense = Dense(2)(input1)
         kmodel = Model(input=input1, output=dense)
         kmodel.compile(loss='categorical_crossentropy',
-                      optimizer=RMSprop(),
-                      metrics=['accuracy'])
+                       optimizer=RMSprop(),
+                       metrics=['accuracy'])
         input_data = np.random.sample([1, 3])
         output_data = np.random.sample([1, 2])
         return kmodel, input_data, output_data
@@ -62,8 +50,8 @@ class TestModels:
         dense = Dense(2)(input1)
         kmodel = Model(input=input1, output=dense)
         kmodel.compile(loss='categorical_crossentropy',
-                      optimizer=RMSprop(),
-                      metrics=['accuracy'])
+                       optimizer=RMSprop(),
+                       metrics=['accuracy'])
         input_data = np.random.sample([1, 3])
         output_data = np.random.sample([1, 2])
         return kmodel, input_data, output_data
@@ -94,12 +82,11 @@ class TestModels:
         activation2 = Activation('softmax')(dense3)
         kmodel = Model(input=input1, output=activation2)
         kmodel.compile(loss='categorical_crossentropy',
-                      optimizer='Adagrad',
-                      metrics=['accuracy'])
+                       optimizer='Adagrad',
+                       metrics=['accuracy'])
         input_data = np.random.random([4, 20])
         output_data = np.random.random([4, 5])
         return kmodel, input_data, output_data
-
 
     @staticmethod
     def kmodel_seq_lenet_mnist():
@@ -144,6 +131,7 @@ class TestModels:
         output_data = np.random.randint(1, 5, [nb_samples, 1])
         return model, input_data, output_data
 
+
 class BigDLTestCase(TestCase):
 
     def __generate_model(self, input_data, output_layer):
@@ -167,7 +155,7 @@ class BigDLTestCase(TestCase):
             kmodel = model_from_json(jp.read())
         kmodel.load_weights(hdf5_path)
         bmodel = ModelLoader.load_def_from_json(json_path)
-        ModelLoader.load_weights(bmodel, kmodel, hdf5_path) # TODO: refactor reability of this api
+        ModelLoader.load_weights(bmodel, kmodel, hdf5_path)  # TODO: refactor reability of this api
         return kmodel, bmodel
 
     def _dump_keras(self, keras_model, dump_weights=False):
@@ -247,7 +235,6 @@ class BigDLTestCase(TestCase):
                              rtol=rtol,
                              atol=atol)
 
-
     def modelTestSingleLayer(self,
                              input_data,
                              output_layer,  # a keras layer
@@ -263,6 +250,6 @@ class BigDLTestCase(TestCase):
                        keras_model,
                        dump_weights=dump_weights,
                        is_training=is_training,
-                       weight_converter=WeightsConverter.get_converter(output_layer.__class__.__name__),
+                       weight_converter=WeightsConverter.get_converter(output_layer.__class__.__name__),  # noqa
                        rtol=rtol,
                        atol=atol)

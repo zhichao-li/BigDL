@@ -16,29 +16,19 @@
 from __future__ import print_function
 
 from keras.layers import *
-from keras.models import Sequential
 
 np.random.seed(1337)  # for reproducibility
-from keras.layers.core import *
-from keras.layers.convolutional import *
-from keras.layers import Dropout
-from bigdl.keras1.backend import use_bigdl_backend
 import numpy as np
 import pytest
-from keras.layers import Activation
-from keras.models import Model
-from numpy.testing import assert_allclose
 
 import bigdl.keras1.backend as bigdl_backend
 import bigdl.util.common as bigdl_common
 
 np.random.seed(1337)  # for reproducibility
-# from keras.layers.core import Dense, Dropout, Activation, Input
-from keras.layers import Dense, Input
 from test.bigdl.test_utils import BigDLTestCase, TestModels
 
-# TODO: add method to test optimizers
 
+# TODO: add method to test optimizers
 class TestModelFunctions(BigDLTestCase):
 
     def test_fit_seq_lenet_mnist(self):
@@ -73,8 +63,6 @@ class TestModelFunctions(BigDLTestCase):
         bmodel.fit(input_data, output_data, batch_size=4, nb_epoch=2,
                    validation_data=(input_data, output_data))
         bmodel.evaluate(input_data, output_data)
-
-
 
 if __name__ == "__main__":
     pytest.main([__file__])
