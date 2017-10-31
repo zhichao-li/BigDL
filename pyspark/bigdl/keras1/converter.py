@@ -123,6 +123,8 @@ class ModelLoader:
             raise Exception("not supported format of old version")
         else:
             blayers = bmodel.executions()
+            # TODO: get_weights is slow,
+            # we should add another method to check if layer containing weigths or not
             bigdl_layers_wb = [layer for layer in blayers if layer.get_weights()]
 
             layer_names = [n.decode('utf8') for n in f.attrs['layer_names']]
@@ -168,29 +170,70 @@ class ModelLoader:
                     # This is for backwards compatibility with
                     # the old Conv1D weights format.
                     raise Exception("we don't support old format for now")
-                bigdl_weights = WeightsConverter.convert_weights(
+                bigdl_weights = WeightsConverter.to_bigdl_weights(
                         keras_name_to_layer[name].__class__.__name__,
                                                                    weight_values)
                 bigdl_layer.set_weights(bigdl_weights)
 
+
 class WeightsConverter:
     """
+    Convert keras weights to bigdl weights
     The shape of weights would be changed if using different backend,
     so we only test against TensorFlow backend.
+    TODO: Support th backend as well.
     """
+
+    @staticmethod
+    def get_converter(class_name):
+        function_name = "convert_" + class_name.lower()
+        if not hasattr(WeightsConverter, function_name):
+            raise Exception("We don't support layer: %s for now" % class_name)
+        converter = getattr(WeightsConverter, function_name)
+        return converter
+
 
     @staticmethod
     # weights is a list of ndarray to a ndarray
-    def convert_weights(class_name, weights):
-        function_name = "convert_" + class_name.lower()
-        if not hasattr(WeightsConverter, function_name):
-            raise Exception("We don't support layer: %s for now" % class_name )
-
-        convert = getattr(WeightsConverter, function_name)
-        return convert(weights)
+    # convert keras weights per layer to bigdl format
+    def to_bigdl_weights(class_name, weights):
+        return WeightsConverter.get_converter(class_name)(weights)
 
     @staticmethod
-    def convert_dense( weights):
+    def get_bigdl_weigths_from_keras(k):
+        if isinstance(k, keras.engine.Model):
+            return WeightsConverter.get_weights_from_kmodel(k)
+        elif isinstance(k, keras.engine.Layer):
+            return WeightsConverter.get_bigdl_weights_from_klayer(k)
+        else:
+            raise Exception("Unsupport type: %s", k)
+
+    @staticmethod
+    def get_bigdl_weights_from_klayer(klayer):
+        # not klayer.weights
+        return WeightsConverter.to_bigdl_weights(klayer.__class__.__name__, klayer.get_weights())
+
+    @staticmethod
+    def get_weights_from_kmodel(kmodel):
+        """
+        Convert kmodel's weights to bigdl format.
+        We are supposing the order is the same as the execution order.
+        :param kmodel: keras model
+        :return: list of ndarray
+        """
+        layers_with_weights = [layer for layer in kmodel.layers if layer.weights]
+        bweights = []
+        for klayer in layers_with_weights:
+            # bws would be [weiths, bias] or [weights]
+            bws = WeightsConverter.get_bigdl_weights_from_klayer(klayer)
+            for w in bws:
+                bweights.append(w)
+        return bweights
+
+
+
+    @staticmethod
+    def convert_dense(weights):
         return [np.transpose(weights[0]), weights[1]]
 
     @staticmethod
@@ -508,28 +551,26 @@ class LayerConverter:
 
     def create_convolution1d(self, klayer, kclayer):
         config = kclayer["config"]
-        input_shape = klayer.get_input_shape_at(0) # batch, steps, dim
+        input_shape = klayer.get_input_shape_at(0)
+        # batch, steps, dim, batch is None here, so you cannot use it directly.
         stack_size = input_shape[2]
+
         bpadW, bpadH = self.to_bigdl_2d_padding(klayer.border_mode)
         seq = BLayer.Sequential()
-        seq.add(BLayer.View([input_shape[1], 1, input_shape[2]], num_input_dims=3))
-        # TODO: Check why it would work without the View layer!!
-        data_format = self.to_bigdl_2d_ordering(keras.backend.image_dim_ordering())
-        if "NHWC" == data_format:
-            seq.add(BLayer.View([1, input_shape[1], input_shape[2]], num_input_dims=3))
-        elif "NCHW" == data_format:
-            seq.add(BLayer.View([input_shape[2], 1, input_shape[1]], num_input_dims=3))
-        else:
-            raise Exception("Not supported order: %s" % data_format)
-
-
+        seq.add(BLayer.Reshape([input_shape[1], 1, input_shape[2]], True))
+        # seq.add(BLayer.Transpose([]))
+        # seq.add(BLayer.View([1, input_shape[1], input_shape[2]], num_input_dims=3))
         blayer = BLayer.SpatialConvolution(
                  n_input_plane = stack_size,
                  n_output_plane = klayer.nb_filter,
-                kernel_w=klayer.filter_length,
-                kernel_h=1,
-                stride_w=klayer.subsample_length,
-                stride_h=1,
+            kernel_w = 1,
+            kernel_h =  klayer.filter_length,
+            stride_w= 1,
+            stride_h= klayer.subsample_length,
+            #      kernel_w = klayer.filter_length,
+            #      kernel_h = 1,
+            #      stride_w= klayer.subsample_length,
+            #      stride_h= 1,
                  pad_w= bpadW,
                  pad_h= bpadH,
                  n_group=1,
@@ -541,10 +582,13 @@ class LayerConverter:
                  init_grad_weight=None,
                  init_grad_bias=None,
                  with_bias=config["bias"],
-                 data_format=data_format,
+                 data_format="NHWC",
                  bigdl_type="float")
         seq.add(blayer)
-        return self.combo_parameter_layer(seq, config)
+        seq.add(BLayer.Squeeze(3))
+
+        return seq
+        #return self.combo_parameter_layer(seq, config)
 
     def create_convolution2d(self, klayer, kclayer):
         config = kclayer["config"]
@@ -685,7 +729,7 @@ class LayerConverter:
         bpadW, bpadH = self.to_bigdl_2d_padding(klayer.border_mode)
 
         seq = BLayer.Sequential()
-        seq.add(BLayer.View([input_shape[1], 1, input_shape[2]], num_input_dims=2))
+        seq.add(BLayer.View([1, input_shape[1], input_shape[2]], num_input_dims=3))
         # The implementation in BigDL would refer the stack_size base on `format`
         blayer = BLayer.SpatialAveragePooling(
             kw=klayer.pool_length,
@@ -702,7 +746,7 @@ class LayerConverter:
             bigdl_type="float"
         )
         seq.add(blayer)
-        return blayer
+        return seq
 
     def create_globalaveragepooling2d(self, klayer, kclayer):
         bigdl_order = self.to_bigdl_2d_ordering(klayer.dim_ordering)

@@ -415,14 +415,17 @@ class Layer(JavaValue):
         callBigDlFunc(self.bigdl_type, "unFreeze", self.value, names)
         return self
 
-    def training(self):
+    def training(self, is_training=True):
         '''
-        Set this layer in the training mode
+        Set this layer in the training mode or in predition mode if is_training=False
         '''
-        callJavaFunc(get_spark_context(), self.value.training)
+        if is_training:
+            callJavaFunc(get_spark_context(), self.value.training)
+        else:
+            callJavaFunc(get_spark_context(), self.value.evaluate)
         return self
 
-    def evaluate(self):
+    def set_predic(self):
         '''
         Set this layer in the evaluate  mode
         '''
@@ -549,18 +552,14 @@ class Container(Layer):
         layers = [Layer.of(jlayer) for jlayer in jlayers]
         return layers
 
-    def training(self):
+    def training(self, is_training=True):
         '''
-        Set this layer in the training mode
+        Set this layer in the training mode or in predition mode if is_training=False
         '''
-        callJavaFunc(get_spark_context(), self.value.training)
-        return self
-
-    def evaluate(self):
-        '''
-        Set this layer in the evaluate  mode
-        '''
-        callJavaFunc(get_spark_context(), self.value.evaluate)
+        if is_training:
+            callJavaFunc(get_spark_context(), self.value.training)
+        else:
+            callJavaFunc(get_spark_context(), self.value.evaluate)
         return self
 
 

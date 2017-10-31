@@ -33,12 +33,15 @@ class BigDLModel():
         self.bmodel = ModelLoader.load_def_from_kmodel(kmodel)
         self.criterion = OptimConverter.to_bigdl_criterion(kmodel.loss)
         self.optim_method = OptimConverter.to_bigdl_optim_method(kmodel.optimizer)
-        self.metrics = OptimConverter.to_bigdl_metrics(kmodel.metrics)
+        self.metrics = OptimConverter.to_bigdl_metrics(kmodel.metrics) if kmodel.metrics else None
 
     def evaluate(self, x, y, batch_size=32, verbose=1, sample_weight=None):
-        sc = get_spark_context()
-        sample_rdd = to_sample_rdd(sc, x, y)
-        return [r.result for r in self.bmodel.test(sample_rdd, batch_size, self.metrics)] # TODO: find the metrics
+        if self.metrics:
+            sc = get_spark_context()
+            sample_rdd = to_sample_rdd(sc, x, y)
+            return [r.result for r in self.bmodel.evaluate(sample_rdd, batch_size, self.metrics)]
+        else:
+            raise Exception("No Metrics found.")
 
     # TODO: Support batch_size??
     def predict(self, x, batch_size=32, verbose=0):
@@ -86,10 +89,12 @@ class BigDLModel():
             batch_size=batch_size,
             optim_method=self.optim_method
         )
-        bopt.set_validation(batch_size,
-                            val_rdd=to_sample_rdd(sc, *validation_data ),
-                            trigger=boptimizer.EveryEpoch(), # TODO: check if keras use the same strategy
-                            val_method=self.metrics)
+        if validation_data:
+            bopt.set_validation(batch_size,
+                                val_rdd=to_sample_rdd(sc, *validation_data ),
+                                # TODO: check if keras use the same strategy
+                                trigger=boptimizer.EveryEpoch(),
+                                val_method=self.metrics)
         bopt.optimize()
 
 
