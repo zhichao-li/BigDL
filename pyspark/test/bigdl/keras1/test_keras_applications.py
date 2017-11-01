@@ -16,7 +16,6 @@
 import keras
 import numpy as np
 from keras.applications import *
-from keras.applications import music_tagger_crnn
 from bigdl.keras1.converter import DefinitionLoader, WeightLoader
 
 

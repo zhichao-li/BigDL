@@ -479,6 +479,8 @@ class LayerConverter:
         elif klayer.mode == "dot":
             if len(input_shape[0]) >= 3:
                 raise Exception("Merge mode `dot` doesn't support 3D input or above for now.")
+            if input_shape[0][0] == None:
+                raise Exception("For merge mode `dot`, please specify `batch_input_shape`.")
             model = BLayer.Sequential()
             blayer = model.add(BLayer.DotProduct(bigdl_type="float"))\
                 .add(BLayer.Reshape([input_shape[0][0], 1]))
