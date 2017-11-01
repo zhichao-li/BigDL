@@ -33,10 +33,12 @@ class OptimConverter:
         # TODO: it may pass in an object and with parameters
         if kloss == "categorical_crossentropy":
             return bcriterion.ClassNLLCriterion()
-        elif kloss == "mse":
+        elif kloss == "mse" or kloss == "mean_squared_error":
             return bcriterion.MSECriterion()
         elif kloss == "binary_crossentropy":
             return bcriterion.BCECriterion()
+        elif kloss == "mae" or kloss == "mean_absolute_error":
+            return bcriterion.AbsCriterion()
         else:
             raise Exception("Not supported type: %s" % kloss)
 
@@ -179,6 +181,10 @@ class WeightsConverter:
 
     @staticmethod
     def convert_dense(weights):
+        return [np.transpose(weights[0]), weights[1]]
+
+    @staticmethod
+    def convert_timedistributeddense(weights):
         return [np.transpose(weights[0]), weights[1]]
 
     @staticmethod
@@ -383,6 +389,20 @@ class LayerConverter:
             wRegularizer=self.to_bigdl_reg(config["W_regularizer"]),
             bRegularizer=self.to_bigdl_reg(config["b_regularizer"])
         )
+        return self.combo_parameter_layer(blayer, config)
+
+    def create_timedistributeddense(self, klayer, kclayer):
+        config = kclayer["config"]
+        input_shape = klayer.get_input_shape_at(0)
+        print(input_shape)
+        print(config["output_dim"])
+        blayer = BLayer.TimeDistributed(BLayer.Linear(
+            input_size=input_shape[2],
+            output_size=config["output_dim"],
+            with_bias=config["bias"],
+            wRegularizer=self.to_bigdl_reg(config["W_regularizer"]),
+            bRegularizer=self.to_bigdl_reg(config["b_regularizer"])
+        ))
         return self.combo_parameter_layer(blayer, config)
 
     def create_embedding(self, klayer, kclayer):

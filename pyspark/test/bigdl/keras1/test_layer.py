@@ -34,6 +34,12 @@ class TestLayer(BigDLTestCase):
         self.modelTestSingleLayer(input_data, dense, dump_weights=True, functional_api=False)
         self.modelTestSingleLayer(input_data, dense, dump_weights=True, functional_api=True)
 
+    def test_timedistributeddense(self):
+        input_data = np.random.random_sample([2, 4, 5])
+        layer = TimeDistributedDense(6, input_shape=(4, 5))
+        self.modelTestSingleLayer(input_data, layer, dump_weights=True, functional_api=False)
+        self.modelTestSingleLayer(input_data, layer, dump_weights=True, functional_api=True)
+
     def test_embedding(self):
         # Test index start from 0
         input_data = np.array([[0, 1, 2, 99], [0, 4, 5, 99]])
