@@ -67,7 +67,7 @@ class TestLayer(BigDLTestCase):
     def test_conv1D(self):
         input_data = np.random.random_sample([1, 10, 32])
         layer = Convolution1D(64, 3, border_mode='valid', input_shape=(10, 32))
-        self.modelTestSingleLayer(input_data, layer, dump_weights=True)
+        self.modelTestSingleLayer(input_data, layer, dump_weights=True, functional_api=False)
 
         layer = Convolution1D(64, 3, border_mode='same', input_shape=(10, 32))
         self.modelTestSingleLayer(input_data, layer, dump_weights=True)
@@ -162,7 +162,7 @@ class TestLayer(BigDLTestCase):
     def test_flatten(self):
         input_data = np.random.random_sample([1, 2, 3])
         layer = Flatten()
-        self.modelTestSingleLayer(input_data, layer)
+        self.modelTestSingleLayer(input_data, layer, functional_api=False)
 
     def test_reshape(self):
         input_data = np.random.random_sample([1, 3, 5, 4])
@@ -221,7 +221,7 @@ class TestLayer(BigDLTestCase):
             out3 = Dense(7)(tensor1)
             out4 = Dense(8)(tensor2)
             model2 = Model(input=[input_node1, input_node2], output=[out3, out4])
-            def_path, w_path = self.__dump_keras(model2)
+            def_path, w_path = self._dump_keras(model2)
             bigdl_model = DefinitionLoader.from_json_path(def_path)
         assert str(excinfo.value) == """Convolution2D doesn't support multiple inputs with shared weights"""  # noqa
 

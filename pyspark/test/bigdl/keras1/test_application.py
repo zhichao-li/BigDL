@@ -29,7 +29,6 @@ class TestApplication(BigDLTestCase):
 
     def test_lenet(self):
         kmodel, input_data, output_data = TestModels.kmodel_seq_lenet_mnist()
-        kr = kmodel.predict(input_data, batch_size=input_data[0])
         self.modelTest(input_data, kmodel, dump_weights=True)
 
     def test_text_classification(self):

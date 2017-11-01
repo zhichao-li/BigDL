@@ -138,8 +138,8 @@ class BigDLTestCase(TestCase):
         def without_batch(batch_shape):
             return batch_shape[1:]
         if isinstance(output_layer, keras.engine.Merge):  # it's a list in case of Merge Layer
-            assert isinstance(list, input_data)
-            input_tensor = [Input(shape=without_batch(input_data.shape)) for i in input_data]
+            assert isinstance(input_data, list)
+            input_tensor = [Input(shape=without_batch(i.shape)) for i in input_data]
         else:
             input_tensor = Input(shape=without_batch(input_data.shape))
         out_tensor = output_layer(input_tensor)
@@ -147,6 +147,8 @@ class BigDLTestCase(TestCase):
 
     def __generate_sequence(self, input_data, output_layer):
         seq = Sequential()
+        if not isinstance(output_layer, keras.engine.Merge):
+            seq.add(keras.layers.InputLayer(batch_input_shape=input_data.shape))
         seq.add(output_layer)
         return seq
 
@@ -250,6 +252,6 @@ class BigDLTestCase(TestCase):
                        keras_model,
                        dump_weights=dump_weights,
                        is_training=is_training,
-                       weight_converter=WeightsConverter.get_converter(output_layer.__class__.__name__),  # noqa
+                       weight_converter=None,
                        rtol=rtol,
                        atol=atol)

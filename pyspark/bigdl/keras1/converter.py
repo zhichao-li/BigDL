@@ -344,10 +344,14 @@ class LayerConverter:
             raise Exception("We don't support layer: %s for now" % class_name )
 
         api = getattr(self, function_name)
-        return api(klayer, kclayer).set_name(klayer.name)
+        blayer = api(klayer, kclayer)
+        return blayer.set_name(klayer.name)
 
     def create_model(self, klayer, kclyer):
         return DefinitionLoader.from_kmodel(klayer)
+
+    def create_inputlayer(self, klayer, kclyer):
+        return BLayer.Identity()
 
     def create_dense(self, klayer, kclayer):
         config = kclayer["config"]
