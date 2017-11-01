@@ -111,7 +111,8 @@ class TestLayer(BigDLTestCase):
 
     def test_maxpooling2d(self):
         input_data = np.random.random_sample([1, 3, 20, 20])
-        layer = MaxPooling2D(pool_size=[3, 3], strides=[2, 2], border_mode="valid", input_shape=(3, 20, 20))
+        layer = MaxPooling2D(pool_size=[3, 3], strides=[2, 2],
+                             border_mode="valid", input_shape=(3, 20, 20))
         self.modelTestSingleLayer(input_data, layer, functional_api=True)
         self.modelTestSingleLayer(input_data, layer, functional_api=False)
 
@@ -135,13 +136,15 @@ class TestLayer(BigDLTestCase):
 
     def test_averagepooling2d(self):
         input_data = np.random.random_sample([1, 3, 20, 20])
-        layer = AveragePooling2D(pool_size=[3, 3], strides=[2, 2], border_mode="valid", input_shape=(3, 20, 20))
+        layer = AveragePooling2D(pool_size=[3, 3], strides=[2, 2],
+                                 border_mode="valid", input_shape=(3, 20, 20))
         self.modelTestSingleLayer(input_data, layer, functional_api=True)
         self.modelTestSingleLayer(input_data, layer, functional_api=False)
 
     def test_averagepooling1d(self):
         input_data = np.random.random_sample([1, 3, 20])
-        layer = AveragePooling1D(pool_length=2, stride=None, border_mode='valid', input_shape=(3, 20))
+        layer = AveragePooling1D(pool_length=2, stride=None,
+                                 border_mode='valid', input_shape=(3, 20))
         self.modelTestSingleLayer(input_data, layer, functional_api=True)
         self.modelTestSingleLayer(input_data, layer, functional_api=False)
 
@@ -168,8 +171,10 @@ class TestLayer(BigDLTestCase):
                 print("Testing with mode %s" % mode)
                 input_data = np.random.random_sample([2, 3, 20, 20])
                 layer = BatchNormalization(input_shape=(3, 20, 20))
-                self.modelTestSingleLayer(input_data, layer, dump_weights=True, functional_api=False)
-                self.modelTestSingleLayer(input_data, layer, dump_weights=True, functional_api=True)
+                self.modelTestSingleLayer(input_data, layer,
+                                          dump_weights=True, functional_api=True)
+                self.modelTestSingleLayer(input_data, layer,
+                                          dump_weights=True, functional_api=False)
 
     def test_flatten(self):
         input_data = np.random.random_sample([1, 2, 3])
@@ -307,7 +312,9 @@ class TestLayer(BigDLTestCase):
         layer2 = ZeroPadding2D(padding=(2, 3, 4, 1), input_shape=(2, 3, 4))
         self.modelTestSingleLayer(input_data, layer2, functional_api=False)
         self.modelTestSingleLayer(input_data, layer2, functional_api=True)
-        layer3 = ZeroPadding2D(padding={'top_pad': 1, 'bottom_pad': 2, 'left_pad': 3, 'right_pad': 4}, input_shape=(2, 3, 4))
+        layer3 = ZeroPadding2D(
+            padding={'top_pad': 1, 'bottom_pad': 2, 'left_pad': 3, 'right_pad': 4},
+            input_shape=(2, 3, 4))
         self.modelTestSingleLayer(input_data, layer3, functional_api=False)
         self.modelTestSingleLayer(input_data, layer3, functional_api=True)
 
@@ -318,20 +325,23 @@ class TestLayer(BigDLTestCase):
         self.modelTestSingleLayer(input_data, layer, functional_api=True)
 
     def test_cropping1d(self):
-        input_data = np.random.uniform(0, 1, [3, 4, 3])
-        layer = Cropping1D(cropping=(1, 2), input_shape=(4, 3))
-        self.modelTestSingleLayer(input_data, layer, functional_api=False)
+        input_data = np.random.uniform(0, 1, [3, 10, 10])
+        layer = Cropping1D(cropping=(1, 2))
         self.modelTestSingleLayer(input_data, layer, functional_api=True)
+        self.modelTestSingleLayer(input_data, layer, functional_api=False)
 
     def test_simplernn(self):
         # TODO: functional_api=False will have error
         input_data = np.random.random([3, 4, 5])
         layer = SimpleRNN(5, input_shape=(4, 5), return_sequences=True)
-        self.modelTestSingleLayer(input_data, layer, functional_api=True, dump_weights=True, rtol=1e-6, atol=1e-6)
+        self.modelTestSingleLayer(input_data, layer, functional_api=True,
+                                  dump_weights=True, rtol=1e-6, atol=1e-6)
         layer2 = SimpleRNN(3, input_shape=(4, 5), return_sequences=False)
-        self.modelTestSingleLayer(input_data, layer2, functional_api=True, dump_weights=True, rtol=1e-6, atol=1e-6)
+        self.modelTestSingleLayer(input_data, layer2, functional_api=True,
+                                  dump_weights=True, rtol=1e-6, atol=1e-6)
         layer3 = SimpleRNN(3, input_shape=(4, 5), activation='relu')
-        self.modelTestSingleLayer(input_data, layer3, functional_api=True, dump_weights=True, rtol=1e-6, atol=1e-6)
+        self.modelTestSingleLayer(input_data, layer3, functional_api=True,
+                                  dump_weights=True, rtol=1e-6, atol=1e-6)
 
     def test_lstm(self):
         # TODO: functional_api=False will have error
