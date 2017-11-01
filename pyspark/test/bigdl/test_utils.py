@@ -205,7 +205,6 @@ class BigDLTestCase(TestCase):
                   keras_model,
                   dump_weights=False,
                   is_training=False,
-                  weight_converter=None,
                   rtol=1e-7,
                   atol=1e-7):
         # weight_converter is a function keras [ndarray]-> bigdl [ndarray]
@@ -252,6 +251,5 @@ class BigDLTestCase(TestCase):
                        keras_model,
                        dump_weights=dump_weights,
                        is_training=is_training,
-                       weight_converter=None,
                        rtol=rtol,
                        atol=atol)
