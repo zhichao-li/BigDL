@@ -16,7 +16,7 @@
 from __future__ import print_function
 import numpy as np
 from keras.models import Sequential, Model
-from bigdl.keras1.converter import ModelLoader, WeightsConverter
+from bigdl.keras1.converter import WeightLoader, WeightsConverter
 np.random.seed(1337)  # for reproducibility
 from keras.layers.core import *
 from keras.layers.convolutional import *
@@ -154,8 +154,8 @@ class BigDLTestCase(TestCase):
         with open(json_path, "r") as jp:
             kmodel = model_from_json(jp.read())
         kmodel.load_weights(hdf5_path)
-        bmodel = ModelLoader.load_def_from_json(json_path)
-        ModelLoader.load_weights(bmodel, kmodel, hdf5_path)  # TODO: refactor reability of this api
+        bmodel = DefinitionLoader.from_json_path(json_path)
+        WeightLoader.load_weights(bmodel, kmodel, hdf5_path)  # TODO: refactor reability of this api
         return kmodel, bmodel
 
     def _dump_keras(self, keras_model, dump_weights=False):
@@ -208,7 +208,7 @@ class BigDLTestCase(TestCase):
                   atol=1e-7):
         # weight_converter is a function keras [ndarray]-> bigdl [ndarray]
         keras_model_json_path, keras_model_hdf5_path = self._dump_keras(keras_model, dump_weights)
-        bigdl_model = DefinitionLoader.from_json(keras_model_json_path).to_bigdl()
+        bigdl_model = DefinitionLoader.from_json_path(keras_model_json_path)
         bigdl_model.training(is_training)
         bigdl_output = bigdl_model.forward(input_data)
         keras_output = keras_model.predict(input_data)
@@ -219,7 +219,7 @@ class BigDLTestCase(TestCase):
         #                      rtol=rtol,
         #                      atol=atol)
         if dump_weights:  # load weights if possible
-            ModelLoader.load_weights(bigdl_model, keras_model, keras_model_hdf5_path)
+            WeightLoader.load_weights(bigdl_model, keras_model, keras_model_hdf5_path)
             bweights = bigdl_model.get_weights()
             bweights_from_keras = WeightsConverter.get_bigdl_weigths_from_keras(keras_model)
 

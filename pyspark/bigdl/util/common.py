@@ -442,19 +442,6 @@ def callBigDlFunc(bigdl_type, name, *args):
     api = getattr(jinstance, name)
     return callJavaFunc(sc, api, *args)
 
-def callBigDlFuncWithoutMappingReturn(bigdl_type, name, *args):
-    """ Call API in PythonBigDL """
-    jinstance = JavaCreator.instance(bigdl_type=bigdl_type).value
-    sc = get_spark_context()
-    func = getattr(jinstance, name)
-    """ Call Java Function """
-    args = [_py2java(sc, a) for a in args]
-    result = func(*args)
-    return result
-
-
-
-
 def _java2py(sc, r, encoding="bytes"):
     if isinstance(r, JavaObject):
         clsName = r.getClass().getSimpleName()

@@ -19,7 +19,8 @@ import numpy as np
 import pytest
 from numpy.testing import assert_allclose
 
-from bigdl.keras1.backend import ModelLoader
+from bigdl.keras1.backend import WeightLoader
+from bigdl.keras1.converter import DefinitionLoader
 
 np.random.seed(1337)  # for reproducibility
 from test.bigdl.test_utils import BigDLTestCase, TestModels
@@ -29,10 +30,10 @@ class TestLoadModel(BigDLTestCase):
 
     def __kmodel_load_def_weight_test(self, kmodel, input_data):
         keras_model_path_json, keras_model_path_hdf5 = self._dump_keras(kmodel, dump_weights=True)
-        bmodel = ModelLoader.load_def_from_json(keras_model_path_json)
-        ModelLoader.load_weights(bmodel,
-                                 kmodel,
-                                 keras_model_path_hdf5)
+        bmodel = DefinitionLoader.from_json_path(keras_model_path_json)
+        WeightLoader.load_weights(bmodel,
+                                  kmodel,
+                                  keras_model_path_hdf5)
         bmodel.training(False)
         boutput = bmodel.forward(input_data)
         koutput = kmodel.predict(input_data)

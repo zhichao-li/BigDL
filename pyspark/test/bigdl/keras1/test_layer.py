@@ -63,24 +63,24 @@ class TestLayer(BigDLTestCase):
             self.modelTestSingleLayer(input_data, layer, dump_weights=True)
         assert str(excinfo.value) == """The input_length doesn't match: 128 vs 111"""
 
-    # Add more test case?
+    # Add more test case? activation
     def test_conv1D(self):
         input_data = np.random.random_sample([1, 10, 32])
-        # layer = Convolution1D(64, 3, border_mode='valid', input_shape=(10, 32))
-        # self.modelTestSingleLayer(input_data, layer, dump_weights=True)
-        # #
-        # layer = Convolution1D(64, 3, border_mode='same', input_shape=(10, 32))
-        # self.modelTestSingleLayer(input_data, layer, dump_weights=True)
+        layer = Convolution1D(64, 3, border_mode='valid', input_shape=(10, 32))
+        self.modelTestSingleLayer(input_data, layer, dump_weights=True)
 
         layer = Convolution1D(64, 3, border_mode='same', input_shape=(10, 32))
+        self.modelTestSingleLayer(input_data, layer, dump_weights=True)
+
+        layer = Convolution1D(64, 3, border_mode='same', activation="relu", input_shape=(10, 32))
         self.modelTestSingleLayer(input_data, layer, dump_weights=True)
 
     def _load_keras(self, json_path, hdf5_path):
         with open(json_path, "r") as jp:
             kmodel = model_from_json(jp.read())
         kmodel.load_weights(hdf5_path)
-        bmodel = ModelLoader.load_def_from_json(json_path)
-        ModelLoader.load_weights(bmodel, kmodel, hdf5_path)  # TODO: refactor reability of this api
+        bmodel = DefinitionLoader.from_json_path(json_path)
+        WeightLoader.load_weights(bmodel, kmodel, hdf5_path)  # TODO: refactor reability of this api
         return kmodel, bmodel
 
     def test_conv2D(self):
@@ -222,7 +222,7 @@ class TestLayer(BigDLTestCase):
             out4 = Dense(8)(tensor2)
             model2 = Model(input=[input_node1, input_node2], output=[out3, out4])
             def_path, w_path = self.__dump_keras(model2)
-            bigdl_model = DefinitionLoader.from_json(def_path).to_bigdl()
+            bigdl_model = DefinitionLoader.from_json_path(def_path)
         assert str(excinfo.value) == """Convolution2D doesn't support multiple inputs with shared weights"""  # noqa
 
 if __name__ == "__main__":

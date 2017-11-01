@@ -10,7 +10,7 @@ import bigdl.nn.criterion as bcriterion
 import bigdl.util.common as bcommon
 import keras.optimizers as koptimizers
 from keras.models import model_from_json
-from bigdl.keras1.converter import ModelLoader
+from bigdl.keras1.converter import WeightLoader, DefinitionLoader
 from bigdl.keras1.converter import OptimConverter, unsupport_exp
 
 
@@ -30,7 +30,7 @@ def to_sample_rdd(sc, x, y):
 
 class BigDLModel():
     def __init__(self, kmodel):
-        self.bmodel = ModelLoader.load_def_from_kmodel(kmodel)
+        self.bmodel = DefinitionLoader.from_kmodel(kmodel)
         self.criterion = OptimConverter.to_bigdl_criterion(kmodel.loss)
         self.optim_method = OptimConverter.to_bigdl_optim_method(kmodel.optimizer)
         self.metrics = OptimConverter.to_bigdl_metrics(kmodel.metrics) if kmodel.metrics else None

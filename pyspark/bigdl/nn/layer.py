@@ -352,6 +352,10 @@ class Layer(JavaValue):
             print("The layer does not have weight/bias")
             return None
 
+    def is_with_weights(self):
+        return callBigDlFunc(self.bigdl_type,
+                  "isWithWeights", self.value)
+
     def save(self, path, over_write = False):
         callBigDlFunc(self.bigdl_type, "modelSave", self.value, path,
                       over_write)
@@ -543,20 +547,11 @@ class Container(Layer):
         self.value.add(model.value)
         return self
 
-    def modules(self):
+    @property
+    def layers(self):
         jlayers = callBigDlFunc(self.bigdl_type, "getContainerModules" , self)
         layers = [Layer.of(jlayer) for jlayer in jlayers]
         return layers
-
-    def training(self, is_training=True):
-        '''
-        Set this layer in the training mode or in predition mode if is_training=False
-        '''
-        if is_training:
-            callJavaFunc(get_spark_context(), self.value.training)
-        else:
-            callJavaFunc(get_spark_context(), self.value.evaluate)
-        return self
 
 
 class Model(Container):
@@ -616,7 +611,7 @@ class Model(Container):
         return model
 
     def __str__(self):
-        return "->".join(self.modules())
+        return "->".join(self.layers())
 
     @staticmethod
     def load(path, bigdl_type="float"):

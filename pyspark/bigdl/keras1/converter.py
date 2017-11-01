@@ -8,8 +8,8 @@ import bigdl.util.common as bcommon
 import keras.optimizers as koptimizers
 from keras.models import model_from_json
 from keras.models import Sequential, Model
-from bigdl.util.common import callBigDlFuncWithoutMappingReturn
 import keras
+import warnings
 
 def unsupport_exp(name):
     raise Exception("We don't support %s for now" % name)
@@ -52,128 +52,76 @@ class OptimConverter:
         else:
             unsupport_exp(koptim_method)
 
-class ModelLoader:
+class WeightLoader:
 
     @staticmethod
-    def load_def_from_kmodel(kmodel):
-        keras_model_path = bcommon.create_tmp_path()
-        keras_model_path_json = keras_model_path + ".json"
-        #keras_model_path_hdf5 = keras_model_path + ".hdf5"
+    def __load_weights_by_execution_seq(bmodel, kmodel):
+        blayers = [l for l in bmodel.layers if l.get_weights()]
+        klayers = [l for l in kmodel.layers if l.get_weights()]
+        if len(blayers) != len(klayers):
+            raise Exception(
+                "keras with %s layers but bigdl with %s layers" % (len(klayers), len(blayers)))
+        for b, k in zip(blayers, klayers):
+            if b.name() != k.name:
+                raise Exception("Found different layer in execution order, bigdl:%s, keras: %s" % (b.name(), k.name))  # noqa
+            bigdl_weights = WeightsConverter.get_bigdl_weigths_from_keras(k)
+            b.set_weights(bigdl_weights)
 
-        with open(keras_model_path_json, "w") as json_file:
-            json_file.write(kmodel.to_json())
-        #kmodel.save(keras_model_path_hdf5)
-
-        # load bigdl model from file. TODO: no need to save json to file first
-        return ModelLoader.load_def_from_json(keras_model_path_json)
 
     @staticmethod
-    def load_def_from_json(keras_model_json_path, bigdl_type="float"):
-        if bigdl_type != "float":
-            raise Exception("we only support float32, not %s" % bigdl_type)
-        return DefinitionLoader.from_json(keras_model_json_path).to_bigdl()
+    def __load_weights_by_name(bmodel, kmodel):
+        keras_name_to_layer = WeightLoader.__keras_name_to_Layers(kmodel, with_weights=True)
+        bigdl_name_to_layer = WeightLoader.__bigdl_name_to_Layers(bmodel, with_weights=True)
+        layers_not_in_keras = set(bigdl_name_to_layer.keys()) - set(keras_name_to_layer.keys())
+        layers_not_in_bigdl = set(keras_name_to_layer.keys()) - set(bigdl_name_to_layer.keys())
+        warnings.warn("Ignore weight of layers % as it cannot be found in bigdl",
+                      layers_not_in_bigdl)
+        warnings.warn("Ignore weight of layers % as it cannot be found in keras",
+                      layers_not_in_keras)
+        for klayer in keras_name_to_layer.keys():
+            if klayer.name in bigdl_name_to_layer:
+                bigdl_weights = WeightsConverter.get_bigdl_weigths_from_keras(klayer)
+                bigdl_name_to_layer[klayer.name].set_weights(bigdl_weights)
 
-    # this code is from keras
-    # model is a BModel
     @staticmethod
     def load_weights(bmodel, kmodel, filepath, by_name=False):
         '''Loads all layer weights from a HDF5 save file.
 
         If `by_name` is False (default) weights are loaded
-        based on the network's topology, meaning the architecture
-        should be the same as when the weights were saved.
-        Note that layers that don't have weights are not taken
-        into account in the topological ordering, so adding or
-        removing layers is fine as long as they don't have weights.
+        based on the network's execution order topology,
+        meaning layers in the execution seq should be exactly the same
+        the architecture
 
         If `by_name` is True, weights are loaded into layers
         only if they share the same name. This is useful
         for fine-tuning or transfer-learning models where
         some of the layers have changed.
         '''
-        import h5py
-        f = h5py.File(filepath, mode='r')
-        if 'layer_names' not in f.attrs and 'model_weights' in f:
-            f = f['model_weights']
-        else:
-            raise Exception("not supported format")
+        kmodel.load_weights(filepath=filepath, by_name=by_name)
+
         if by_name:
-            pass  # load_weights_from_hdf5_group_by_name(f)
+            WeightLoader.__load_weights_by_name(bmodel, kmodel)
         else:
-            ModelLoader.load_weights_from_hdf5_strict(f, bmodel, kmodel)
-        if hasattr(f, 'close'):
-            f.close()
+            WeightLoader.__load_weights_by_execution_seq(bmodel, kmodel)
 
     @staticmethod
-    def __keras_name_to_Layer(kmodel):
-        layers = kmodel.layers
+    def __keras__name_to_Layers(model, with_weights=False):
+        if with_weights:
+            layers = [l for l in model.layers if l.get_weights()]
+        else:
+            layers = [l for l in model.layers]
+
         return dict([(layer.name, layer) for layer in layers])
 
     @staticmethod
-    def load_weights_from_hdf5_strict(f, bmodel, kmodel):
-        '''Weight loading is based on layer order in a list
-        (matching model.flattened_layers for Sequential models,
-        and model.layers for Model class instances), not
-        on layer names.
-        Layers that have no weights are skipped.
-        '''
-        keras_name_to_layer = ModelLoader.__keras_name_to_Layer(kmodel)
-
-        if 'nb_layers' in f.attrs:
-            raise Exception("not supported format of old version")
+    def __bigdl__name_to_Layers(model, with_weights=False):
+        # TODO: get_weights is slow,
+        if with_weights:
+            layers = [l for l in model.layers and l.get_weights()]
         else:
-            blayers = bmodel.modules()
-            # TODO: get_weights is slow,
-            # we should add another method to check if layer containing weigths or not
-            bigdl_layers_wb = [layer for layer in blayers if layer.get_weights()]
+            layers = [l for l in model.layers]
 
-            layer_names = [n.decode('utf8') for n in f.attrs['layer_names']]
-            filtered_layer_names = []
-            for name in layer_names:
-                g = f[name]
-                weight_names = [n.decode('utf8') for n in g.attrs['weight_names']]
-                if len(weight_names):
-                    filtered_layer_names.append(name)
-            if len(filtered_layer_names) != len(bigdl_layers_wb):
-                raise Exception('You are trying to load a weight file '
-                                'containing ' + str(len(layer_names)) +
-                                ' layers into a model with ' +
-                                str(len(bigdl_layers_wb)) + ' layers.')
-            # ensure the layers between bigdl and keras are identical
-            bigdl_layers_wb = sorted(bigdl_layers_wb, key=lambda layer: layer.name())
-            filtered_layer_names = sorted(filtered_layer_names)
-            for bwlayer, klayer in zip():
-                if bwlayer != klayer:
-                    raise Exception(
-                        "Found bigdl layer %s, keras layer: %s" % (bwlayer.name(), klayer))
-
-            for k, name in enumerate(filtered_layer_names):
-                g = f[name]
-                weight_names = [n.decode('utf8') for n in g.attrs['weight_names']]
-                # TODO: performance?
-                weight_values = [np.array(g[weight_name]) for weight_name in weight_names]
-                bigdl_layer = bigdl_layers_wb[k]
-                # TODO: Check if the len of weights is equal
-                # symbolic_weights = layer.weights
-                # if len(weight_values) != len(symbolic_weights):
-                #     raise Exception('Layer #' + str(k) +
-                #                     ' (named "' + layer.name +
-                #                     '" in the current model) was found to '
-                #                     'correspond to layer ' + name +
-                #                     ' in the save file. '
-                #                     'However the new layer ' + layer.name +
-                #                     ' expects ' + str(len(symbolic_weights)) +
-                #                     ' weights, but the saved weights have ' +
-                #                     str(len(weight_values)) +
-                #                     ' elements.')
-                if layer.__class__.__name__ == 'Convolution1D':
-                    # This is for backwards compatibility with
-                    # the old Conv1D weights format.
-                    raise Exception("we don't support old format for now")
-                bigdl_weights = WeightsConverter.to_bigdl_weights(
-                        keras_name_to_layer[name].__class__.__name__,
-                                                                   weight_values)
-                bigdl_layer.set_weights(bigdl_weights)
+        return dict([(layer.name, layer) for layer in layers])
 
 
 class WeightsConverter:
@@ -188,7 +136,7 @@ class WeightsConverter:
     def get_converter(class_name):
         function_name = "convert_" + class_name.lower()
         if not hasattr(WeightsConverter, function_name):
-            raise Exception("We don't support layer: %s for now" % class_name)
+            raise unsupport_exp(class_name)
         converter = getattr(WeightsConverter, function_name)
         return converter
 
@@ -277,27 +225,28 @@ class DefinitionLoader:
         else:
             for layerConfig in self.kconfig["layers"]:
                 self.node_id_to_config_layer[layerConfig["name"]] = layerConfig
-        # Miss inbound_nodes in the layer config of Sequential comparing against functional api
-        # "inbound_nodes": [
-        #   [
-        #     [
-        #       "mixed3",
-        #       0,
-        #       0
-        #     ]
-        #   ]
-        # ],
 
+    def __to_bigdl(self):
+        if isinstance(self.kmodel, Sequential):
+            bmodel = self._construct_bigdl_sequence()
+        elif isinstance(self.kmodel, Model):
+            bmodel = self._construct_bigdl_model()
+        return bmodel
 
     @classmethod
     def from_kmodel(cls, kmodel):
-        return cls(kmodel)
+        return cls(kmodel).__to_bigdl()
 
     @classmethod
-    def from_json(cls, json_path):
+    def from_json_path(cls, json_path):
         with open(json_path, "r") as jp:
+            return DefinitionLoader.from_json_str(jp.read())
             kmodel = model_from_json(jp.read())
-            return DefinitionLoader.from_kmodel(kmodel)
+
+    @classmethod
+    def from_json_str(cls, json_str):
+        kmodel = model_from_json(json_str)
+        return DefinitionLoader.from_kmodel(kmodel)
 
     def _do_create_node(self, layer, clayer):
         if clayer["class_name"] == "InputLayer":
@@ -344,15 +293,6 @@ class DefinitionLoader:
             blayer = layerConverter.create(layer, self.node_id_to_config_layer[layer.name])
             bseq.add(blayer)
         return bseq
-
-
-    def to_bigdl(self):
-        if isinstance(self.kmodel, Sequential):
-            bmodel = self._construct_bigdl_sequence()
-        elif isinstance(self.kmodel, Model):
-            bmodel = self._construct_bigdl_model()
-        return bmodel
-
 
 class LayerConverter:
 
@@ -407,7 +347,7 @@ class LayerConverter:
         return api(klayer, kclayer).set_name(klayer.name)
 
     def create_model(self, klayer, kclyer):
-        return DefinitionLoader.from_kmodel(klayer).to_bigdl()
+        return DefinitionLoader.from_kmodel(klayer)
 
     def create_dense(self, klayer, kclayer):
         config = kclayer["config"]
@@ -586,9 +526,7 @@ class LayerConverter:
                  bigdl_type="float")
         seq.add(blayer)
         seq.add(BLayer.Squeeze(3))
-
-        return seq
-        #return self.combo_parameter_layer(seq, config)
+        return self.combo_parameter_layer(seq, config)
 
     def create_convolution2d(self, klayer, kclayer):
         config = kclayer["config"]

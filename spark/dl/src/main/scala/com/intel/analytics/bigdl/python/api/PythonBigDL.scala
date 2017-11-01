@@ -2034,8 +2034,13 @@ class PythonBigDL[T: ClassTag](implicit ev: TensorNumeric[T]) extends Serializab
   }.asInstanceOf[Graph[T]]
 
 
-  def getContainerModules(seq: Sequential[T]): JList[AbstractModule[Activity, Activity, T]] = {
-    seq.modules.toList.asJava
+  def getContainerModules(module: Container[Activity, Activity, T])
+  : JList[AbstractModule[Activity, Activity, T]] = {
+    module.modules.toList.asJava
+  }
+
+  def isWithWeights(module: Module[T]): Boolean = {
+    return null != module.getWeightsBias()
   }
 }
 
