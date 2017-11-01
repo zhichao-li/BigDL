@@ -19,7 +19,6 @@ import pytest
 from keras.layers import *
 
 np.random.seed(1337)  # for reproducibility
-import keras
 from keras.layers.core import *
 from keras.layers.convolutional import *
 from keras.layers import Dense, Input
@@ -50,7 +49,8 @@ class TestLayer(BigDLTestCase):
         self.modelTestSingleLayer(input_data, layer, dump_weights=True, functional_api=False)
         # Random input
         input_data2 = np.random.randint(100, size=(10, 128))  # batch: 20, seqlen 128
-        self.modelTestSingleLayer(input_data2, layer, dump_weights=True)
+        self.modelTestSingleLayer(input_data2, layer, dump_weights=True, functional_api=True)
+        self.modelTestSingleLayer(input_data2, layer, dump_weights=True, functional_api=False)
 
         # TODO: add test that exception would be raised if input_lenght == 6
         with pytest.raises(Exception) as excinfo:
@@ -70,13 +70,16 @@ class TestLayer(BigDLTestCase):
     def test_conv1D(self):
         input_data = np.random.random_sample([1, 10, 32])
         layer = Convolution1D(64, 3, border_mode='valid', input_shape=(10, 32))
+        self.modelTestSingleLayer(input_data, layer, dump_weights=True, functional_api=True)
         self.modelTestSingleLayer(input_data, layer, dump_weights=True, functional_api=False)
 
-        layer = Convolution1D(64, 3, border_mode='same', input_shape=(10, 32))
-        self.modelTestSingleLayer(input_data, layer, dump_weights=True)
+        layer2 = Convolution1D(64, 3, border_mode='same', input_shape=(10, 32))
+        self.modelTestSingleLayer(input_data, layer2, dump_weights=True, functional_api=True)
+        self.modelTestSingleLayer(input_data, layer2, dump_weights=True, functional_api=False)
 
-        layer = Convolution1D(64, 3, border_mode='same', activation="relu", input_shape=(10, 32))
-        self.modelTestSingleLayer(input_data, layer, dump_weights=True)
+        layer3 = Convolution1D(64, 3, border_mode='same', activation="relu", input_shape=(10, 32))
+        self.modelTestSingleLayer(input_data, layer3, dump_weights=True, functional_api=True)
+        self.modelTestSingleLayer(input_data, layer3, dump_weights=True, functional_api=False)
 
     def _load_keras(self, json_path, hdf5_path):
         with open(json_path, "r") as jp:
@@ -99,14 +102,20 @@ class TestLayer(BigDLTestCase):
                                       border_mode=mode,
                                       input_shape=(128, 128, 3))
                 self.modelTestSingleLayer(input_data,
-                                          layer,
+                                          layer, functional_api=True,
+                                          dump_weights=True, rtol=1e-5, atol=1e-5)
+                self.modelTestSingleLayer(input_data,
+                                          layer, functional_api=False,
                                           dump_weights=True, rtol=1e-5, atol=1e-5)
         # Test if alias works or not
         layer = Conv2D(64, 3, 1,
                        border_mode="valid",
                        input_shape=(3, 128, 128))
         self.modelTestSingleLayer(input_data,
-                                  layer,
+                                  layer, functional_api=True,
+                                  dump_weights=True, rtol=1e-5, atol=1e-5)
+        self.modelTestSingleLayer(input_data,
+                                  layer, functional_api=False,
                                   dump_weights=True, rtol=1e-5, atol=1e-5)
 
     def test_maxpooling2d(self):
@@ -295,34 +304,34 @@ class TestLayer(BigDLTestCase):
     def test_zeropadding1d(self):
         input_data = np.random.uniform(0, 1, [3, 2, 3])
         layer1 = ZeroPadding1D(padding=3, input_shape=(2, 3))
-        self.modelTestSingleLayer(input_data, layer1, functional_api=False)
         self.modelTestSingleLayer(input_data, layer1, functional_api=True)
+        self.modelTestSingleLayer(input_data, layer1, functional_api=False)
         layer2 = ZeroPadding1D(padding=(2, 3), input_shape=(2, 3))
-        self.modelTestSingleLayer(input_data, layer2, functional_api=False)
         self.modelTestSingleLayer(input_data, layer2, functional_api=True)
+        self.modelTestSingleLayer(input_data, layer2, functional_api=False)
         layer3 = ZeroPadding1D(padding={'left_pad': 1, 'right_pad': 2}, input_shape=(2, 3))
-        self.modelTestSingleLayer(input_data, layer3, functional_api=False)
         self.modelTestSingleLayer(input_data, layer3, functional_api=True)
+        self.modelTestSingleLayer(input_data, layer3, functional_api=False)
 
     def test_zeropadding2d(self):
         input_data = np.random.uniform(0, 1, [1, 2, 3, 4])
         layer1 = ZeroPadding2D(padding=(2, 3), input_shape=(2, 3, 4))
-        self.modelTestSingleLayer(input_data, layer1, functional_api=False)
         self.modelTestSingleLayer(input_data, layer1, functional_api=True)
+        self.modelTestSingleLayer(input_data, layer1, functional_api=False)
         layer2 = ZeroPadding2D(padding=(2, 3, 4, 1), input_shape=(2, 3, 4))
-        self.modelTestSingleLayer(input_data, layer2, functional_api=False)
         self.modelTestSingleLayer(input_data, layer2, functional_api=True)
+        self.modelTestSingleLayer(input_data, layer2, functional_api=False)
         layer3 = ZeroPadding2D(
             padding={'top_pad': 1, 'bottom_pad': 2, 'left_pad': 3, 'right_pad': 4},
             input_shape=(2, 3, 4))
-        self.modelTestSingleLayer(input_data, layer3, functional_api=False)
         self.modelTestSingleLayer(input_data, layer3, functional_api=True)
+        self.modelTestSingleLayer(input_data, layer3, functional_api=False)
 
     def test_zeropadding3d(self):
         input_data = np.random.uniform(0, 1, [3, 2, 4, 1, 5])
         layer = ZeroPadding3D(padding=(1, 2, 3), input_shape=(2, 4, 1, 5))
-        self.modelTestSingleLayer(input_data, layer, functional_api=False)
         self.modelTestSingleLayer(input_data, layer, functional_api=True)
+        self.modelTestSingleLayer(input_data, layer, functional_api=False)
 
     def test_cropping1d(self):
         input_data = np.random.uniform(0, 1, [3, 10, 10])
@@ -331,33 +340,40 @@ class TestLayer(BigDLTestCase):
         self.modelTestSingleLayer(input_data, layer, functional_api=False)
 
     def test_simplernn(self):
-        # TODO: functional_api=False will have error
         input_data = np.random.random([3, 4, 5])
         layer = SimpleRNN(5, input_shape=(4, 5), return_sequences=True)
         self.modelTestSingleLayer(input_data, layer, functional_api=True,
                                   dump_weights=True, rtol=1e-6, atol=1e-6)
+        self.modelTestSingleLayer(input_data, layer, functional_api=False,
+                                  dump_weights=True, rtol=1e-6, atol=1e-6)
         layer2 = SimpleRNN(3, input_shape=(4, 5), return_sequences=False)
         self.modelTestSingleLayer(input_data, layer2, functional_api=True,
+                                  dump_weights=True, rtol=1e-6, atol=1e-6)
+        self.modelTestSingleLayer(input_data, layer2, functional_api=False,
                                   dump_weights=True, rtol=1e-6, atol=1e-6)
         layer3 = SimpleRNN(3, input_shape=(4, 5), activation='relu')
         self.modelTestSingleLayer(input_data, layer3, functional_api=True,
                                   dump_weights=True, rtol=1e-6, atol=1e-6)
+        self.modelTestSingleLayer(input_data, layer3, functional_api=False,
+                                  dump_weights=True, rtol=1e-6, atol=1e-6)
 
     def test_lstm(self):
-        # TODO: functional_api=False will have error
         input_data = np.random.random([3, 4, 5])
         layer = LSTM(5, input_shape=(4, 5), return_sequences=True, inner_activation='sigmoid')
         self.modelTestSingleLayer(input_data, layer, functional_api=True, dump_weights=True)
+        self.modelTestSingleLayer(input_data, layer, functional_api=False, dump_weights=True)
         layer2 = LSTM(3, input_shape=(4, 5), return_sequences=False, inner_activation='sigmoid')
         self.modelTestSingleLayer(input_data, layer2, functional_api=True, dump_weights=True)
+        self.modelTestSingleLayer(input_data, layer2, functional_api=False, dump_weights=True)
 
     def test_gru(self):
-        # TODO: functional_api=False will have error
         input_data = np.random.random([3, 4, 5])
         layer = GRU(4, input_shape=(4, 5), return_sequences=True, inner_activation='sigmoid')
         self.modelTestSingleLayer(input_data, layer, functional_api=True, dump_weights=True)
-        layer = GRU(8, input_shape=(4, 5), return_sequences=False, inner_activation='sigmoid')
-        self.modelTestSingleLayer(input_data, layer, functional_api=True, dump_weights=True)
+        self.modelTestSingleLayer(input_data, layer, functional_api=False, dump_weights=True)
+        layer2 = GRU(8, input_shape=(4, 5), return_sequences=False, inner_activation='sigmoid')
+        self.modelTestSingleLayer(input_data, layer2, functional_api=True, dump_weights=True)
+        self.modelTestSingleLayer(input_data, layer2, functional_api=False, dump_weights=True)
 
     # TODO: Support share weights training.
     def test_multiple_inputs_share_weights(self):
