@@ -2033,11 +2033,8 @@ class PythonBigDL[T: ClassTag](implicit ev: TensorNumeric[T]) extends Serializab
     new KerasLoader(modelPath).loadModule()
   }.asInstanceOf[Graph[T]]
 
-  def modelForwardExecutions(graph: Graph[T]): JList[AbstractModule[Activity, Activity, T]] = {
-    graph.modules.toList.asJava
-  }
 
-  def seqExecutions(seq: Sequential[T]): JList[AbstractModule[Activity, Activity, T]] = {
+  def getContainerModules(seq: Sequential[T]): JList[AbstractModule[Activity, Activity, T]] = {
     seq.modules.toList.asJava
   }
 }

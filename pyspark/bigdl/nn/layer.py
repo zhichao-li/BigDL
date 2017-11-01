@@ -543,12 +543,8 @@ class Container(Layer):
         self.value.add(model.value)
         return self
 
-    def executions(self):
-        if isinstance(self, Sequential):
-            j_api = "seqExecutions"
-        else:
-            j_api = "modelForwardExecutions"
-        jlayers = callBigDlFunc(self.bigdl_type, j_api , self)
+    def modules(self):
+        jlayers = callBigDlFunc(self.bigdl_type, "getContainerModules" , self)
         layers = [Layer.of(jlayer) for jlayer in jlayers]
         return layers
 
@@ -620,7 +616,7 @@ class Model(Container):
         return model
 
     def __str__(self):
-        return "->".join(self.executions())
+        return "->".join(self.modules())
 
     @staticmethod
     def load(path, bigdl_type="float"):

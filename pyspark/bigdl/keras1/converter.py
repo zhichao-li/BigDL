@@ -122,7 +122,7 @@ class ModelLoader:
         if 'nb_layers' in f.attrs:
             raise Exception("not supported format of old version")
         else:
-            blayers = bmodel.executions()
+            blayers = bmodel.modules()
             # TODO: get_weights is slow,
             # we should add another method to check if layer containing weigths or not
             bigdl_layers_wb = [layer for layer in blayers if layer.get_weights()]
