@@ -1609,17 +1609,21 @@ class PythonBigDL[T: ClassTag](implicit ev: TensorNumeric[T]) extends Serializab
   }
 
   def predictLocal(model: AbstractModule[Activity, Activity, T],
-                   X: JTensor,
-                   batch: Int): JList[JTensor] = {
+                   X: JTensor): JList[JTensor] = {
     val sampleArray = toSampleArray(toTensor(X))
-    val batchedData = batching(DataSet.array(sampleArray), batch)
-      .asInstanceOf[LocalDataSet[MiniBatch[T]]]
-    val result = batchedData.data(false).map { batch =>
-      val tensor = model.forward(batch.getInput()).toTensor[T].clone()
-      toJTensor(tensor)
-    }.toList.asJava
-    result
+    val localModel = LocalModule(model)
+    val result = localModel.predict(sampleArray)
+    result.map{a => toJTensor(a.asInstanceOf[Tensor[T]])}.toList.asJava
   }
+
+  def predictLocalClass(model: AbstractModule[Activity, Activity, T],
+                   X: JTensor): JList[JTensor] = {
+    val sampleArray = toSampleArray(toTensor(X))
+    val localModel = LocalModule(model)
+    val result = localModel.predictClass(sampleArray)
+    result.map{a => toJTensor(a.asInstanceOf[Tensor[T]])}.toList.asJava
+  }
+
 
   def modelPredictRDD(model: AbstractModule[Activity, Activity, T],
                       dataRdd: JavaRDD[PSample]): JavaRDD[JTensor] = {

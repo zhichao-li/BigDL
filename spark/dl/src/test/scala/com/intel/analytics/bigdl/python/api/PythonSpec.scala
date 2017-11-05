@@ -272,7 +272,7 @@ class PythonSpec extends FlatSpec with Matchers with BeforeAndAfter {
       2)
     val trainedModel = optimizer.optimize()
     val predictedResult = pp.predictLocal(
-      trainedModel, pp.toJTensor(Tensor[Double](Array(34, 100)).randn()), 32)
+      trainedModel, pp.toJTensor(Tensor[Double](Array(34, 100)).randn()))
     println(predictedResult)
   }
 

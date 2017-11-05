@@ -27,6 +27,8 @@ import tempfile
 import pytest
 from numpy.testing import assert_allclose
 from bigdl.util.engine import compare_version
+np.random.seed(1337)  # for reproducibility
+
 
 
 class TestSimple():
@@ -491,6 +493,12 @@ class TestSimple():
         w = trained_model.get_weights()
         assert_allclose(w[0], np.array([2, 2]).reshape([1, 2]), rtol=1e-1)
         assert_allclose(w[1], np.array([0.4]), rtol=1e-1)
+
+        predict_result = trained_model.predict_local(X_)
+        assert_allclose(Y_, predict_result, rtol=1e-1)
+
+        predict_result2 = trained_model.predict_local_class(X_)
+        print predict_result
 
 
 if __name__ == "__main__":
