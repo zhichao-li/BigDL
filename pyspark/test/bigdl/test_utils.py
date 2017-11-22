@@ -110,8 +110,7 @@ class BigDLTestCase(TestCase):
     def __generate_model(self, input_data, output_layer):
         def without_batch(batch_shape):
             return batch_shape[1:]
-        if isinstance(output_layer, keras.engine.Merge):  # it's a list in case of Merge Layer
-            assert isinstance(input_data, list)
+        if isinstance(input_data, list):  # for merge and Merge
             input_tensor = [Input(shape=without_batch(i.shape)) for i in input_data]
         else:
             input_tensor = Input(shape=without_batch(input_data.shape))
@@ -210,14 +209,6 @@ class BigDLTestCase(TestCase):
 
         if dump_weights:  # load weights if possible
             WeightLoader.load_weights_from_hdf5(bigdl_model, keras_model, keras_model_hdf5_path)
-            bweights = bigdl_model.get_weights()
-            bweights_from_keras = WeightsConverter.get_bigdl_weigths_from_keras(keras_model)
-
-            # bweights and bweights_from_keras are all list
-            assert isinstance(bweights, list)
-            assert len(bweights) == len(bweights_from_keras)
-            for i in range(len(bweights)):
-                self.assert_allclose(bweights[i], bweights_from_keras[i], rtol, atol)
 
         bigdl_output2 = bigdl_model.forward(input_data)
         self.assert_allclose(bigdl_output2,

@@ -19,24 +19,14 @@ def unsupport_exp(name):
 
 class WeightLoader:
 
-    @staticmethod
-    def __load_weights_by_execution_seq(bmodel, kmodel):
-        blayers = [l for l in bmodel.layers if l.is_with_weights()]
-        klayers = [l for l in kmodel.layers if l.get_weights()]
-        if len(blayers) != len(klayers):
-            raise Exception(
-                "keras with %s layers but bigdl with %s layers" % (len(klayers), len(blayers)))
-        for b, k in zip(blayers, klayers):
-            if b.name() != k.name:
-                raise Exception("Found different layer in execution order, bigdl:%s, keras: %s" % (b.name(), k.name))  # noqa
-            bigdl_weights = WeightsConverter.get_bigdl_weigths_from_keras(k)
-            b.set_weights(bigdl_weights)
-
     # TODO: add more unitest
     @staticmethod
-    def __load_weights_by_name(bmodel, kmodel, by_name=False):
-        keras_name_to_layer = WeightLoader.__keras_name_to_Layers(kmodel, with_weights=True)
-        bigdl_name_to_layer = WeightLoader.__bigdl_name_to_Layers(bmodel, with_weights=True)
+    def load_weights_from_kmodel(bmodel, kmodel, by_name=False):
+        """
+        Load weights from kmodel to bmodel
+        """
+        keras_name_to_layer = WeightLoader.keras_name_to_Layers(kmodel, with_weights=True)
+        bigdl_name_to_layer = WeightLoader.bigdl_name_to_Layers(bmodel, with_weights=True)
         layers_not_in_keras = set(bigdl_name_to_layer.keys()) - set(keras_name_to_layer.keys())
         if layers_not_in_keras:
             raise Exception("Layers %s can be found in bigdl, but not in keras" % repr(layers_not_in_keras))  # noqa
@@ -49,21 +39,11 @@ class WeightLoader:
         for blayer in bigdl_name_to_layer.values():
             if blayer.name() in keras_name_to_layer:
                 klayer = keras_name_to_layer[blayer.name()]
-                bigdl_weights = WeightsConverter.get_bigdl_weigths_from_keras(klayer)
+                bigdl_weights = WeightsConverter.get_bigdl_weights_from_klayer(klayer)
                 blayer.set_weights(bigdl_weights)
                 if isinstance(klayer, keras.layers.BatchNormalization):
                     blayer.set_running_mean(keras.backend.eval(klayer.running_mean))
                     blayer.set_running_std(keras.backend.eval(klayer.running_std))
-
-    @staticmethod
-    def load_weights_from_kmodel(bmodel, kmodel, by_name=False):
-        """
-        Load weights from kmodel to bmodel
-        """
-        if by_name:
-            WeightLoader.__load_weights_by_name(bmodel, kmodel)
-        else:
-            WeightLoader.__load_weights_by_execution_seq(bmodel, kmodel)
 
     @staticmethod
     def load_weights_from_json_hdf5(def_json, weights_hdf5, by_name=False):
@@ -74,7 +54,7 @@ class WeightLoader:
         return bmodel
 
     @staticmethod
-    def load_weights_from_hdf5(bmodel, kmodel, filepath, by_name=False):
+    def load_weights_from_hdf5(bmodel, kmodel, hdf5_path, by_name=False):
         '''Loads all layer weights from a HDF5 save file.
 
         If `by_name` is False (default) weights are loaded
@@ -87,24 +67,28 @@ class WeightLoader:
         for fine-tuning or transfer-learning models where
         some of the layers have changed.
         '''
-        kmodel.load_weights(filepath=filepath, by_name=by_name)
+        kmodel.load_weights(filepath=hdf5_path, by_name=by_name)
         WeightLoader.load_weights_from_kmodel(bmodel, kmodel, by_name=by_name)
 
     @staticmethod
-    def __keras_name_to_Layers(model, with_weights=False):
+    def keras_name_to_Layers(model, with_weights=False):
+        total_layers = DefinitionLoader(model).node_id_to_layer.values()
+
         if with_weights:
-            layers = [l for l in model.layers if l.get_weights()]
+            layers = [l for l in total_layers
+                      if l.get_weights() and not isinstance(l, Model) and not isinstance(l, Sequential)]  # noqa
         else:
-            layers = [l for l in model.layers]
+            layers = total_layers
 
         return dict([(layer.name, layer) for layer in layers])
 
     @staticmethod
-    def __bigdl_name_to_Layers(model, with_weights=False):
+    def bigdl_name_to_Layers(model, with_weights=False):
+        flatten_layers = model.flatten_layers
         if with_weights:
-            layers = [l for l in model.layers if l.is_with_weights()]
+            layers = [l for l in flatten_layers if l.is_with_weights()]
         else:
-            layers = [l for l in model.layers]
+            layers = [l for l in flatten_layers]
 
         return dict([(layer.name(), layer) for layer in layers])
 
@@ -132,15 +116,6 @@ class WeightsConverter:
         return WeightsConverter.get_converter(class_name)(weights)
 
     @staticmethod
-    def get_bigdl_weigths_from_keras(k):
-        if isinstance(k, keras.engine.Model):
-            return WeightsConverter.get_weights_from_kmodel(k)
-        elif isinstance(k, keras.engine.Layer):
-            return WeightsConverter.get_bigdl_weights_from_klayer(k)
-        else:
-            raise Exception("Unsupport type: %s", k)
-
-    @staticmethod
     def get_bigdl_weights_from_klayer(klayer):
         # we should use get_weights instead of klayer.weights
         return WeightsConverter.to_bigdl_weights(klayer.__class__.__name__, klayer.get_weights())
@@ -148,6 +123,8 @@ class WeightsConverter:
     @staticmethod
     def get_weights_from_kmodel(kmodel):
         """
+        NB: the order is from keras, may not the same as bigdl.
+        so this can be only use in simple model.
         Convert kmodel's weights to bigdl format.
         We are supposing the order is the same as the execution order.
         :param kmodel: keras model
@@ -251,42 +228,55 @@ class DefinitionLoader:
 
         DefinitionLoader.__build_node_id_2_klayer(kmodel, self.node_id_to_layer)
         DefinitionLoader.__build_node_id_2_kclayer(kmodel.get_config(),
-                                                   kmodel.__class__.__name__, self.node_id_to_config_layer)
-
+                                                   kmodel.__class__.__name__,
+                                                   self.node_id_to_layer,
+                                                   self.node_id_to_config_layer)
 
     def __to_bigdl(self):
         return self.__construct_bigdl(self.kmodel)
 
     @staticmethod
     def __build_node_id_2_klayer(kmodel, node_id_to_config_layer):
-        if hasattr(kmodel, "layers"):
+        node_id_to_config_layer[kmodel.name] = kmodel  # include itself as well
+        if hasattr(kmodel, "layers") and kmodel.layers is not None:
             for layer in kmodel.layers:
-                node_id_to_config_layer[layer.name] = layer
-                # node_id_to_kclayer[layer.name] = layer.get_config()
-
+                if layer.name not in node_id_to_config_layer:
+                    node_id_to_config_layer[layer.name] = layer
+                    if hasattr(layer, "layers") and kmodel.layers is not None:
+                        DefinitionLoader.__build_node_id_2_klayer(layer, node_id_to_config_layer)
+        if hasattr(kmodel, "flattened_layers") and kmodel.flattened_layers is not None:
+            for layer in kmodel.flattened_layers:
+                if layer.name not in node_id_to_config_layer:
+                    node_id_to_config_layer[layer.name] = layer
+                    if hasattr(layer, "flattened_layers") and kmodel.flattened_layers is not None:
+                        DefinitionLoader.__build_node_id_2_klayer(layer, node_id_to_config_layer)
 
     @staticmethod
-    def __build_node_id_2_kclayer(kcmodel, class_name, node_id_to_kclayer):
+    def __build_node_id_2_kclayer(kcmodel, class_name, node_id_2_klayer, node_id_to_kclayer):
+        class_name_to_object = {}
+        for value in node_id_2_klayer.values():
+            class_name_to_object[value.__class__.__name__] = value
+
+        def for_inner_layer(layer_config):
+            if "layers" in layer_config["config"]:
+                for inner_layer in layer_config["config"]["layers"]:
+                    DefinitionLoader.__build_node_id_2_kclayer(inner_layer["config"],
+                                                               inner_layer["class_name"],
+                                                               node_id_2_klayer,
+                                                               node_id_to_kclayer)
         assert len(kcmodel) >= 1
-        if class_name == "Sequential":
+        if isinstance(class_name_to_object[class_name], Sequential):
             for layer_config in kcmodel:
                 layer_name = layer_config["config"]["name"]
                 node_id_to_kclayer[layer_name] = layer_config
-                if "layers" in layer_config["config"]:
-                    for inner_layer in layer_config["config"]["layers"]:
-                        DefinitionLoader.__build_node_id_2_kclayer(inner_layer["config"], inner_layer["class_name"], node_id_to_kclayer)
-        elif class_name == "Model":  # TODO: nested layer for Model type
+                for_inner_layer(layer_config)
+        elif isinstance(class_name_to_object[class_name], Model):
             for layer_config in kcmodel["layers"]:
                 node_id_to_kclayer[layer_config["name"]] = layer_config
-                if "layers" in layer_config["config"]:
-                    for inner_layer in layer_config["config"]["layers"]:
-                        DefinitionLoader.__build_node_id_2_kclayer(inner_layer, inner_layer["class_name"],
-                                                                   node_id_to_kclayer)
-        elif  class_name == "Layer":
-            if kcmodel["config"]["name"] not in node_id_to_kclayer:
-                raise Exception("should not enter here")
-            else:
-                pass
+                for_inner_layer(layer_config)
+        elif isinstance(class_name_to_object[class_name], Layer):
+            if kcmodel["name"] not in node_id_to_kclayer:
+                node_id_to_kclayer[kcmodel["name"]] = kcmodel
         else:
             raise Exception("not supported type: %s", kcmodel)
 
