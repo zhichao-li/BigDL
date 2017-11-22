@@ -275,7 +275,10 @@ class TestLayer(BigDLTestCase):
         result = merged_model.predict([input_data1, input_data2])
 
         keras_model_json_path, keras_model_hdf5_path = self._dump_keras(merged_model, False)
-        self.modelTestSingleLayer([input_data1, input_data2], Merge([branch1, branch2], mode='concat', concat_axis=1) , functional_apis=[False])
+        self.modelTestSingleLayer([input_data1, input_data2],
+                                  Merge([branch1, branch2], mode='concat', concat_axis=1),
+                                  dump_weights=True,
+                                  functional_apis=[False])
 
         print(result)
 

@@ -206,6 +206,8 @@ class BigDLTestCase(TestCase):
         #                      keras_output,
         #                      rtol=rtol,
         #                      atol=atol)
+        keras_model.get_weights()
+
         if dump_weights:  # load weights if possible
             WeightLoader.load_weights_from_hdf5(bigdl_model, keras_model, keras_model_hdf5_path)
             bweights = bigdl_model.get_weights()
