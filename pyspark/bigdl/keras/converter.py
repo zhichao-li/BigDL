@@ -8,7 +8,7 @@ import bigdl.nn.criterion as bcriterion
 import bigdl.util.common as bcommon
 import keras.optimizers as koptimizers
 from keras.models import model_from_json
-from keras.models import Sequential, Model
+from keras.models import Sequential, Model, Layer
 import keras
 import warnings
 
@@ -247,24 +247,61 @@ class DefinitionLoader:
         self.node_id_to_layer = {}
         self.node_id_to_config_layer = {}
         self.kmodel = kmodel
-        self.kconfig = self.kmodel.get_config()
+        # self.kconfig = self.kmodel.get_config()
 
-        for layer in self.kmodel.layers:
-            self.node_id_to_layer[layer.name] = layer
+        DefinitionLoader.__build_node_id_2_klayer(kmodel, self.node_id_to_layer)
+        DefinitionLoader.__build_node_id_2_kclayer(kmodel.get_config(),
+                                                   kmodel.__class__.__name__, self.node_id_to_config_layer)
 
-        if isinstance(self.kmodel, Sequential):
-            for layer_config in self.kmodel.get_config():
-                layer_name = layer_config["config"]["name"]
-                self.node_id_to_config_layer[layer_name] = layer_config
-        else:
-            for layerConfig in self.kconfig["layers"]:
-                self.node_id_to_config_layer[layerConfig["name"]] = layerConfig
 
     def __to_bigdl(self):
-        if isinstance(self.kmodel, Sequential):
-            bmodel = self._construct_bigdl_sequence()
-        elif isinstance(self.kmodel, Model):
-            bmodel = self._construct_bigdl_model()
+        return self.__construct_bigdl(self.kmodel)
+
+    @staticmethod
+    def __build_node_id_2_klayer(kmodel, node_id_to_config_layer):
+        if hasattr(kmodel, "layers"):
+            for layer in kmodel.layers:
+                node_id_to_config_layer[layer.name] = layer
+                # node_id_to_kclayer[layer.name] = layer.get_config()
+
+
+    @staticmethod
+    def __build_node_id_2_kclayer(kcmodel, class_name, node_id_to_kclayer):
+        assert len(kcmodel) >= 1
+        if class_name == "Sequential":
+            for layer_config in kcmodel:
+                layer_name = layer_config["config"]["name"]
+                node_id_to_kclayer[layer_name] = layer_config
+                if "layers" in layer_config["config"]:
+                    for inner_layer in layer_config["config"]["layers"]:
+                        DefinitionLoader.__build_node_id_2_kclayer(inner_layer["config"], inner_layer["class_name"], node_id_to_kclayer)
+        elif class_name == "Model":  # TODO: nested layer for Model type
+            for layer_config in kcmodel["layers"]:
+                node_id_to_kclayer[layer_config["name"]] = layer_config
+                if "layers" in layer_config["config"]:
+                    for inner_layer in layer_config["config"]["layers"]:
+                        DefinitionLoader.__build_node_id_2_kclayer(inner_layer, inner_layer["class_name"],
+                                                                   node_id_to_kclayer)
+        elif  class_name == "Layer":
+            if kcmodel["config"]["name"] not in node_id_to_kclayer:
+                raise Exception("should not enter here")
+            else:
+                pass
+        else:
+            raise Exception("not supported type: %s", kcmodel)
+
+        return node_id_to_kclayer
+
+    def __construct_bigdl(self, kitem):
+        if isinstance(kitem, Sequential):
+            bmodel = self._construct_bigdl_sequence(kitem)
+        elif isinstance(kitem, Model):
+            bmodel = self._construct_bigdl_model(kitem)
+        elif isinstance(kitem, Layer):
+            bmodel = self.layerConverter.create(kitem,
+                                                self.node_id_to_config_layer[kitem.name])
+        else:
+            raise Exception("Not supported type: %s", kitem)
         return bmodel
 
     @classmethod
@@ -303,27 +340,34 @@ class DefinitionLoader:
         self.node_id_to_instance[layer.name] = new_bnode
         return new_bnode
 
-    def _construct_bigdl_model(self):
-        for clayer in self.kconfig["layers"]:
+    # TODO: support nested model
+    def _construct_bigdl_model(self, kmodel):
+        kconfig = kmodel.get_config()
+        for clayer in kconfig["layers"]:
             if clayer["name"] not in self.node_id_to_instance:
-
                 self._do_create_node(self.node_id_to_layer[clayer["name"]],
                                      clayer)
         ins = []
-        for input_layer in self.kconfig["input_layers"]:
+        for input_layer in kconfig["input_layers"]:
             name = input_layer[0]
             ins.append(self.node_id_to_instance[name])
         outs = []
-        for output_layer in self.kconfig["output_layers"]:
+        for output_layer in kconfig["output_layers"]:
             name = output_layer[0]
             outs.append(self.node_id_to_instance[name])
         return BLayer.Model(inputs=ins, outputs=outs)
 
-    def _construct_bigdl_sequence(self):
+    def _construct_bigdl_sequence(self, kitem):
         bseq = BLayer.Sequential()
         layerConverter = LayerConverter()
-        for layer in self.kmodel.layers:
+        for layer in kitem.layers:
             blayer = layerConverter.create(layer, self.node_id_to_config_layer[layer.name])
+            if hasattr(layer, "layers"):
+                parallel_table = BLayer.ParallelTable()
+                for inner_item in layer.layers:
+                    b_inner_item = self.__construct_bigdl(inner_item)
+                    parallel_table.add(b_inner_item)
+                bseq.add(parallel_table)
             bseq.add(blayer)
         return bseq
 
@@ -360,7 +404,7 @@ class LayerConverter:
                 "%s doesn't support multiple inputs with shared weights" % kclayer["class_name"])
 
     def create(self, klayer, kclayer):
-        class_name = kclayer["class_name"]
+        class_name = klayer.__class__.__name__ #kclayer["class_name"]
 
         self.__check_is_share_weights(kclayer)
 
