@@ -20,7 +20,7 @@ import com.intel.analytics.bigdl.Module
 import com.intel.analytics.bigdl.nn.abstractnn.{AbstractModule, Activity}
 import com.intel.analytics.bigdl.tensor.Tensor
 import com.intel.analytics.bigdl.tensor.TensorNumericMath.TensorNumeric
-import com.intel.analytics.bigdl.utils.{T, Table}
+import com.intel.analytics.bigdl.utils.{Node, T, Table}
 
 import scala.collection.mutable.ArrayBuffer
 import scala.reflect.ClassTag
@@ -44,6 +44,55 @@ abstract class Container[A <: Activity : ClassTag,
   // list of sub modules
   val modules: ArrayBuffer[AbstractModule[Activity, Activity, T]]
   = ArrayBuffer[AbstractModule[Activity, Activity, T]]()
+
+  def executionNodes(): List[Node[AbstractModule[Activity, Activity, T]]] = {
+    val nodes = modules.map(Node(_))
+    var i = 0
+    var j = 1
+    while (i < nodes.length && j < nodes.length) {
+      nodes(i).add(nodes(i + 1))
+      i += 1
+      j += 1
+    }
+    return nodes.toList
+  }
+
+  def compile(): Unit = {
+    def gatherFinalResult(values: List[Activity]): Activity = {
+      if (values.isEmpty) {
+        return null
+      }
+      if (values.length == 1) {
+        return values(0)
+      } else {
+        val t = new Table()
+        values.foreach {v =>
+          t.insert(v)
+        }
+        return t
+      }
+    }
+    var i = 0
+    val executionNodes = this.executionNodes()
+    while (i < executionNodes.length) {
+      val node = executionNodes(i)
+//      if (!node.element.isBuilt()) {
+        val preNodes = node.prevNodes
+        val inputShapes = if (preNodes.isEmpty) {
+          if (node.element.getInputShape() == null) {
+            throw new RuntimeException("The first layer should explicitly declare inputShape")
+          } else {
+            List(node.element.getInputShape())
+          }
+        } else {
+          preNodes.map{_.element.getOutputShape()}.toList
+        }
+
+        node.element.build(gatherFinalResult(inputShapes))
+//      }
+      i += 1
+    }
+  }
 
   /**
    * Add a sub-module to the contained `modules`

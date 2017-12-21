@@ -63,6 +63,67 @@ abstract class AbstractModule[A <: Activity: ClassTag, B <: Activity: ClassTag, 
 
   def setNamePostfix(namePostfix : String) : Unit = this.namePostfix = namePostfix
 
+  var labor = this
+
+  private var inputShapeValue: Activity = null
+
+  private var outputShapeValue: Activity = null
+
+  def setInputShape(inputShape: Activity): Unit = {
+    this.inputShapeValue = inputShape
+  }
+
+  def getInputShape(): Activity = {
+    if (inputShapeValue == null) {
+     throw new RuntimeException("You should build this model first before getting the inputshape")
+    }
+    inputShapeValue
+  }
+
+  def getOutputShape(): Activity = {
+    if (outputShapeValue == null) {
+      throw new RuntimeException("You should build this model first before getting the inputshape")
+    }
+    outputShapeValue
+  }
+
+  def isBuilt(): Boolean = {
+    labor != null
+  }
+
+  final def build(inputShape: Activity): Unit = {
+    this.inputShapeValue = inputShape
+    this.labor = doBuild(inputShape)
+    this.output = labor.output
+    this.gradInput = labor.gradInput
+    this.outputShapeValue = computeOutputShape(inputShape)
+  }
+
+  final def computeOutputShape(inputShape: Activity): Activity = {
+    if (! isBuilt) {
+      throw new RuntimeException("The model haven't been built")
+    }
+    doComputeOutputShape(inputShape)
+  }
+
+  def doComputeOutputShape(inputShape: Activity): Activity = inputShape
+
+  def doBuild(inputShape: Activity): AbstractModule[A, B, T] = this
+
+  final def forward(input: A): B = {
+    if (! isBuilt) {
+      throw new RuntimeException("The model haven't been built")
+    }
+    labor.doForward(input)
+  }
+  // TODO: make this final
+  def backward(input: A, gradOutput: B): A = {
+    if (! isBuilt) {
+      throw new RuntimeException("The model haven't been built")
+    }
+    labor.doBackward(input, gradOutput)
+  }
+
   /**
    * The cached output. So we don't compute it again when need it
    */
@@ -262,7 +323,7 @@ abstract class AbstractModule[A <: Activity: ClassTag, B <: Activity: ClassTag, 
    * @param input input data
    * @return output data
    */
-  final def forward(input: A): B = {
+  def doForward(input: A): B = {
     val before = System.nanoTime()
     try {
       updateOutput(input)
@@ -288,7 +349,7 @@ abstract class AbstractModule[A <: Activity: ClassTag, B <: Activity: ClassTag, 
    * @param gradOutput gradient of next layer
    * @return gradient corresponding to input data
    */
-  def backward(input: A, gradOutput: B): A = {
+  def doBackward(input: A, gradOutput: B): A = {
     val before = System.nanoTime()
     updateGradInput(input, gradOutput)
     accGradParameters(input, gradOutput)

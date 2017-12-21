@@ -20,6 +20,7 @@ import java.util
 import scala.collection.JavaConverters._
 import com.intel.analytics.bigdl.nn.Graph.ModuleNode
 import com.intel.analytics.bigdl.nn.abstractnn.{AbstractModule, Activity, TensorModule}
+import com.intel.analytics.bigdl.nn.keras.NewModule
 import com.intel.analytics.bigdl.nn.ops.ControlOps
 import com.intel.analytics.bigdl.nn.tf.{ControlDependency, WithoutInput}
 import com.intel.analytics.bigdl.tensor.Tensor
@@ -72,6 +73,9 @@ abstract class Graph[T: ClassTag](
   private val outputs : Seq[ModuleNode[T]],
   private val variables: Option[(Array[Tensor[T]], Array[Tensor[T]])] = None
 )(implicit ev: TensorNumeric[T]) extends Container[Activity, Activity, T]{
+
+  override def executionNodes(): List[Node[AbstractModule[Activity, Activity, T]]] =
+    this.getForwardExecutions.reverse.toList
 
   /**
    * For a multi-tensor output module, some output tensors may not contributed to the final forward
