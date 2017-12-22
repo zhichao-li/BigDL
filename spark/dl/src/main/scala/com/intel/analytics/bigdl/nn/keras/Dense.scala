@@ -16,7 +16,7 @@
 
 package com.intel.analytics.bigdl.nn.keras
 
-import com.intel.analytics.bigdl.nn.{Graph, Input, Linear}
+import com.intel.analytics.bigdl.nn._
 import com.intel.analytics.bigdl.nn.abstractnn.{AbstractModule, Activity, Initializable, TensorModule}
 import com.intel.analytics.bigdl.optim.Regularizer
 import com.intel.analytics.bigdl.tensor.Tensor
@@ -26,37 +26,28 @@ import scala.reflect.ClassTag
 
 
 @SerialVersionUID( 359656776803598944L)
-class Dense[T: ClassTag](val outputSize: Int,
-                           val withBias: Boolean = true,
-                           var wRegularizer: Regularizer[T] = null,
-                           var bRegularizer: Regularizer[T] = null,
-                           var inputShape: Array[Int] = null,
-                           private val initWeight: Tensor[T] = null,
-                           private val initBias: Tensor[T] = null,
-                           private val initGradWeight: Tensor[T] = null,
-                           private val initGradBias: Tensor[T] = null
+class Dense[T: ClassTag](val outputDim: Int,
+                         val init: InitializationMethod = RandomUniform,
+                         var wRegularizer: Regularizer[T] = null,
+                         var bRegularizer: Regularizer[T] = null,
+                         val bias: Boolean = true,
+                         var inputShape: Array[Int] = null
       )(implicit ev: TensorNumeric[T]) extends NewModule[Tensor[T], Tensor[T], T] {
   if (inputShape != null) {
     setInputShape(Tensor(data = inputShape, shape = Array(inputShape.length)))
   }
 
   override def doBuild(inputShape: Activity): AbstractModule[Tensor[T], Tensor[T], T] = {
-    Linear(
+    val model = Linear(
       inputSize = inputShape.toTensor[Int].toArray()(0),
-      outputSize,
-      withBias,
-      wRegularizer,
-      bRegularizer,
-      initWeight,
-      initBias,
-      initGradWeight,
-      initGradBias
-    ).asInstanceOf[AbstractModule[Tensor[T], Tensor[T], T]]
+      outputSize = outputDim,
+      withBias = bias,
+      wRegularizer = wRegularizer,
+      bRegularizer = bRegularizer
+    )
+    model.setInitMethod(weightInitMethod = init, biasInitMethod = Zeros)
+    model.asInstanceOf[AbstractModule[Tensor[T], Tensor[T], T]]
   }
-
-//  override def toString(): String = {
-//    s"${getPrintName}($inputSize -> $outputSize)"
-//  }
 }
 
 object Dense extends App {

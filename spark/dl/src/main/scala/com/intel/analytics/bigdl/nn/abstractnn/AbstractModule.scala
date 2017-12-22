@@ -92,11 +92,21 @@ abstract class AbstractModule[A <: Activity: ClassTag, B <: Activity: ClassTag, 
   }
 
   final def build(inputShape: Activity): Unit = {
-    this.inputShapeValue = inputShape
-    this.labor = doBuild(inputShape)
+    labor = doBuild(inputShape)
     this.output = labor.output
     this.gradInput = labor.gradInput
+    this.scaleB = labor.scaleB
+    this.forwardTime = labor.forwardTime
+    this.backwardTime = labor.backwardTime
+    this.line = labor.line
+    this.scaleB = labor.scaleB
+    this.scaleBCache = labor.scaleBCache
+    this.scaleW = labor.scaleW
+    this.scaleWCache = labor.scaleWCache
+    this.train = labor.train
     this.outputShapeValue = computeOutputShape(inputShape)
+    this.inputShapeValue = inputShape
+    this = labor
   }
 
   final def computeOutputShape(inputShape: Activity): Activity = {
