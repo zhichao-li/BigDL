@@ -18,6 +18,7 @@ package com.intel.analytics.bigdl.nn
 
 import com.intel.analytics.bigdl.Module
 import com.intel.analytics.bigdl.nn.abstractnn.{AbstractModule, Activity}
+import com.intel.analytics.bigdl.nn.keras.NewModule
 import com.intel.analytics.bigdl.tensor.Tensor
 import com.intel.analytics.bigdl.tensor.TensorNumericMath.TensorNumeric
 import com.intel.analytics.bigdl.utils.{Node, T, Table}
@@ -87,8 +88,12 @@ abstract class Container[A <: Activity : ClassTag,
         } else {
           preNodes.map{_.element.getOutputShape()}.toList
         }
-
-        node.element.build(gatherFinalResult(inputShapes))
+        val n = if (node.element.isInstanceOf[NewModule[A, B, T]]) {
+          node.element.asInstanceOf[NewModule[A, B, T]]
+        } else {
+          node.element
+        }
+        n.build(gatherFinalResult(inputShapes))
 //      }
       i += 1
     }

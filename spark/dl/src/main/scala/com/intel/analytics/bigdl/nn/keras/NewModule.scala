@@ -27,7 +27,22 @@ T: ClassTag](implicit ev: TensorNumeric[T]) extends AbstractModule[A, B, T] {
 
   labor = null  // reset labor to be null
 
-  override def doBuild(inputShape: Activity): AbstractModule[A, B, T]
+  override def build(inputShape: Activity): Unit = {
+    labor = doBuild(inputShape)
+    super.build(inputShape)
+    this.output = labor.output
+    this.gradInput = labor.gradInput
+//    this.forwardTime = labor.forwardTime
+//    this.backwardTime = labor.backwardTime
+//    this.line = labor.line
+//    this.scaleB = labor.scaleB
+//    this.scaleBCache = labor.scaleBCache  //TODO: add this back and override all other methods
+//    this.scaleW = labor.scaleW
+//    this.scaleWCache = labor.scaleWCache
+//    this.train = labor.train
+  }
+
+  def doBuild(inputShape: Activity): AbstractModule[A, B, T]
 
   // This method would only be called after `doBuilt`
   override def doComputeOutputShape(inputShape: Activity): Activity = {
