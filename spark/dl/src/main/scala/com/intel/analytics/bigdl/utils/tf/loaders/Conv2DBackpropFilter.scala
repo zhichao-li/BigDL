@@ -19,7 +19,7 @@ import java.nio.ByteOrder
 
 import com.intel.analytics.bigdl.Module
 import com.intel.analytics.bigdl.nn.Identity
-import com.intel.analytics.bigdl.nn.abstractnn.{AbstractModule, Activity, DataFormat}
+import com.intel.analytics.bigdl.nn.abstractnn.{IModule, Activity, DataFormat}
 import com.intel.analytics.bigdl.nn.ops.Conv2DBackFilter
 import com.intel.analytics.bigdl.tensor.Tensor
 import com.intel.analytics.bigdl.tensor.TensorNumericMath.TensorNumeric
@@ -60,6 +60,6 @@ class Conv2DBackpropFilter extends TensorflowOpsLoader {
       case _ =>
         throw new IllegalArgumentException(s"not supported data format: $format")
     }
-    convBackFilter.asInstanceOf[AbstractModule[Activity, Activity, T]]
+    convBackFilter.asInstanceOf[IModule[Activity, Activity, T]]
   }
 }

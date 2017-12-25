@@ -19,7 +19,7 @@ import java.io.{FileOutputStream, OutputStream}
 import java.nio.ByteOrder
 
 import com.google.protobuf.CodedOutputStream
-import com.intel.analytics.bigdl.nn.abstractnn.{AbstractModule, Activity}
+import com.intel.analytics.bigdl.nn.abstractnn.{IModule, Activity}
 import com.intel.analytics.bigdl.nn._
 import com.intel.analytics.bigdl.tensor.Tensor
 import com.intel.analytics.bigdl.tensor.TensorNumericMath.TensorNumeric

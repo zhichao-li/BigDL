@@ -18,7 +18,7 @@ package com.intel.analytics.bigdl.torch
 
 import java.io._
 
-import com.intel.analytics.bigdl.nn.abstractnn.AbstractModule
+import com.intel.analytics.bigdl.nn.abstractnn.IModule
 import com.intel.analytics.bigdl.tensor._
 import com.intel.analytics.bigdl.utils.TorchObject._
 import com.intel.analytics.bigdl.utils.{File, Table}
@@ -87,7 +87,7 @@ object TH {
           } else {
             File.saveTorch(parameters(k), tmpPath, TYPE_DOUBLE_TENSOR, true)
           }
-        case _: AbstractModule[_, _, _] =>
+        case _: IModule[_, _, _] =>
           File.saveTorch(parameters(k), tmpPath, TYPE_MODULE, true)
         case _: Table =>
           File.saveTorch(parameters(k).asInstanceOf[Table], tmpPath, TYPE_TABLE, true)

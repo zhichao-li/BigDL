@@ -16,7 +16,7 @@
 
 package com.intel.analytics.bigdl.nn
 
-import com.intel.analytics.bigdl.nn.abstractnn.{AbstractModule, Activity, TensorModule}
+import com.intel.analytics.bigdl.nn.abstractnn.{AbstractModule, Activity, IModule, TensorModule}
 import com.intel.analytics.bigdl.tensor.Tensor
 import com.intel.analytics.bigdl.tensor.TensorNumericMath.TensorNumeric
 import com.intel.analytics.bigdl.utils.T
@@ -199,7 +199,7 @@ object SpatialSubtractiveNormalization extends ModuleSerializable {
   }
 
   override def doLoadModule[T: ClassTag](context : DeserializeContext)
-    (implicit ev: TensorNumeric[T]) : AbstractModule[Activity, Activity, T] = {
+    (implicit ev: TensorNumeric[T]) : IModule[Activity, Activity, T] = {
 
     val spatialSubtractiveNormModule = super.doLoadModule(context).
       asInstanceOf[SpatialSubtractiveNormalization[T]]

@@ -22,7 +22,7 @@ import java.security.{DigestInputStream, DigestOutputStream, MessageDigest}
 import scala.collection.JavaConverters._
 import com.google.protobuf.CodedInputStream
 import com.intel.analytics.bigdl.nn.Container
-import com.intel.analytics.bigdl.nn.abstractnn.{AbstractModule, Activity}
+import com.intel.analytics.bigdl.nn.abstractnn.{IModule, Activity}
 import com.intel.analytics.bigdl.tensor.{DenseType, QuantizedTensor, Tensor}
 import com.intel.analytics.bigdl.tensor.TensorNumericMath.TensorNumeric
 import com.intel.analytics.bigdl.utils.serializer.DataConverter.TensorConverter
@@ -44,7 +44,7 @@ object ModuleLoader {
    * @return loaded BigDL module
    */
   def loadFromFile[T: ClassTag](modelPath : String, weightPath : String = null)
-    (implicit ev: TensorNumeric[T]) : AbstractModule[Activity, Activity, T] = {
+    (implicit ev: TensorNumeric[T]) : IModule[Activity, Activity, T] = {
     val modelBuilder = BigDLModule.newBuilder
     val inputBytes = File.readBytes(modelPath)
     var cis : CodedInputStream = CodedInputStream.newInstance(new ByteArrayInputStream(inputBytes))
@@ -145,7 +145,7 @@ object ModuleLoader {
    * @tparam T data type
    */
 
-  def loadFromDefinition[T : ClassTag](definition : AbstractModule[Activity, Activity, T],
+  def loadFromDefinition[T : ClassTag](definition : IModule[Activity, Activity, T],
     modelPath : String, layers : mutable.HashSet[String] = null)(implicit ev: TensorNumeric[T])
   : Unit = {
     val loadedModule = loadFromFile(modelPath)
@@ -159,7 +159,7 @@ object ModuleLoader {
     copyParams(definition, loadedModule, layersToCopy)
   }
 
-  private def getAllLayers[T : ClassTag](module : AbstractModule[Activity, Activity, T],
+  private def getAllLayers[T : ClassTag](module : IModule[Activity, Activity, T],
     layers : mutable.HashSet[String]) : Unit
     = {
     layers.add(module.getName)
@@ -170,8 +170,8 @@ object ModuleLoader {
     }
   }
 
-  private def copyParams[T : ClassTag](definition : AbstractModule[Activity, Activity, T],
-                                     mirror : AbstractModule[Activity, Activity, T],
+  private def copyParams[T : ClassTag](definition : IModule[Activity, Activity, T],
+                                     mirror : IModule[Activity, Activity, T],
                                       layers : mutable.HashSet[String]) : Unit = {
     val parameterTable = definition.getParametersTable()
     val copiedParameterTable = mirror.getParametersTable()
@@ -227,7 +227,7 @@ object ModulePersister {
    */
   def saveToFile[T: ClassTag](modelPath: String,
                               weightPath: String = null,
-                              module: AbstractModule[Activity, Activity, T],
+                              module: IModule[Activity, Activity, T],
                               overwrite: Boolean = false)
                              (implicit ev: TensorNumeric[T]): Unit = {
 
@@ -243,7 +243,7 @@ object ModulePersister {
     }
   }
 
-  private def serializeModule[T : ClassTag](module: AbstractModule[Activity, Activity, T],
+  private def serializeModule[T : ClassTag](module: IModule[Activity, Activity, T],
     storageType: StorageType)(implicit ev: TensorNumeric[T]): SerializeResult = {
     val bigDLModule = ModuleData(module
       , new ArrayBuffer[String](), new ArrayBuffer[String]())
@@ -332,7 +332,7 @@ object ModulePersister {
    * @tparam T data type
    */
   def saveModelDefinitionToFile[T: ClassTag](definitionPath : String,
-    module : AbstractModule[Activity, Activity, T],
+    module : IModule[Activity, Activity, T],
     overwrite : Boolean = false)(implicit ev: TensorNumeric[T]) : Unit = {
     val bigDLModule = ModuleData(module, new ArrayBuffer[String](), new ArrayBuffer[String]())
     val storages = new mutable.HashMap[Int, Any]()

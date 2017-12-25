@@ -18,13 +18,14 @@ package com.intel.analytics.bigdl.nn
 
 
 import com.intel.analytics.bigdl._
-import com.intel.analytics.bigdl.nn.abstractnn.{AbstractModule, Activity, TensorModule}
+import com.intel.analytics.bigdl.nn.abstractnn.{AbstractModule, Activity, IModule, TensorModule}
 import com.intel.analytics.bigdl.tensor.Tensor
 import com.intel.analytics.bigdl.tensor.TensorNumericMath.TensorNumeric
 import com.intel.analytics.bigdl.utils.serializer._
 import com.intel.analytics.bigdl.utils.serializer.{ContainerSerializable, DataConverter, ModuleSerializer}
 import com.intel.analytics.bigdl.utils.T
 import serialization.Bigdl.{AttrValue, BigDLModule}
+
 import scala.reflect.runtime.universe
 import scala.collection.mutable.ArrayBuffer
 import scala.reflect.ClassTag
@@ -52,11 +53,11 @@ class Recurrent[T : ClassTag](var batchNormParams: BatchNormParams[T] = null)
   protected var topology: Cell[T] = null
   protected val stepInput2CellBuf = Tensor[T]()
   protected val stepGradBuffer = Tensor[T]()
-  protected var preTopology: AbstractModule[Activity, Activity, T] = null
+  protected var preTopology: IModule[Activity, Activity, T] = null
   private val dropouts: ArrayBuffer[Array[Dropout[T]]] =
     new ArrayBuffer[Array[Dropout[T]]]
   private val timeBuffer =
-    new ArrayBuffer[(AbstractModule[_ <: Activity, _ <: Activity, T], Long, Long)]
+    new ArrayBuffer[(IModule[_ <: Activity, _ <: Activity, T], Long, Long)]
   private var layer: TensorModule[T] = null
 
   /**
@@ -71,7 +72,7 @@ class Recurrent[T : ClassTag](var batchNormParams: BatchNormParams[T] = null)
    * @param module module to be add
    * @return this container
    */
-  override def add(module: AbstractModule[_ <: Activity, _ <: Activity, T]): Recurrent.this.type = {
+  override def add(module: IModule[_ <: Activity, _ <: Activity, T]): Recurrent.this.type = {
     require(module.isInstanceOf[Cell[T]],
       "Recurrent: added module should be Cell type!")
     require(!module.isInstanceOf[MultiRNNCell[T]],
@@ -87,7 +88,7 @@ class Recurrent[T : ClassTag](var batchNormParams: BatchNormParams[T] = null)
       throw new IllegalArgumentException(
         s"${topology.getName} does not support BatchNormalization." +
           s" Please add preTopology for it. You can simply using: " +
-          s"override def preTopology: AbstractModule[Activity, Activity, T] = Identity()")
+          s"override def preTopology: IModule[Activity, Activity, T] = Identity()")
     }
 
     if (batchNormParams != null) {
@@ -313,10 +314,10 @@ class Recurrent[T : ClassTag](var batchNormParams: BatchNormParams[T] = null)
        * if preTopology is Sequential, it has not created gradInput.
        * Thus, it needs to create a new Tensor.
        */
-      if (preTopology.gradInput == null) {
-        preTopology.gradInput = Tensor[T]()
+      if (preTopology.getGradInput == null) {
+        preTopology.setGradInput(Tensor[T]())
       }
-      preTopology.gradInput.toTensor[T]
+      preTopology.getGradInput.toTensor[T]
     } else {
       gradInput2Cell
     }
@@ -366,10 +367,10 @@ class Recurrent[T : ClassTag](var batchNormParams: BatchNormParams[T] = null)
        * if preTopology is Sequential, it has not created gradInput.
        * Thus, it needs to create a new Tensor.
        */
-      if (preTopology.gradInput == null) {
-        preTopology.gradInput = Tensor[T]()
+      if (preTopology.getOutput == null) {
+        preTopology.setGradInput(Tensor[T]())
       }
-      preTopology.gradInput.toTensor[T]
+      preTopology.getGradInput.toTensor[T]
     } else {
       gradInput2Cell
     }
@@ -403,7 +404,7 @@ class Recurrent[T : ClassTag](var batchNormParams: BatchNormParams[T] = null)
   }
 
   override def getTimes():
-  Array[(AbstractModule[_ <: Activity, _ <: Activity, T], Long, Long)] = {
+  Array[(IModule[_ <: Activity, _ <: Activity, T], Long, Long)] = {
     timeBuffer.clear
 
     val head = if (!cells.isEmpty) {
@@ -593,7 +594,7 @@ object Recurrent extends ContainerSerializable {
   }
 
   override def doLoadModule[T: ClassTag](context : DeserializeContext)
-    (implicit ev: TensorNumeric[T]) : AbstractModule[Activity, Activity, T] = {
+    (implicit ev: TensorNumeric[T]) : IModule[Activity, Activity, T] = {
 
     val attrMap = context.bigdlModule.getAttrMap
 
@@ -612,7 +613,7 @@ object Recurrent extends ContainerSerializable {
 
     val preTopologyAttr = attrMap.get("preTopology")
     recurrent.preTopology = DataConverter.getAttributeValue(context, preTopologyAttr).
-      asInstanceOf[AbstractModule[Activity, Activity, T]]
+      asInstanceOf[IModule[Activity, Activity, T]]
 
     if (recurrent.preTopology != null) {
       recurrent.modules.append(recurrent.preTopology)
@@ -667,12 +668,12 @@ object Recurrent extends ContainerSerializable {
 
     val topologyBuilder = AttrValue.newBuilder
     DataConverter.setAttributeValue(context, topologyBuilder, recurrent.topology,
-      ModuleSerializer.abstractModuleType)
+      ModuleSerializer.IModuleType)
     recurrentBuilder.putAttr("topology", topologyBuilder.build)
 
     val preTopologyBuilder = AttrValue.newBuilder
     DataConverter.setAttributeValue(context, preTopologyBuilder,
-      recurrent.preTopology, ModuleSerializer.abstractModuleType)
+      recurrent.preTopology, ModuleSerializer.IModuleType)
     recurrentBuilder.putAttr("preTopology", preTopologyBuilder.build)
 
     val flag = if (recurrent.batchNormParams != null) {

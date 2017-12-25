@@ -16,7 +16,7 @@
 
 package com.intel.analytics.bigdl.nn
 
-import com.intel.analytics.bigdl.nn.abstractnn.{AbstractModule, Activity}
+import com.intel.analytics.bigdl.nn.abstractnn.{IModule, Activity}
 import com.intel.analytics.bigdl.tensor.Tensor
 import com.intel.analytics.bigdl.utils.RandomGenerator._
 import org.scalatest.{FlatSpec, Matchers}
@@ -44,7 +44,7 @@ class TimeDistributedSpec extends FlatSpec with Matchers {
     model2.backward(input2, gradOutput2)
 
     model1.setExtraParameter(
-      model2.asInstanceOf[AbstractModule[Activity, Activity, Float]].getExtraParameter())
+      model2.asInstanceOf[IModule[Activity, Activity, Float]].getExtraParameter())
 
     bnorm1.runningMean should be (bnorm2.runningMean)
     bnorm1.runningVar should be (bnorm2.runningVar)

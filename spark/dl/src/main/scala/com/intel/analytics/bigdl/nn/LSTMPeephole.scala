@@ -17,7 +17,7 @@
 package com.intel.analytics.bigdl.nn
 
 import com.intel.analytics.bigdl.nn.Graph.ModuleNode
-import com.intel.analytics.bigdl.nn.abstractnn.{AbstractModule, Activity, TensorModule}
+import com.intel.analytics.bigdl.nn.abstractnn.{AbstractModule, Activity, IModule, TensorModule}
 import com.intel.analytics.bigdl.optim.Regularizer
 import com.intel.analytics.bigdl.tensor.Tensor
 import com.intel.analytics.bigdl.tensor.TensorNumericMath.TensorNumeric
@@ -68,7 +68,7 @@ class LSTMPeephole[T : ClassTag] (
   var cellLayer: ModuleNode[T] = _
   val featDim = 2
 
-  override var cell: AbstractModule[Activity, Activity, T] =
+  override var cell: IModule[Activity, Activity, T] =
     Sequential()
       .add(FlattenTable())
       .add(buildLSTM())

@@ -25,7 +25,7 @@ import com.intel.analytics.bigdl.tensor.TensorNumericMath.TensorNumeric
 
 import scala.reflect.ClassTag
 import com.intel.analytics.bigdl.nn._
-import com.intel.analytics.bigdl.nn.abstractnn.AbstractModule
+import com.intel.analytics.bigdl.nn.abstractnn.IModule
 import com.intel.analytics.bigdl.tensor.{Storage, Tensor}
 
 import scala.collection.mutable
@@ -262,7 +262,7 @@ object TorchFile {
   }
 
   private def writeModule(
-      module: AbstractModule[_, _, _],
+      module: IModule[_, _, _],
       rawData: ByteBuffer, path: Path): Unit = {
     module match {
       case m: Linear[_] =>
@@ -341,7 +341,7 @@ object TorchFile {
       case TYPE_MODULE =>
         i = i + 1
         rawData.putInt(i)
-        writeModule(source.asInstanceOf[AbstractModule[_, _, _]], rawData, path)
+        writeModule(source.asInstanceOf[IModule[_, _, _]], rawData, path)
       case TYPE_TABLE =>
         i = i + 1
         rawData.putInt(i)
@@ -451,10 +451,10 @@ object TorchFile {
   }
 
   private def writeGeneralParameters(
-      source: AbstractModule[_, _, _],
+      source: IModule[_, _, _],
       table: Table): Table = {
-    table("gradInput") = source.gradInput
-    table("output") = source.output
+    table("gradInput") = source.getGradInput
+    table("output") = source.getOutput
     table("_type") = source.getNumericType() match {
       case DoubleType => "torch.DoubleTensor"
       case FloatType => "torch.FloatTensor"
@@ -655,7 +655,7 @@ object TorchFile {
           writeObject(s, rawData, path, TYPE_TABLE)
         case s: Array[Int] =>
           writeObject(s, rawData, path, TYPE_LONG_STORAGE)
-        case s: AbstractModule[_, _, _] =>
+        case s: IModule[_, _, _] =>
           writeObject(s, rawData, path, TYPE_MODULE)
         case null =>
           writeObject(sourceKey, rawData, path, TYPE_NIL)

@@ -20,7 +20,7 @@ import java.lang.reflect.Field
 import com.intel.analytics.bigdl.nn.Container
 
 import scala.collection.JavaConverters._
-import com.intel.analytics.bigdl.nn.abstractnn.{AbstractModule, Activity}
+import com.intel.analytics.bigdl.nn.abstractnn.{IModule, Activity}
 import com.intel.analytics.bigdl.tensor.Tensor
 import com.intel.analytics.bigdl.tensor.TensorNumericMath.TensorNumeric
 import com.intel.analytics.bigdl.utils.Table
@@ -79,7 +79,7 @@ trait ModuleSerializable extends Loadable with Savable{
     val storages = context.storages
 
     val module = if (storages.contains(moduleId)) {
-      storages.get(moduleId).get.asInstanceOf[AbstractModule[Activity, Activity, T]]
+      storages.get(moduleId).get.asInstanceOf[IModule[Activity, Activity, T]]
     } else {
       val loadedModule = doLoadModule(context)
       storages(moduleId) = loadedModule
@@ -95,7 +95,7 @@ trait ModuleSerializable extends Loadable with Savable{
    * @return BigDL module
    */
   protected def doLoadModule[T: ClassTag](context: DeserializeContext)
-    (implicit ev: TensorNumeric[T]) : AbstractModule[Activity, Activity, T] = {
+    (implicit ev: TensorNumeric[T]) : IModule[Activity, Activity, T] = {
 
     val (tags, numerics) = getTypes(context)
     val tagIter = tags.iterator
@@ -131,7 +131,7 @@ trait ModuleSerializable extends Loadable with Savable{
       })
     }
    constructorMirror.apply(args : _*).
-      asInstanceOf[AbstractModule[Activity, Activity, T]]
+      asInstanceOf[IModule[Activity, Activity, T]]
   }
 
   private def getTypes(context: DeserializeContext):
@@ -218,7 +218,7 @@ trait ModuleSerializable extends Loadable with Savable{
   }
 
   protected def createBigDLModule[T: ClassTag](context: DeserializeContext,
-                                               module : AbstractModule[Activity, Activity, T])
+                                               module : IModule[Activity, Activity, T])
                                               (implicit ev: TensorNumeric[T])
   : ModuleData[T] = {
     val model = context.bigdlModule
@@ -319,7 +319,7 @@ trait ModuleSerializable extends Loadable with Savable{
 trait ContainerSerializable extends ModuleSerializable {
 
   override def doLoadModule[T: ClassTag](context : DeserializeContext)
-    (implicit ev: TensorNumeric[T]) : AbstractModule[Activity, Activity, T] = {
+    (implicit ev: TensorNumeric[T]) : IModule[Activity, Activity, T] = {
     val module = super.doLoadModule(context)
     val container = module.asInstanceOf[Container[Activity, Activity, T]]
     val subModules = context.bigdlModule.getSubModulesList.asScala

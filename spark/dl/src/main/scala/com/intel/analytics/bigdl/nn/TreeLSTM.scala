@@ -15,7 +15,7 @@
  */
 package com.intel.analytics.bigdl.nn
 
-import com.intel.analytics.bigdl.nn.abstractnn.{AbstractModule, Activity}
+import com.intel.analytics.bigdl.nn.abstractnn.{AbstractModule, Activity, IModule}
 import com.intel.analytics.bigdl.tensor.Tensor
 import com.intel.analytics.bigdl.tensor.TensorNumericMath.TensorNumeric
 import com.intel.analytics.bigdl.utils.Table
@@ -30,8 +30,8 @@ abstract class TreeLSTM[T: ClassTag](
   protected val memZero: Tensor[T] = Tensor[T](hiddenSize).zero()
 
   def shareParams(
-    cell: AbstractModule[Activity, Activity, T],
-    src: AbstractModule[Activity, Activity, T]): Unit = {
+    cell: IModule[Activity, Activity, T],
+    src: IModule[Activity, Activity, T]): Unit = {
     var i = 0
     val cellParams = cell.parameters()
     val srcParams = src.parameters()

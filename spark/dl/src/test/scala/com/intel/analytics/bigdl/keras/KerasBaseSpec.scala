@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 package com.intel.analytics.bigdl.keras
-import com.intel.analytics.bigdl.nn.abstractnn.{AbstractCriterion, AbstractModule}
+import com.intel.analytics.bigdl.nn.abstractnn.{AbstractCriterion, IModule}
 import com.intel.analytics.bigdl.tensor.Tensor
 import com.intel.analytics.bigdl.tensor.TensorNumericMath.TensorNumeric.NumericFloat
 import com.intel.analytics.bigdl.utils.BigDLSpecHelper
@@ -36,7 +36,7 @@ abstract class KerasBaseSpec extends BigDLSpecHelper {
 
   // weightConverter: convert keras weight to BigDL format,
   // do nothing for the default converter
-  def checkOutputAndGrad(bmodel: AbstractModule[Tensor[Float], Tensor[Float], Float],
+  def checkOutputAndGrad(bmodel: IModule[Tensor[Float], Tensor[Float], Float],
                          kerasCode: String,
                          weightConverter: (Array[Tensor[Float]]) => Array[Tensor[Float]]
                          = defaultWeightConverter,

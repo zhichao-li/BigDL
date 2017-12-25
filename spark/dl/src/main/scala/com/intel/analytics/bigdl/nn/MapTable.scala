@@ -16,7 +16,7 @@
 package com.intel.analytics.bigdl.nn
 
 import com.intel.analytics.bigdl.nn.Graph.ModuleNode
-import com.intel.analytics.bigdl.nn.abstractnn.{AbstractModule, Activity}
+import com.intel.analytics.bigdl.nn.abstractnn.{AbstractModule, Activity, IModule}
 import com.intel.analytics.bigdl.tensor.TensorNumericMath.TensorNumeric
 import com.intel.analytics.bigdl.utils.Table
 import com.intel.analytics.bigdl.utils.serializer.{ContainerSerializable, DeserializeContext, ModuleData, SerializeContext}
@@ -35,7 +35,7 @@ import scala.reflect.ClassTag
 
 @SerialVersionUID( 4403280698280280268L)
 class MapTable[T: ClassTag](
-  var module: AbstractModule[_ <: Activity, _ <: Activity, T] = null)
+  var module: IModule[_ <: Activity, _ <: Activity, T] = null)
   (implicit ev: TensorNumeric[T]) extends Container[Table, Table, T]  {
 
   if ( module != null) {
@@ -48,13 +48,13 @@ class MapTable[T: ClassTag](
       if (modules.length <= i) {
         modules.append(module
           .cloneModule().setName(module.getName() + i)
-          .asInstanceOf[AbstractModule[Activity, Activity, T]])
+          .asInstanceOf[IModule[Activity, Activity, T]])
       }
       i += 1
     }
   }
 
-  override def add(module: AbstractModule[_ <: Activity, _ <: Activity, T]): this.type = {
+  override def add(module: IModule[_ <: Activity, _ <: Activity, T]): this.type = {
     require(module != null, "Single module required")
     this.module = module
     if (modules.nonEmpty) {
@@ -141,13 +141,13 @@ class MapTable[T: ClassTag](
 
 object MapTable extends ContainerSerializable {
   def apply[@specialized(Float, Double) T: ClassTag](
-    module: AbstractModule[_ <: Activity, _ <: Activity, T] = null
+    module: IModule[_ <: Activity, _ <: Activity, T] = null
   )(implicit ev: TensorNumeric[T]) : MapTable[T] = {
     new MapTable[T](module)
   }
 
   override def doLoadModule[T: ClassTag](context: DeserializeContext)
-    (implicit ev: TensorNumeric[T]) : AbstractModule[Activity, Activity, T] = {
+    (implicit ev: TensorNumeric[T]) : IModule[Activity, Activity, T] = {
     val mapTable = super.doLoadModule(context).asInstanceOf[MapTable[T]]
     require(mapTable.modules.size >=1, "sub module should not be empty")
     mapTable.add(mapTable.modules(0))

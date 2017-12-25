@@ -18,7 +18,7 @@ package com.intel.analytics.bigdl.utils.tf.loaders
 import java.nio.ByteOrder
 
 import com.intel.analytics.bigdl.Module
-import com.intel.analytics.bigdl.nn.abstractnn.{AbstractModule, Activity}
+import com.intel.analytics.bigdl.nn.abstractnn.{IModule, Activity}
 import com.intel.analytics.bigdl.nn.{Padding, Sequential}
 import com.intel.analytics.bigdl.tensor.Tensor
 import com.intel.analytics.bigdl.tensor.TensorNumericMath.TensorNumeric
@@ -39,7 +39,7 @@ class Pad extends TensorflowOpsLoader {
 }
 
 class PadLoadTF[T: ClassTag]()(implicit ev: TensorNumeric[T]) extends Adapter[T](Array(2)) {
-  override def build(tensorArrays: Array[Tensor[_]]): AbstractModule[Activity, Activity, T] = {
+  override def build(tensorArrays: Array[Tensor[_]]): IModule[Activity, Activity, T] = {
     val paddings = tensorArrays(0).asInstanceOf[Tensor[Int]]
     val pad = ArrayBuffer[Int]()
     val padding = Sequential[T]()

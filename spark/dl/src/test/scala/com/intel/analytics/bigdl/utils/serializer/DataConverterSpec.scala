@@ -19,7 +19,7 @@ import com.google.protobuf.ByteString
 import com.intel.analytics.bigdl.nn._
 import com.intel.analytics.bigdl.nn.VariableFormat.{Default, ONE_D}
 import com.intel.analytics.bigdl.nn.abstractnn.DataFormat.{NCHW, NHWC}
-import com.intel.analytics.bigdl.nn.abstractnn.{AbstractModule, Activity, DataFormat, TensorModule}
+import com.intel.analytics.bigdl.nn.abstractnn.{IModule, Activity, DataFormat, TensorModule}
 import com.intel.analytics.bigdl.nn.quantized.{LinearWeight, LinearWeightParams}
 import com.intel.analytics.bigdl.optim.{L1L2Regularizer, L1Regularizer, L2Regularizer, Regularizer}
 import com.intel.analytics.bigdl.tensor.{QuantizedTensor, Storage, Tensor}
@@ -423,7 +423,7 @@ class DataConverterSpec extends FlatSpec with Matchers{
     val attriBulder = AttrValue.newBuilder
     map.clear()
     DataConverter.setAttributeValue(SerializeContext(null, map, ProtoStorageType),
-      attriBulder, linear, ModuleSerializer.abstractModuleType)
+      attriBulder, linear, ModuleSerializer.IModuleType)
     val attr = attriBulder.build
     map.clear()
     val retrievedValue = DataConverter.
@@ -643,12 +643,12 @@ class DataConverterSpec extends FlatSpec with Matchers{
   }
 
   "Null Array of Modules conversion" should " work properly" in {
-    val arry : Array[AbstractModule[Activity, Activity, Float]] = null
+    val arry : Array[IModule[Activity, Activity, Float]] = null
     val attriBulder = AttrValue.newBuilder
     map.clear()
     DataConverter.setAttributeValue(SerializeContext(null, map, null),
       attriBulder, arry,
-      universe.typeOf[Array[AbstractModule[Activity, Activity, Float]]])
+      universe.typeOf[Array[IModule[Activity, Activity, Float]]])
     val attr = attriBulder.build
     map.clear()
     val retrievedValue = DataConverter.

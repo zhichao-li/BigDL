@@ -21,7 +21,7 @@ import scala.collection.JavaConverters._
 import scala.reflect.runtime.universe
 import com.intel.analytics.bigdl.nn._
 import com.intel.analytics.bigdl.nn.abstractnn.DataFormat.{NCHW, NHWC}
-import com.intel.analytics.bigdl.nn.abstractnn.{AbstractModule, Activity, DataFormat}
+import com.intel.analytics.bigdl.nn.abstractnn.{IModule, Activity, DataFormat}
 import com.intel.analytics.bigdl.nn.quantized._
 import com.intel.analytics.bigdl.optim.{L1L2Regularizer, L1Regularizer, L2Regularizer, Regularizer}
 import com.intel.analytics.bigdl.tensor.{DenseType, QuantizedTensor, QuantizedType, Tensor, Storage}
@@ -85,8 +85,8 @@ object DataConverter extends DataConverter{
     : universe.Type = {
     if (value.isInstanceOf[Tensor[_]]) {
       ModuleSerializer.tensorType
-    } else if (value.isInstanceOf[AbstractModule[_, _, T]]) {
-      ModuleSerializer.abstractModuleType
+    } else if (value.isInstanceOf[IModule[_, _, T]]) {
+      ModuleSerializer.IModuleType
     } else if (value.isInstanceOf[Regularizer[_]]) {
       ModuleSerializer.regularizerType
     } else if (value.isInstanceOf[InitializationMethod]) {
@@ -172,7 +172,7 @@ object DataConverter extends DataConverter{
         attributeBuilder.setDataType(DataType.FLOAT)
         attributeBuilder.setFloatValue(value.asInstanceOf[Float])
       }
-    } else if (valueType.toString == ModuleSerializer.abstractModuleType.toString
+    } else if (valueType.toString == ModuleSerializer.IModuleType.toString
       || valueType.toString == ModuleSerializer.tensorModuleType.toString
       || valueType.toString == ModuleSerializer.moduleType.toString
       || valueType.toString == ModuleSerializer.boundedModuleType.toString
@@ -667,7 +667,7 @@ object DataConverter extends DataConverter{
   }
 
 /**
- * DataConverter for [[com.intel.analytics.bigdl.nn.abstractnn.AbstractModule]]
+ * DataConverter for [[com.intel.analytics.bigdl.nn.abstractnn.IModule]]
  */
   object ModuleConverter extends DataConverter {
 
@@ -687,7 +687,7 @@ object DataConverter extends DataConverter{
       value: Any, valueType: universe.Type = null)(implicit ev: TensorNumeric[T]): Unit = {
       attributeBuilder.setDataType(DataType.MODULE)
       if (value != null) {
-        val module = value.asInstanceOf[AbstractModule[Activity, Activity, T]]
+        val module = value.asInstanceOf[IModule[Activity, Activity, T]]
         val serializableModule = ModuleSerializer.
             serialize(SerializeContext(ModuleData(module, Seq[String](), Seq[String]()),
               context.storages, context.storageType)).bigDLModule
@@ -835,7 +835,7 @@ object DataConverter extends DataConverter{
           })
           methods
         case DataType.MODULE =>
-          val modules = new Array[AbstractModule[Activity, Activity, T]](size)
+          val modules = new Array[IModule[Activity, Activity, T]](size)
           val moduleList = valueArray.getBigDLModuleList.asScala
           var i = 0
           moduleList.foreach(module => {
@@ -843,7 +843,7 @@ object DataConverter extends DataConverter{
             attrValue.setDataType(DataType.MODULE)
             attrValue.setBigDLModuleValue(module)
             modules(i) = ModuleConverter.getAttributeValue(context, attrValue.build)
-              .asInstanceOf[AbstractModule[Activity, Activity, T]]
+              .asInstanceOf[IModule[Activity, Activity, T]]
             i += 1
           })
           modules
@@ -984,10 +984,10 @@ object DataConverter extends DataConverter{
           arrayBuilder.setSize(methods.size)
         }
       } else if (valueType <:< universe.
-        typeOf[Array[_ <: AbstractModule[_ <: Activity, _ <:  Activity, _ <: Any]]]) {
+        typeOf[Array[_ <: IModule[_ <: Activity, _ <:  Activity, _ <: Any]]]) {
         arrayBuilder.setDatatype(DataType.MODULE)
         if (value != null) {
-          val modules = value.asInstanceOf[Array[_ <: AbstractModule[Activity, Activity, T]]]
+          val modules = value.asInstanceOf[Array[_ <: IModule[Activity, Activity, T]]]
           modules.foreach(module => {
             val attrValueBuilder = AttrValue.newBuilder
             ModuleConverter.setAttributeValue(context, attrValueBuilder, module)

@@ -20,7 +20,7 @@ import java.io.PrintWriter
 
 import com.intel.analytics.bigdl._
 import com.intel.analytics.bigdl.nn._
-import com.intel.analytics.bigdl.nn.abstractnn.AbstractModule
+import com.intel.analytics.bigdl.nn.abstractnn.IModule
 import com.intel.analytics.bigdl.numeric.NumericDouble
 import com.intel.analytics.bigdl.optim.SGD
 import com.intel.analytics.bigdl.tensor.Tensor
@@ -64,7 +64,7 @@ class BiRecurrentSpec  extends TorchSpec {
     val gradOutput2 = gradOutput.narrow(3, 1 + outputSize, outputSize).contiguous()
 
     val birnn = BiRecurrent[Double](JoinTable[Double](3, 0)
-      .asInstanceOf[AbstractModule[Table, Tensor[Double], Double]], isSplitInput = true)
+      .asInstanceOf[IModule[Table, Tensor[Double], Double]], isSplitInput = true)
       .add(RnnCell[Double](half, outputSize, ReLU[Double]()))
 
     val recurrent1 = Recurrent[Double]()

@@ -19,7 +19,7 @@ import java.nio.ByteOrder
 
 import com.intel.analytics.bigdl.Module
 import com.intel.analytics.bigdl.nn.Pack
-import com.intel.analytics.bigdl.nn.abstractnn.{AbstractModule, Activity}
+import com.intel.analytics.bigdl.nn.abstractnn.{IModule, Activity}
 import com.intel.analytics.bigdl.tensor.Tensor
 import com.intel.analytics.bigdl.tensor.TensorNumericMath.TensorNumeric
 import com.intel.analytics.bigdl.utils.tf.Context
@@ -31,7 +31,7 @@ class Pack extends TensorflowOpsLoader {
   override def build[T: ClassTag](nodeDef: NodeDef, byteOrder: ByteOrder,
     context: Context[T])(implicit ev: TensorNumeric[T]): Module[T] = {
     val dim = nodeDef.getAttrMap.get("axis").getI.toInt + 1
-    Pack[T](dim).asInstanceOf[AbstractModule[Activity, Activity, T]]
+    Pack[T](dim).asInstanceOf[IModule[Activity, Activity, T]]
   }
 }
 

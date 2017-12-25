@@ -38,7 +38,7 @@ import com.intel.analytics.bigdl.utils.tf.{TensorflowDataFormat, TensorflowSaver
 import scala.reflect.ClassTag
 
 /**
- * [[TensorModule]] is an abstract sub-class of [[AbstractModule]], whose
+ * [[TensorModule]] is an abstract sub-class of [[IModule]], whose
  * input and output type both are [[Tensor]].
  *
  * @tparam T The numeric type in this module, usually which are [[Float]] or [[Double]]
@@ -55,11 +55,11 @@ abstract class TensorModule[T: ClassTag]
  * @tparam T Numeric type of parameter(e.g. weight, bias). Only support float/double now
  */
 abstract class AbstractModule[A <: Activity: ClassTag, B <: Activity: ClassTag, T: ClassTag](
-  implicit ev: TensorNumeric[T]) extends Serializable {
+  implicit ev: TensorNumeric[T]) extends IModule[A, B, T] {
 
   private var namePostfix = Integer.toHexString(java.util.UUID.randomUUID().hashCode())
 
-  def getNamePostfix : String = namePostfix
+  override def getNamePostfix : String = namePostfix
 
   def setNamePostfix(namePostfix : String) : Unit = this.namePostfix = namePostfix
 
@@ -96,29 +96,6 @@ abstract class AbstractModule[A <: Activity: ClassTag, B <: Activity: ClassTag, 
     this.inputShapeValue = inputShape
   }
 
-  final def computeOutputShape(inputShape: Activity): Activity = {
-    if (! isBuilt) {
-      throw new RuntimeException("The model haven't been built")
-    }
-    doComputeOutputShape(inputShape)
-  }
-
-  def doComputeOutputShape(inputShape: Activity): Activity = inputShape
-
-  final def forward(input: A): B = {
-    if (! isBuilt) {
-      throw new RuntimeException("The model haven't been built")
-    }
-    labor.doForward(input)
-  }
-  // TODO: make this final
-  def backward(input: A, gradOutput: B): A = {
-    if (! isBuilt) {
-      throw new RuntimeException("The model haven't been built")
-    }
-    labor.doBackward(input, gradOutput)
-  }
-
   /**
    * The cached output. So we don't compute it again when need it
    */
@@ -128,6 +105,13 @@ abstract class AbstractModule[A <: Activity: ClassTag, B <: Activity: ClassTag, 
    * The cached gradient of activities. So we don't compute it again when need it
    */
   var gradInput: A = Activity.allocate[A, T]()
+
+  def getOutput: B = output
+
+  def getGradInput: A = gradInput
+
+  def setGradInput(g: A): Unit = this.gradInput = g
+
 
   /**
    * The scale of gradient weight and gradient bias
@@ -222,7 +206,7 @@ abstract class AbstractModule[A <: Activity: ClassTag, B <: Activity: ClassTag, 
    *
    * @return
    */
-  def getName() : String = {
+  override def getName() : String = {
     if (this.name == null) {
       s"${this.getClass.getSimpleName}${namePostfix}"
     } else {
@@ -246,7 +230,7 @@ abstract class AbstractModule[A <: Activity: ClassTag, B <: Activity: ClassTag, 
 
   protected var backwardTime = 0L
 
-  def getTimes(): Array[(AbstractModule[_ <: Activity, _ <: Activity, T], Long, Long)] = {
+  def getTimes(): Array[(IModule[_ <: Activity, _ <: Activity, T], Long, Long)] = {
     Array((this, forwardTime, backwardTime))
   }
 
@@ -318,7 +302,7 @@ abstract class AbstractModule[A <: Activity: ClassTag, B <: Activity: ClassTag, 
    * @param input input data
    * @return output data
    */
-  def doForward(input: A): B = {
+  def forward(input: A): B = {
     val before = System.nanoTime()
     try {
       updateOutput(input)
@@ -344,7 +328,7 @@ abstract class AbstractModule[A <: Activity: ClassTag, B <: Activity: ClassTag, 
    * @param gradOutput gradient of next layer
    * @return gradient corresponding to input data
    */
-  def doBackward(input: A, gradOutput: B): A = {
+  def backward(input: A, gradOutput: B): A = {
     val before = System.nanoTime()
     updateGradInput(input, gradOutput)
     accGradParameters(input, gradOutput)
@@ -487,6 +471,8 @@ abstract class AbstractModule[A <: Activity: ClassTag, B <: Activity: ClassTag, 
 
   protected var line = "\n"
 
+  def getLine(): String = line
+
   def setLine(line: String): this.type = {
     this.line = line
     this
@@ -504,11 +490,9 @@ abstract class AbstractModule[A <: Activity: ClassTag, B <: Activity: ClassTag, 
     this
   }
 
-  def cloneModule(): AbstractModule[A, B, T] = {
+  def cloneModule(): IModule[A, B, T] = {
     SerializationUtils.clone(this)
   }
-
-  def canEqual(other: Any): Boolean = other.isInstanceOf[AbstractModule[A, B, T]]
 
   override def equals(other: Any): Boolean = other match {
     case that: AbstractModule[A, B, T] =>
@@ -809,7 +793,7 @@ abstract class AbstractModule[A <: Activity: ClassTag, B <: Activity: ClassTag, 
    * @param name
    * @return
    */
-  def apply(name : String): Option[AbstractModule[Activity, Activity, T]] = {
+  def apply(name : String): Option[IModule[Activity, Activity, T]] = {
     if (this.getName() == name) {
       Some(this)
     } else {

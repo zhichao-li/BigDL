@@ -20,7 +20,7 @@ import java.nio.{ByteOrder, DoubleBuffer, FloatBuffer}
 import com.intel.analytics.bigdl.Criterion
 import com.intel.analytics.bigdl.dataset.{DataSet, DistributedDataSet, MiniBatch, Sample}
 import com.intel.analytics.bigdl.nn.{ClassNLLCriterion, Graph, Linear}
-import com.intel.analytics.bigdl.nn.abstractnn.{AbstractCriterion, AbstractModule, Activity}
+import com.intel.analytics.bigdl.nn.abstractnn.{AbstractCriterion, IModule, Activity}
 import com.intel.analytics.bigdl.optim._
 import com.intel.analytics.bigdl.tensor.TensorNumericMath.{NumericWildcard, TensorNumeric}
 import com.intel.analytics.bigdl.tensor.{Storage, Tensor}

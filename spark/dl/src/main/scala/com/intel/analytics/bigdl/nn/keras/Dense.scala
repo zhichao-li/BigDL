@@ -17,7 +17,7 @@
 package com.intel.analytics.bigdl.nn.keras
 
 import com.intel.analytics.bigdl.nn._
-import com.intel.analytics.bigdl.nn.abstractnn.{AbstractModule, Activity, Initializable, TensorModule}
+import com.intel.analytics.bigdl.nn.abstractnn.{IModule, Activity, Initializable, TensorModule}
 import com.intel.analytics.bigdl.optim.Regularizer
 import com.intel.analytics.bigdl.tensor.Tensor
 import com.intel.analytics.bigdl.tensor.TensorNumericMath.TensorNumeric
@@ -37,7 +37,7 @@ class Dense[T: ClassTag](val outputDim: Int,
     setInputShape(Tensor(data = inputShape, shape = Array(inputShape.length)))
   }
 
-  override def doBuild(inputShape: Activity): AbstractModule[Tensor[T], Tensor[T], T] = {
+  override def doBuild(inputShape: Activity): IModule[Tensor[T], Tensor[T], T] = {
     val model = Linear(
       inputSize = inputShape.toTensor[Int].toArray()(0),
       outputSize = outputDim,
@@ -46,7 +46,7 @@ class Dense[T: ClassTag](val outputDim: Int,
       bRegularizer = bRegularizer
     )
     model.setInitMethod(weightInitMethod = init, biasInitMethod = Zeros)
-    model.asInstanceOf[AbstractModule[Tensor[T], Tensor[T], T]]
+    model.asInstanceOf[IModule[Tensor[T], Tensor[T], T]]
   }
 }
 

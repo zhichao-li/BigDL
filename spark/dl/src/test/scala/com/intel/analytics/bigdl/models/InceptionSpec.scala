@@ -18,7 +18,7 @@ package com.intel.analytics.bigdl.models
 
 import com.intel.analytics.bigdl.models.inception._
 import com.intel.analytics.bigdl.nn.{ClassNLLCriterion, Graph, Input}
-import com.intel.analytics.bigdl.nn.abstractnn.AbstractModule
+import com.intel.analytics.bigdl.nn.abstractnn.IModule
 import com.intel.analytics.bigdl.optim.SGD
 import com.intel.analytics.bigdl.tensor.Tensor
 import com.intel.analytics.bigdl.torch.{TH, TorchSpec}
@@ -534,7 +534,7 @@ class InceptionSpec extends TorchSpec {
         "gradParameters", "parameters", "initModel"))
 
     val model = TH.map("initModel").
-      asInstanceOf[AbstractModule[Tensor[Double], Tensor[Double], Double]]
+      asInstanceOf[IModule[Tensor[Double], Tensor[Double], Double]]
 
     val parameters = model.getParameters()._1.asInstanceOf[Tensor[Double]]
     println(s"model size: ${parameters.nElement()}")
@@ -700,7 +700,7 @@ class InceptionSpec extends TorchSpec {
 
     val model = Inception.getModel[Float](1000, "inception-bn")
     val model2 = TH.map("initModel").
-      asInstanceOf[AbstractModule[Tensor[Float], Tensor[Float], Float]]
+      asInstanceOf[IModule[Tensor[Float], Tensor[Float], Float]]
     model2 should be (model)
 
     val (weights, grad) = model.getParameters()

@@ -17,7 +17,7 @@
 package com.intel.analytics.bigdl.nn
 
 import com.intel.analytics.bigdl.Module
-import com.intel.analytics.bigdl.nn.abstractnn.{AbstractModule, Activity, TensorModule}
+import com.intel.analytics.bigdl.nn.abstractnn.{IModule, Activity, TensorModule}
 import com.intel.analytics.bigdl.tensor.Tensor
 import com.intel.analytics.bigdl.tensor.TensorNumericMath.TensorNumeric
 import com.intel.analytics.bigdl.utils.Table
@@ -45,7 +45,7 @@ class TimeDistributed[T : ClassTag] (val layer: TensorModule[T])
   private var gradOutputSize: Array[Int] = _
   private var outputSize: Array[Int] = _
   private val timeBuffer =
-    new ArrayBuffer[(AbstractModule[_ <: Activity, _ <: Activity, T], Long, Long)]
+    new ArrayBuffer[(IModule[_ <: Activity, _ <: Activity, T], Long, Long)]
 
   private def combine(src: Array[Int], target: Array[Int]): Unit = {
     require(src.length == target.length + 1,
@@ -182,7 +182,7 @@ class TimeDistributed[T : ClassTag] (val layer: TensorModule[T])
     this.backwardTime = 0
   }
 
-  override def getTimes(): Array[(AbstractModule[_ <: Activity, _ <: Activity, T], Long, Long)] = {
+  override def getTimes(): Array[(IModule[_ <: Activity, _ <: Activity, T], Long, Long)] = {
     timeBuffer.clear
     var modulesForwardTime = 0L
     var modulesBackwardTime = 0L

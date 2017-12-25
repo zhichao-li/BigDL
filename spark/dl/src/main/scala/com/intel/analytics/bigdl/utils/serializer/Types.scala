@@ -17,7 +17,7 @@
 package com.intel.analytics.bigdl.utils.serializer
 
 import com.google.protobuf.ByteString
-import com.intel.analytics.bigdl.nn.abstractnn.{AbstractModule, Activity}
+import com.intel.analytics.bigdl.nn.abstractnn.{IModule, Activity}
 import com.intel.analytics.bigdl.tensor.TensorNumericMath.TensorNumeric
 import com.intel.analytics.bigdl.tensor.TensorNumericMath.TensorNumeric.{NumericBoolean, NumericChar, NumericDouble, NumericFloat, NumericInt, NumericLong, NumericString}
 import com.intel.analytics.bigdl.utils.tf.TFTensorNumeric.NumericByteString
@@ -40,7 +40,7 @@ case class DeserializeContext(bigdlModule : BigDLModule,
 
 case class SerializeResult(bigDLModule: BigDLModule.Builder, storages: mutable.HashMap[Int, Any])
 
-case class ModuleData[T: ClassTag](module : AbstractModule[Activity, Activity, T],
+case class ModuleData[T: ClassTag](module : IModule[Activity, Activity, T],
                                    pre : Seq[String], next : Seq[String])
 
 object BigDLDataType extends Enumeration{

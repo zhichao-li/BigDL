@@ -18,7 +18,7 @@ package com.intel.analytics.bigdl.utils.tf.loaders
 import java.nio.ByteOrder
 
 import com.intel.analytics.bigdl.Module
-import com.intel.analytics.bigdl.nn.abstractnn.{AbstractModule, Activity}
+import com.intel.analytics.bigdl.nn.abstractnn.{IModule, Activity}
 import com.intel.analytics.bigdl.nn.ops.TopK
 import com.intel.analytics.bigdl.tensor.Tensor
 import com.intel.analytics.bigdl.tensor.TensorNumericMath.TensorNumeric
@@ -54,7 +54,7 @@ class TopKV2 extends TensorflowOpsLoader {
 
 class TopKV2LoadTF[T: ClassTag](s: Boolean, t: String)(implicit ev: TensorNumeric[T])
   extends Adapter[T](Array(2)) {
-  override def build(tensorArrays: Array[Tensor[_]]): AbstractModule[Activity, Activity, T] = {
+  override def build(tensorArrays: Array[Tensor[_]]): IModule[Activity, Activity, T] = {
     val kTensor = tensorArrays(0).asInstanceOf[Tensor[Int]]
     require(kTensor.isScalar, "Invalid input k")
     val k = kTensor.value()

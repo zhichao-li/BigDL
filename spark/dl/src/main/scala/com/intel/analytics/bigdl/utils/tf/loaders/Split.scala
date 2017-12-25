@@ -19,7 +19,7 @@ import java.nio.ByteOrder
 
 import com.intel.analytics.bigdl.Module
 import com.intel.analytics.bigdl.nn.ConcatTable
-import com.intel.analytics.bigdl.nn.abstractnn.{AbstractModule, Activity}
+import com.intel.analytics.bigdl.nn.abstractnn.{IModule, Activity}
 import com.intel.analytics.bigdl.nn.tf.SplitAndSelect
 import com.intel.analytics.bigdl.tensor.Tensor
 import com.intel.analytics.bigdl.tensor.TensorNumericMath.TensorNumeric
@@ -41,7 +41,7 @@ class Split extends TensorflowOpsLoader {
 
 class SplitLoadTF[T: ClassTag](val numSplit: Int)(implicit ev: TensorNumeric[T])
   extends Adapter[T](Array(1)) {
-  override def build(tensorArrays: Array[Tensor[_]]): AbstractModule[Activity, Activity, T] = {
+  override def build(tensorArrays: Array[Tensor[_]]): IModule[Activity, Activity, T] = {
     val dim = tensorArrays(0).asInstanceOf[Tensor[Int]].value() + 1
     val model = new ConcatTable[T]()
     for (index <- Range(1, numSplit + 1)) {

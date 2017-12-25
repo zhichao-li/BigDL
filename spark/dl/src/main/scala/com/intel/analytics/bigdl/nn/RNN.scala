@@ -17,8 +17,7 @@
 package com.intel.analytics.bigdl.nn
 
 import com.intel.analytics.bigdl.nn.Graph.ModuleNode
-import com.intel.analytics.bigdl.nn.abstractnn.{AbstractModule, Activity, TensorModule}
-import com.intel.analytics.bigdl.nn.abstractnn.TensorModule
+import com.intel.analytics.bigdl.nn.abstractnn.{AbstractModule, Activity, IModule, TensorModule}
 import com.intel.analytics.bigdl.optim.Regularizer
 import com.intel.analytics.bigdl.tensor.Tensor
 import com.intel.analytics.bigdl.tensor.TensorNumericMath.TensorNumeric
@@ -66,7 +65,7 @@ class RnnCell[T : ClassTag] (
       bRegularizer = bRegularizer,
       withBias = isInputWithBias)
 
-  override var cell: AbstractModule[Activity, Activity, T] = buildModel()
+  override var cell: IModule[Activity, Activity, T] = buildModel()
 
   def buildModel(): Graph[T] = {
     val i2h = Input()

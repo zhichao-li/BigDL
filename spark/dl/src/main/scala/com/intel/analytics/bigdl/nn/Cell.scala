@@ -16,7 +16,7 @@
 
 package com.intel.analytics.bigdl.nn
 
-import com.intel.analytics.bigdl.nn.abstractnn.{AbstractModule, Activity, TensorModule}
+import com.intel.analytics.bigdl.nn.abstractnn.{AbstractModule, Activity, IModule, TensorModule}
 import com.intel.analytics.bigdl.optim.Regularizer
 import com.intel.analytics.bigdl.tensor.Tensor
 import com.intel.analytics.bigdl.tensor.TensorNumericMath.TensorNumeric
@@ -50,10 +50,10 @@ abstract class Cell[T : ClassTag](
 )(implicit ev: TensorNumeric[T])
   extends AbstractModule[Table, Table, T] {
 
-  var subModules: Array[AbstractModule[_ <: Activity, _ <: Activity, T]] = null
+  var subModules: Array[IModule[_ <: Activity, _ <: Activity, T]] = null
   var forwardTimes: Array[Long] = null
   var backwardTimes: Array[Long] = null
-  var times: Array[(AbstractModule[_ <: Activity, _ <: Activity, T], Long, Long)] = null
+  var times: Array[(IModule[_ <: Activity, _ <: Activity, T], Long, Long)] = null
 
   /**
    * Any recurrent kernels should have a cell member variable which
@@ -67,7 +67,7 @@ abstract class Cell[T : ClassTag](
    * Similarly the `preHiddens` is the kernel's output hiddens at the previous time step.
    *
    */
-  var cell: AbstractModule[Activity, Activity, T]
+  var cell: IModule[Activity, Activity, T]
 
   /**
    * The preTopology defines operations to pre-process the input when it is not dependent
@@ -178,7 +178,7 @@ abstract class Cell[T : ClassTag](
     if (includePreTopology) {
       val inputTensor = input.toTable[Tensor[T]](Recurrent.inputDim)
       input(Recurrent.inputDim) = preTopology.output
-      gradInput = cell.backward(input, gradOutput)
+      gradInput = cell.backward(input, gradOutput).toTable
       gradInput(Recurrent.inputDim) =
         preTopology.backward(inputTensor, gradInput.toTable[Tensor[T]](Recurrent.inputDim))
       input(Recurrent.inputDim) = inputTensor
@@ -197,7 +197,7 @@ abstract class Cell[T : ClassTag](
   private def initAddTimes(): Unit = {
     val cellTimes = cell.getTimes
     if (subModules == null || subModules.length < cellTimes.length) {
-      subModules = new Array[AbstractModule[_ <: Activity, _ <: Activity, T]](cellTimes.length)
+      subModules = new Array[IModule[_ <: Activity, _ <: Activity, T]](cellTimes.length)
       var i = 0
       while (i < cellTimes.length) {
         subModules(i) = cellTimes(i)._1
@@ -206,7 +206,7 @@ abstract class Cell[T : ClassTag](
       forwardTimes = new Array[Long](cellTimes.length)
       backwardTimes = new Array[Long](cellTimes.length)
       times =
-        new Array[(AbstractModule[_ <: Activity, _ <: Activity, T], Long, Long)](cellTimes.length)
+        new Array[(IModule[_ <: Activity, _ <: Activity, T], Long, Long)](cellTimes.length)
     }
   }
 
@@ -245,7 +245,7 @@ abstract class Cell[T : ClassTag](
     }
   }
 
-  override def getTimes(): Array[(AbstractModule[_ <: Activity, _ <: Activity, T], Long, Long)] = {
+  override def getTimes(): Array[(IModule[_ <: Activity, _ <: Activity, T], Long, Long)] = {
     initAddTimes()
     val cellTimes = cell.getTimes
     var i = 0
@@ -311,10 +311,10 @@ object CellSerializer extends ModuleSerializable {
 
   private[nn] def populateCellAttributes[T: ClassTag](context : DeserializeContext,
                                                    cell : Cell[T])
-    (implicit ev: TensorNumeric[T]) : AbstractModule[Activity, Activity, T] = {
+    (implicit ev: TensorNumeric[T]) : IModule[Activity, Activity, T] = {
     val attrMap = context.bigdlModule.getAttrMap
     cell.cell = DataConverter.getAttributeValue(context, attrMap.get("cell")).
-      asInstanceOf[AbstractModule[Activity, Activity, T]]
+      asInstanceOf[IModule[Activity, Activity, T]]
 
     val preTopologyAttr = attrMap.get("preTopology")
     cell.preTopology = DataConverter.getAttributeValue(context, preTopologyAttr).
@@ -327,7 +327,7 @@ object CellSerializer extends ModuleSerializable {
   }
 
   override def doLoadModule[T: ClassTag](context : DeserializeContext)
-    (implicit ev: TensorNumeric[T]) : AbstractModule[Activity, Activity, T] = {
+    (implicit ev: TensorNumeric[T]) : IModule[Activity, Activity, T] = {
     val cell = super.doLoadModule(context).asInstanceOf[Cell[T]]
     populateCellAttributes(context, cell)
   }
@@ -344,7 +344,7 @@ object CellSerializer extends ModuleSerializable {
 
     val cellBuilder = AttrValue.newBuilder
     DataConverter.setAttributeValue(context, cellBuilder, cellModule.cell,
-      ModuleSerializer.abstractModuleType)
+      ModuleSerializer.IModuleType)
     cellModuleBuilder.putAttr("cell", cellBuilder.build)
 
     val preTopologyBuilder = AttrValue.newBuilder

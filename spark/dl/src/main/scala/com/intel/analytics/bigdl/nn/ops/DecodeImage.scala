@@ -21,7 +21,7 @@ import java.nio.{ByteBuffer, ByteOrder}
 import javax.imageio.ImageIO
 
 import com.google.protobuf.ByteString
-import com.intel.analytics.bigdl.nn.abstractnn.{AbstractModule, Activity}
+import com.intel.analytics.bigdl.nn.abstractnn.{AbstractModule, Activity, IModule}
 import com.intel.analytics.bigdl.tensor._
 import com.intel.analytics.bigdl.tensor.TensorNumericMath.TensorNumeric
 import com.intel.analytics.bigdl.utils.serializer.{DataConverter, DeserializeContext, ModuleSerializable, SerializeContext}
@@ -380,7 +380,7 @@ class DecodeRaw[T: ClassTag](val outType: DataType,
 object DecodeRawSerializer extends ModuleSerializable {
 
   override def doLoadModule[T: ClassTag](context: DeserializeContext)
-    (implicit ev: TensorNumeric[T]): AbstractModule[Activity, Activity, T] = {
+    (implicit ev: TensorNumeric[T]): IModule[Activity, Activity, T] = {
     val attrMap = context.bigdlModule.getAttrMap
     // val module = super.doLoadModule(context)
     val outType = attrMap.get("outType").getInt32Value

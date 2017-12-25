@@ -52,12 +52,12 @@ class Maxout[T: ClassTag](val inputSize: Int, val outputSize: Int, val maxoutNum
     .add(Max(1, 2))
 
   override def updateOutput(input: Tensor[T]): Tensor[T] = {
-    output = layer.updateOutput(input)
+    output = layer.updateOutput(input).toTensor[T]
     output
   }
 
   override def updateGradInput(input: Tensor[T], gradOutput: Tensor[T]): Tensor[T] = {
-    gradInput = layer.updateGradInput(input, gradOutput)
+    gradInput = layer.updateGradInput(input, gradOutput).toTensor[T]
     gradInput
   }
 

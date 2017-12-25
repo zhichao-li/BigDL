@@ -21,7 +21,7 @@ import java.io.{File, InputStream, PrintWriter}
 import com.intel.analytics.bigdl.example.utils.WordMeta
 import com.intel.analytics.bigdl.example.utils.TextClassifier
 import com.intel.analytics.bigdl.models.utils.ModelBroadcast
-import com.intel.analytics.bigdl.nn.abstractnn.{AbstractModule, Activity}
+import com.intel.analytics.bigdl.nn.abstractnn.{IModule, Activity}
 import com.intel.analytics.bigdl.tensor.{Storage, Tensor}
 import com.intel.analytics.bigdl.tensor.TensorNumericMath.TensorNumeric
 import com.intel.analytics.bigdl.nn.Module
@@ -33,7 +33,7 @@ import scopt.OptionParser
 
 object Utils {
 
-  type Model = AbstractModule[Activity, Activity, Float]
+  type Model = IModule[Activity, Activity, Float]
   type Word2Meta = Map[String, WordMeta]
   type Word2Index = Map[String, Int]
   type Word2Vec = Map[Float, Array[Float]]

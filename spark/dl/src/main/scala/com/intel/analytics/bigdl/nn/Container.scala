@@ -17,7 +17,7 @@
 package com.intel.analytics.bigdl.nn
 
 import com.intel.analytics.bigdl.Module
-import com.intel.analytics.bigdl.nn.abstractnn.{AbstractModule, Activity}
+import com.intel.analytics.bigdl.nn.abstractnn.{AbstractModule, Activity, IModule}
 import com.intel.analytics.bigdl.nn.keras.NewModule
 import com.intel.analytics.bigdl.tensor.Tensor
 import com.intel.analytics.bigdl.tensor.TensorNumericMath.TensorNumeric
@@ -27,7 +27,7 @@ import scala.collection.mutable.ArrayBuffer
 import scala.reflect.ClassTag
 
 /**
- * [[Container]] is an abstract [[AbstractModule]] class which
+ * [[Container]] is an abstract [[IModule]] class which
  * declares methods defined in all containers. A container usually
  * contain some other modules in the `modules` variable. It overrides
  * many module methods such that calls are propogated to the contained
@@ -42,11 +42,27 @@ abstract class Container[A <: Activity : ClassTag,
     B <: Activity : ClassTag, T: ClassTag](
   implicit ev: TensorNumeric[T]) extends AbstractModule[A, B, T] {
 
-  // list of sub modules
-  val modules: ArrayBuffer[AbstractModule[Activity, Activity, T]]
-  = ArrayBuffer[AbstractModule[Activity, Activity, T]]()
+//  private var train: Boolean = true
 
-  def executionNodes(): List[Node[AbstractModule[Activity, Activity, T]]] = {
+//  protected var forwardTime = 0L
+//
+//  protected var backwardTime = 0L
+//
+//  /**
+//   * The cached output. So we don't compute it again when need it
+//   */
+//  var output: B = Activity.allocate[B, T]()
+//
+//  /**
+//   * The cached gradient of activities. So we don't compute it again when need it
+//   */
+//  var gradInput: A = Activity.allocate[A, T]()
+
+  // list of sub modules
+  val modules: ArrayBuffer[IModule[Activity, Activity, T]]
+  = ArrayBuffer[IModule[Activity, Activity, T]]()
+
+  def executionNodes(): List[Node[IModule[Activity, Activity, T]]] = {
     val nodes = modules.map(Node(_))
     var i = 0
     var j = 1
@@ -105,8 +121,8 @@ abstract class Container[A <: Activity : ClassTag,
    * @param module module to be add
    * @return this container
    */
-  def add(module: AbstractModule[_ <: Activity, _ <: Activity, T]): this.type = {
-    modules += module.asInstanceOf[AbstractModule[Activity, Activity, T]]
+  def add(module: IModule[_ <: Activity, _ <: Activity, T]): this.type = {
+    modules += module.asInstanceOf[IModule[Activity, Activity, T]]
     this
   }
 
@@ -140,7 +156,7 @@ abstract class Container[A <: Activity : ClassTag,
   }
 
   override def getTimes():
-    Array[(AbstractModule[_ <: Activity, _ <: Activity, T], Long, Long)] = {
+    Array[(IModule[_ <: Activity, _ <: Activity, T], Long, Long)] = {
     this.modules.flatMap(_.getTimes()).toArray
   }
 
@@ -184,11 +200,11 @@ abstract class Container[A <: Activity : ClassTag,
   }
 
 
-  def findModules(moduleType: String): ArrayBuffer[AbstractModule[_, _, T]] = {
-    def getName = (x: AbstractModule[_, _, T]) =>
+  def findModules(moduleType: String): ArrayBuffer[IModule[_, _, T]] = {
+    def getName = (x: IModule[_, _, T]) =>
       x.getClass.getName.split("\\.").last
 
-    val nodes = ArrayBuffer[AbstractModule[_, _, T]]()
+    val nodes = ArrayBuffer[IModule[_, _, T]]()
     if (getName(this) == moduleType) {
       nodes.append(this)
     }
@@ -261,7 +277,7 @@ abstract class Container[A <: Activity : ClassTag,
     this
   }
 
-  override def apply(name : String): Option[AbstractModule[Activity, Activity, T]] = {
+  override def apply(name : String): Option[IModule[Activity, Activity, T]] = {
     if (this.getName() == name) {
       Some(this)
     } else {

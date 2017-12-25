@@ -18,7 +18,7 @@ import com.intel.analytics.bigdl.tensor.TensorNumericMath.{NumericWildcard, Tens
 import com.intel.analytics.bigdl.tensor._
 import com.intel.analytics.bigdl.utils.{T, Table}
 import com.google.protobuf.ByteString
-import com.intel.analytics.bigdl.nn.abstractnn.{AbstractModule, Activity}
+import com.intel.analytics.bigdl.nn.abstractnn.{AbstractModule, Activity, IModule}
 import com.intel.analytics.bigdl.utils.serializer.{DataConverter, DeserializeContext, ModuleSerializable, SerializeContext}
 import org.tensorflow.example.{Example, Feature}
 import com.intel.analytics.bigdl.utils.tf.TFTensorNumeric.NumericByteString
@@ -97,7 +97,7 @@ object ParseExample extends ModuleSerializable {
           new ParseExample[T](nDense, tDense, denseShape)
 
   override def doLoadModule[T: ClassTag](context: DeserializeContext)
-    (implicit ev: TensorNumeric[T]): AbstractModule[Activity, Activity, T] = {
+    (implicit ev: TensorNumeric[T]): IModule[Activity, Activity, T] = {
 
     val attrMap = context.bigdlModule.getAttrMap
 

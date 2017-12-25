@@ -19,7 +19,7 @@ package com.intel.analytics.bigdl.utils.tf
 import java.nio.ByteOrder
 import java.util.UUID
 
-import com.intel.analytics.bigdl.nn.abstractnn.{AbstractModule, DataFormat}
+import com.intel.analytics.bigdl.nn.abstractnn.{IModule, DataFormat}
 import com.intel.analytics.bigdl.nn._
 import com.intel.analytics.bigdl.numeric.NumericFloat
 import com.intel.analytics.bigdl.tensor.Tensor
@@ -102,7 +102,7 @@ class TensorflowSaverSpec extends TensorflowSpecHelper {
 
   "Squeeze" should "be correctly saved" in {
     System.setProperty("bigdl.enableNHWC", "false")
-    val layer = Squeeze(3).asInstanceOf[AbstractModule[Tensor[Float], Tensor[Float], Float]]
+    val layer = Squeeze(3).asInstanceOf[IModule[Tensor[Float], Tensor[Float], Float]]
     val input = Tensor[Float](4, 2, 1, 2).rand()
     test(layer, input) should be(true)
   }
@@ -125,7 +125,7 @@ class TensorflowSaverSpec extends TensorflowSpecHelper {
     val layer = JoinTable[Float](3, -1)
     val input1 = Tensor[Float](4, 2, 2).rand()
     val input2 = Tensor[Float](4, 2, 2).rand()
-    testMultiInput(layer.asInstanceOf[AbstractModule[Table, Tensor[Float], Float]],
+    testMultiInput(layer.asInstanceOf[IModule[Table, Tensor[Float], Float]],
       Seq(input1, input2), false) should be(true)
   }
 
@@ -277,7 +277,7 @@ class TensorflowSaverSpec extends TensorflowSpecHelper {
     runPythonSaveTest(tmpFile.getPath, "") should be(true)
   }
 
-  private def test(layer: AbstractModule[Tensor[Float], Tensor[Float], Float],
+  private def test(layer: IModule[Tensor[Float], Tensor[Float], Float],
                    inputTensor: Tensor[Float],
                    outputSuffix: String = "") : Boolean = {
     tfCheck()
@@ -298,7 +298,7 @@ class TensorflowSaverSpec extends TensorflowSpecHelper {
     runPythonSaveTest(tmpFile.getPath, outputSuffix)
   }
 
-  private def testMultiInput(layer: AbstractModule[Table, Tensor[Float], Float],
+  private def testMultiInput(layer: IModule[Table, Tensor[Float], Float],
                    inputTensors: Seq[Tensor[Float]],
                    convertNHWC: Boolean = false,
                    outputSuffix: String = "") : Boolean = {

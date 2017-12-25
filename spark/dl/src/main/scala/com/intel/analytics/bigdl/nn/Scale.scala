@@ -16,7 +16,7 @@
 
 package com.intel.analytics.bigdl.nn
 
-import com.intel.analytics.bigdl.nn.abstractnn.{AbstractModule, Activity}
+import com.intel.analytics.bigdl.nn.abstractnn.{AbstractModule, Activity, IModule}
 import com.intel.analytics.bigdl.tensor.Tensor
 import com.intel.analytics.bigdl.tensor.TensorNumericMath.TensorNumeric
 import com.intel.analytics.bigdl.utils.serializer._
@@ -85,7 +85,7 @@ object Scale extends ModuleSerializable {
     (implicit ev: TensorNumeric[T]): Scale[T] = new Scale[T](size)
 
   override def doLoadModule[T: ClassTag](context : DeserializeContext)
-    (implicit ev: TensorNumeric[T]) : AbstractModule[Activity, Activity, T] = {
+    (implicit ev: TensorNumeric[T]) : IModule[Activity, Activity, T] = {
     val scale = super.doLoadModule(context).asInstanceOf[Scale[T]]
     val attrMap = context.bigdlModule.getAttrMap
     val cmul = attrMap.get("cmul")
@@ -103,12 +103,12 @@ object Scale extends ModuleSerializable {
 
     val cmulBuilder = AttrValue.newBuilder
     DataConverter.setAttributeValue(context, cmulBuilder,
-      scale.cmul, ModuleSerializer.abstractModuleType)
+      scale.cmul, ModuleSerializer.IModuleType)
     scaleBuilder.putAttr("cmul", cmulBuilder.build)
 
     val caddBuilder = AttrValue.newBuilder
     DataConverter.setAttributeValue(context, caddBuilder,
-      scale.cadd, ModuleSerializer.abstractModuleType)
+      scale.cadd, ModuleSerializer.IModuleType)
     scaleBuilder.putAttr("cadd", caddBuilder.build)
 
   }

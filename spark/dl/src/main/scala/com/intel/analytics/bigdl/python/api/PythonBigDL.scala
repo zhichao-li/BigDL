@@ -21,7 +21,7 @@ import java.util.{ArrayList => JArrayList, HashMap => JHashMap, List => JList, M
 import com.intel.analytics.bigdl._
 import com.intel.analytics.bigdl.dataset.{Identity => DIdentity, Sample => JSample, _}
 import com.intel.analytics.bigdl.nn._
-import com.intel.analytics.bigdl.nn.abstractnn.{AbstractModule, _}
+import com.intel.analytics.bigdl.nn.abstractnn.{IModule, _}
 import com.intel.analytics.bigdl.numeric._
 import com.intel.analytics.bigdl.optim.{Optimizer, _}
 import com.intel.analytics.bigdl.tensor.{DenseType, SparseType, Storage, Tensor}
@@ -701,7 +701,7 @@ class PythonBigDL[T: ClassTag](implicit ev: TensorNumeric[T]) extends Serializab
       bRegularizer)
   }
 
-  def createBottle(module: AbstractModule[Activity, Activity, T],
+  def createBottle(module: IModule[Activity, Activity, T],
     nInputDim: Int = 2,
     nOutputDim1: Int = Int.MaxValue)
   : Bottle[T] = {
@@ -940,7 +940,7 @@ class PythonBigDL[T: ClassTag](implicit ev: TensorNumeric[T]) extends Serializab
     MV[T](trans)
   }
 
-  def createMapTable(module: AbstractModule[Activity, Activity, T] = null)
+  def createMapTable(module: IModule[Activity, Activity, T] = null)
   : MapTable[T] = {
     MapTable[T](module)
   }
@@ -1419,7 +1419,7 @@ class PythonBigDL[T: ClassTag](implicit ev: TensorNumeric[T]) extends Serializab
       sizeAverage)
   }
 
-  def createBiRecurrent(merge: AbstractModule[Table, Tensor[T], T] = null)
+  def createBiRecurrent(merge: IModule[Table, Tensor[T], T] = null)
   : BiRecurrent[T] = {
     BiRecurrent[T](merge)
   }
@@ -1748,7 +1748,7 @@ class PythonBigDL[T: ClassTag](implicit ev: TensorNumeric[T]) extends Serializab
     RandomGenerator.RNG.setSeed(seed)
   }
 
-  def modelEvaluate(model: AbstractModule[Activity, Activity, T],
+  def modelEvaluate(model: IModule[Activity, Activity, T],
                     valRDD: JavaRDD[Sample],
                     batchSize: Int,
                     valMethods: JList[ValidationMethod[T]])
@@ -1762,32 +1762,32 @@ class PythonBigDL[T: ClassTag](implicit ev: TensorNumeric[T]) extends Serializab
     testResultArray.toList.asJava
   }
 
-  def loadBigDL(path: String): AbstractModule[Activity, Activity, T] = {
+  def loadBigDL(path: String): IModule[Activity, Activity, T] = {
     Module.load[T](path)
   }
 
   def loadBigDLModule(modulePath: String,
-    weightPath : String): AbstractModule[Activity, Activity, T] = {
+    weightPath : String): IModule[Activity, Activity, T] = {
     Module.loadModule[T](modulePath, weightPath)
   }
 
-  def loadTorch(path: String): AbstractModule[Activity, Activity, T] = {
+  def loadTorch(path: String): IModule[Activity, Activity, T] = {
     Module.loadTorch[T](path)
   }
 
-  def loadCaffe(model: AbstractModule[Activity, Activity, T],
+  def loadCaffe(model: IModule[Activity, Activity, T],
     defPath: String,
     modelPath: String,
-    matchAll: Boolean = true): AbstractModule[Activity, Activity, T] = {
+    matchAll: Boolean = true): IModule[Activity, Activity, T] = {
     Module.loadCaffe[T](model, defPath, modelPath, matchAll)
   }
 
-  def loadCaffeModel(defPath: String, modelPath: String): AbstractModule[Activity, Activity, T] = {
+  def loadCaffeModel(defPath: String, modelPath: String): IModule[Activity, Activity, T] = {
     Module.loadCaffeModel[T](defPath, modelPath)
   }
 
   def loadTF(path: String, inputs: JList[String], outputs: JList[String],
-    byteOrder: String, binFile: String = null): AbstractModule[Activity, Activity, T] = {
+    byteOrder: String, binFile: String = null): IModule[Activity, Activity, T] = {
     val order = byteOrder match {
       case "little_endian" => ByteOrder.LITTLE_ENDIAN
       case "big_endian" => ByteOrder.BIG_ENDIAN
@@ -1796,7 +1796,7 @@ class PythonBigDL[T: ClassTag](implicit ev: TensorNumeric[T]) extends Serializab
     Module.loadTF[T](path, inputs.asScala, outputs.asScala, order, Option(binFile))
   }
 
-  def saveTF(model: AbstractModule[Activity, Activity, T],
+  def saveTF(model: IModule[Activity, Activity, T],
     inputs: JList[Any],
     path: String,
     byteOrder: String,
@@ -1821,7 +1821,7 @@ class PythonBigDL[T: ClassTag](implicit ev: TensorNumeric[T]) extends Serializab
     model.saveTF(scalaInputs, path, order, format)
   }
 
-  def predictLocal(model: AbstractModule[Activity, Activity, T],
+  def predictLocal(model: IModule[Activity, Activity, T],
                    features: JList[JTensor]): JList[JTensor] = {
     val sampleArray = toSampleArray(features.asScala.toList.map{f => toTensor(f)})
     val localModel = LocalModule(model)
@@ -1829,7 +1829,7 @@ class PythonBigDL[T: ClassTag](implicit ev: TensorNumeric[T]) extends Serializab
     result.map{a => toJTensor(a.asInstanceOf[Tensor[T]])}.toList.asJava
   }
 
-  def predictLocalClass(model: AbstractModule[Activity, Activity, T],
+  def predictLocalClass(model: IModule[Activity, Activity, T],
                         features: JList[JTensor]): JList[Int] = {
     val sampleArray = toSampleArray(features.asScala.toList.map{f => toTensor(f)})
     val localModel = LocalModule(model)
@@ -1837,7 +1837,7 @@ class PythonBigDL[T: ClassTag](implicit ev: TensorNumeric[T]) extends Serializab
     result.toList.asJava
   }
 
-  def modelPredictRDD(model: AbstractModule[Activity, Activity, T],
+  def modelPredictRDD(model: IModule[Activity, Activity, T],
                       dataRdd: JavaRDD[Sample]): JavaRDD[JTensor] = {
     val tensorRDD = model.predict(dataRdd.rdd.map(toJSample(_)))
     val listRDD = tensorRDD.map { res =>
@@ -1849,7 +1849,7 @@ class PythonBigDL[T: ClassTag](implicit ev: TensorNumeric[T]) extends Serializab
     new JavaRDD[JTensor](listRDD)
   }
 
-  def modelPredictImage(model: AbstractModule[Activity, Activity, T],
+  def modelPredictImage(model: IModule[Activity, Activity, T],
     imageFrame: ImageFrame,
     featLayerName: String,
     shareBuffer: Boolean,
@@ -1860,19 +1860,19 @@ class PythonBigDL[T: ClassTag](implicit ev: TensorNumeric[T]) extends Serializab
       featLayerName, shareBuffer, batchPerPartition, predictKey)
   }
 
-  def evaluate(module: AbstractModule[Activity, Activity, T]):
-  AbstractModule[Activity, Activity, T] = {
+  def evaluate(module: IModule[Activity, Activity, T]):
+  IModule[Activity, Activity, T] = {
     module.evaluate()
   }
 
-  def modelPredictClass(model: AbstractModule[Activity, Activity, T],
+  def modelPredictClass(model: IModule[Activity, Activity, T],
                       dataRdd: JavaRDD[Sample]): JavaRDD[Int] = {
     val sampleRdd = toJSample(dataRdd)
     val tensorRDD = model.predictClass(sampleRdd)
     new JavaRDD[Int](tensorRDD)
   }
 
-  def modelForward(model: AbstractModule[Activity, Activity, T],
+  def modelForward(model: IModule[Activity, Activity, T],
     input: JList[JTensor],
     inputIsTable: Boolean): JList[JTensor] = {
     val inputActivity = jTensorsToActivity(input, inputIsTable)
@@ -1880,7 +1880,7 @@ class PythonBigDL[T: ClassTag](implicit ev: TensorNumeric[T]) extends Serializab
     activityToJTensors(outputActivity)
   }
 
-  def modelBackward(model: AbstractModule[Activity, Activity, T],
+  def modelBackward(model: IModule[Activity, Activity, T],
     input: JList[JTensor],
     inputIsTable: Boolean,
     gradOutput: JList[JTensor],
@@ -1892,17 +1892,17 @@ class PythonBigDL[T: ClassTag](implicit ev: TensorNumeric[T]) extends Serializab
   }
 
 
-  def modelSave(module: AbstractModule[Activity, Activity, T],
+  def modelSave(module: IModule[Activity, Activity, T],
     path: String, overWrite: Boolean): Unit = {
     module.save(path, overWrite)
   }
 
-  def saveBigDLModule(module: AbstractModule[Activity, Activity, T],
+  def saveBigDLModule(module: IModule[Activity, Activity, T],
     modulePath: String, weightPath: String, overWrite: Boolean): Unit = {
     module.saveModule(modulePath, weightPath, overWrite)
   }
 
-  def saveCaffe(module: AbstractModule[Activity, Activity, T],
+  def saveCaffe(module: IModule[Activity, Activity, T],
     prototxtPath: String, modelPath: String,
     useV2: Boolean = true, overwrite: Boolean = false): Unit = {
     module.saveCaffe(prototxtPath, modelPath, useV2, overwrite)
@@ -1929,7 +1929,7 @@ class PythonBigDL[T: ClassTag](implicit ev: TensorNumeric[T]) extends Serializab
     activityToJTensors(outputActivity)
   }
 
-  def modelGetParameters(model: AbstractModule[Activity, Activity, T])
+  def modelGetParameters(model: IModule[Activity, Activity, T])
   : JMap[Any, JMap[Any, JList[JList[Any]]]] = {
     model.getParametersTable().getState().mapValues {
       case name2Values: Table =>
@@ -2074,7 +2074,7 @@ class PythonBigDL[T: ClassTag](implicit ev: TensorNumeric[T]) extends Serializab
                optMethod: OptimMethod[T],
                criterion: Criterion[T],
                batchSize: Int,
-               endWhen: Trigger): AbstractModule[Activity, Activity, T] = {
+               endWhen: Trigger): IModule[Activity, Activity, T] = {
     val nodeList = parse(modelPath)
 
     val context = new Context[T]()
@@ -2088,7 +2088,7 @@ class PythonBigDL[T: ClassTag](implicit ev: TensorNumeric[T]) extends Serializab
 
   def createLocalOptimizer(features: JList[JTensor],
                            y: JTensor,
-                           model: AbstractModule[Activity, Activity, T],
+                           model: IModule[Activity, Activity, T],
                            criterion: Criterion[T],
                            optimMethod: OptimMethod[T],
                            endTrigger: Trigger,
@@ -2105,7 +2105,7 @@ class PythonBigDL[T: ClassTag](implicit ev: TensorNumeric[T]) extends Serializab
     enrichOptimizer(optimizer, endTrigger, optimMethod)
   }
 
-  def createDistriOptimizer(model: AbstractModule[Activity, Activity, T],
+  def createDistriOptimizer(model: IModule[Activity, Activity, T],
                             trainingRdd: JavaRDD[Sample],
                             criterion: Criterion[T],
                             optimMethod: OptimMethod[T],
@@ -2203,7 +2203,7 @@ class PythonBigDL[T: ClassTag](implicit ev: TensorNumeric[T]) extends Serializab
     Graph(input.asScala.toArray, output.asScala.toArray)
   }
 
-  def createNode(module: AbstractModule[Activity, Activity, T],
+  def createNode(module: IModule[Activity, Activity, T],
     x: JList[ModuleNode[T]]): ModuleNode[T] = {
     if (null == x || x.isEmpty) {
       module.inputs()
@@ -2221,12 +2221,12 @@ class PythonBigDL[T: ClassTag](implicit ev: TensorNumeric[T]) extends Serializab
   }
 
 
-  def setWeights(model: AbstractModule[Activity, Activity, T], weights: JList[JTensor]): Unit = {
+  def setWeights(model: IModule[Activity, Activity, T], weights: JList[JTensor]): Unit = {
     val weightTensor = weights.asScala.toArray.map(toTensor(_))
     model.setWeightsBias(weightTensor)
   }
 
-  def getWeights(model: AbstractModule[Activity, Activity, T]): JList[JTensor] = {
+  def getWeights(model: IModule[Activity, Activity, T]): JList[JTensor] = {
     val weights = model.getWeightsBias()
     if (weights != null) {
       weights.map(toJTensor(_)).toList.asJava
@@ -2235,7 +2235,7 @@ class PythonBigDL[T: ClassTag](implicit ev: TensorNumeric[T]) extends Serializab
     }
   }
 
-  def updateParameters(model: AbstractModule[Activity, Activity, T], lr: Double): Unit = {
+  def updateParameters(model: IModule[Activity, Activity, T], lr: Double): Unit = {
     model.updateParameters(ev.fromType(lr))
   }
 
@@ -2310,13 +2310,13 @@ class PythonBigDL[T: ClassTag](implicit ev: TensorNumeric[T]) extends Serializab
     JActivity(rec.getHiddenState())
   }
 
-  def freeze(model: AbstractModule[Activity, Activity, T], freezeLayers: JList[String])
-  : AbstractModule[Activity, Activity, T] = {
+  def freeze(model: IModule[Activity, Activity, T], freezeLayers: JList[String])
+  : IModule[Activity, Activity, T] = {
     if (null == freezeLayers) model.freeze() else model.freeze(freezeLayers.asScala: _*)
   }
 
-  def unFreeze(model: AbstractModule[Activity, Activity, T],
-    names: JList[String]): AbstractModule[Activity, Activity, T] = {
+  def unFreeze(model: IModule[Activity, Activity, T],
+    names: JList[String]): IModule[Activity, Activity, T] = {
     if (names == null) {
       model.unFreeze()
     } else {
@@ -2381,7 +2381,7 @@ class PythonBigDL[T: ClassTag](implicit ev: TensorNumeric[T]) extends Serializab
     Logger.getLogger("com.intel.analytics.bigdl.optim").setLevel(Level.INFO)
   }
 
-  def quantize(module: AbstractModule[Activity, Activity, T]): Module[T] = {
+  def quantize(module: IModule[Activity, Activity, T]): Module[T] = {
     module.quantize()
   }
 
@@ -2470,21 +2470,21 @@ class PythonBigDL[T: ClassTag](implicit ev: TensorNumeric[T]) extends Serializab
   }
 
   def getContainerModules(module: Container[Activity, Activity, T])
-  : JList[AbstractModule[Activity, Activity, T]] = {
+  : JList[IModule[Activity, Activity, T]] = {
     module.modules.toList.asJava
   }
 
   def getFlattenModules(module: Container[Activity, Activity, T],
   includeContainer: Boolean)
-  : JList[AbstractModule[Activity, Activity, T]] = {
-    val result = ArrayBuffer[AbstractModule[Activity, Activity, T]]()
+  : JList[IModule[Activity, Activity, T]] = {
+    val result = ArrayBuffer[IModule[Activity, Activity, T]]()
     doGetFlattenModules(module, includeContainer, result)
     result.toList.asJava
   }
 
   private def doGetFlattenModules(module: Container[Activity, Activity, T],
     includeContainer: Boolean,
-    result: ArrayBuffer[AbstractModule[Activity, Activity, T]]): Unit = {
+    result: ArrayBuffer[IModule[Activity, Activity, T]]): Unit = {
     module.modules.foreach {m =>
       if (m.isInstanceOf[Container[Activity, Activity, T]]) {
         doGetFlattenModules(m.asInstanceOf[Container[Activity, Activity, T]],

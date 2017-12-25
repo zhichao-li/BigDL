@@ -18,7 +18,7 @@ package com.intel.analytics.bigdl.utils.tf.loaders
 import java.nio.ByteOrder
 
 import com.intel.analytics.bigdl.Module
-import com.intel.analytics.bigdl.nn.abstractnn.{AbstractModule, Activity}
+import com.intel.analytics.bigdl.nn.abstractnn.{IModule, Activity}
 import com.intel.analytics.bigdl.nn.tf.StrideSlice
 import com.intel.analytics.bigdl.tensor.Tensor
 import com.intel.analytics.bigdl.tensor.TensorNumericMath.TensorNumeric
@@ -43,7 +43,7 @@ class StridedSliceLoadTF[T: ClassTag]()(implicit ev: TensorNumeric[T])
   extends Adapter[T](Array(2, 3, 4)) {
   import StridedSlice._
 
-  override def build(tensorArrays: Array[Tensor[_]]): AbstractModule[Activity, Activity, T] = {
+  override def build(tensorArrays: Array[Tensor[_]]): IModule[Activity, Activity, T] = {
     val start = oneDTensorToArray(tensorArrays(0).asInstanceOf[Tensor[Int]])
     val end = oneDTensorToArray(tensorArrays(1).asInstanceOf[Tensor[Int]])
     val stride = oneDTensorToArray(tensorArrays(2).asInstanceOf[Tensor[Int]])

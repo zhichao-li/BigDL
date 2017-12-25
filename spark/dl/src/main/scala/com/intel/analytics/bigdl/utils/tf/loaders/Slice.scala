@@ -19,7 +19,7 @@ import java.nio.ByteOrder
 
 import com.intel.analytics.bigdl.Module
 import com.intel.analytics.bigdl.nn.Identity
-import com.intel.analytics.bigdl.nn.abstractnn.{AbstractModule, Activity}
+import com.intel.analytics.bigdl.nn.abstractnn.{IModule, Activity}
 import com.intel.analytics.bigdl.nn.ops.Slice
 import com.intel.analytics.bigdl.tensor.Tensor
 import com.intel.analytics.bigdl.tensor.TensorNumericMath.TensorNumeric
@@ -40,7 +40,7 @@ class Slice extends TensorflowOpsLoader {
 class SliceLoadTF[T: ClassTag]()(implicit ev: TensorNumeric[T]) extends Adapter[T](Array(2, 3)) {
   import Utils._
 
-  override def build(tensorArrays: Array[Tensor[_]]): AbstractModule[Activity, Activity, T] = {
+  override def build(tensorArrays: Array[Tensor[_]]): IModule[Activity, Activity, T] = {
     val size = tensorArrays(1).asInstanceOf[Tensor[Int]]
     Slice[T](toArray(tensorArrays(0).asInstanceOf[Tensor[Int]]),
       toArray(tensorArrays(1).asInstanceOf[Tensor[Int]]))

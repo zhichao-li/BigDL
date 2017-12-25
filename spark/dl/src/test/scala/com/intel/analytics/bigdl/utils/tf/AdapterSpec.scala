@@ -15,7 +15,7 @@
  */
 package com.intel.analytics.bigdl.utils.tf
 
-import com.intel.analytics.bigdl.nn.abstractnn.{AbstractModule, Activity}
+import com.intel.analytics.bigdl.nn.abstractnn.{IModule, Activity}
 import com.intel.analytics.bigdl.nn.{Module, Reshape}
 import com.intel.analytics.bigdl.tensor.Tensor
 import com.intel.analytics.bigdl.utils.{BigDLSpecHelper, T}
@@ -47,7 +47,7 @@ class AdapterSpec extends BigDLSpecHelper {
 
 class AdapterForTest extends Adapter[Float](Array(2)) {
   override def build(tensorArrays: Array[Tensor[_]])
-  : AbstractModule[Activity, Activity, Float] = {
+  : IModule[Activity, Activity, Float] = {
     val sizes = tensorArrays(0).asInstanceOf[Tensor[Int]]
 
     val batchMode = sizes.valueAt(1) == -1

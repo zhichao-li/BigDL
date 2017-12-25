@@ -17,7 +17,7 @@
 package com.intel.analytics.bigdl.nn
 
 import com.intel.analytics.bigdl.nn.Graph.ModuleNode
-import com.intel.analytics.bigdl.nn.abstractnn.{AbstractModule, Activity}
+import com.intel.analytics.bigdl.nn.abstractnn.{AbstractModule, Activity, IModule}
 import com.intel.analytics.bigdl.tensor.Tensor
 import com.intel.analytics.bigdl.tensor.TensorNumericMath.TensorNumeric
 import com.intel.analytics.bigdl.utils.Engine
@@ -121,7 +121,7 @@ class Concat[T: ClassTag](val dimension: Int)(
     this.output
   }
 
-  override def getTimes(): Array[(AbstractModule[_ <: Activity, _ <: Activity, T], Long, Long)] = {
+  override def getTimes(): Array[(IModule[_ <: Activity, _ <: Activity, T], Long, Long)] = {
     this.modules.flatMap(_.getTimes()).toArray ++
       Array((this, forwardTimeOverhead, backwardTime))
   }
@@ -135,7 +135,7 @@ class Concat[T: ClassTag](val dimension: Int)(
     }
     var i = 0
     while (i < this.modules.length) {
-      val currentOutput = this.modules(i).output.asInstanceOf[Tensor[T]]
+      val currentOutput = this.modules(i).getOutput.asInstanceOf[Tensor[T]]
       val _offset = offset
       val _i = i
       results(i) = Engine.model.invoke( () => {
@@ -161,7 +161,7 @@ class Concat[T: ClassTag](val dimension: Int)(
     i = 0
     offset = 1
     while (i < this.modules.length) {
-      val currentOutput = this.modules(i).output.asInstanceOf[Tensor[T]]
+      val currentOutput = this.modules(i).getOutput.asInstanceOf[Tensor[T]]
       val currentGradInput = this.modules(i)
         .updateGradInput(input.asInstanceOf[Activity], gradouts(i).asInstanceOf[Activity])
         .asInstanceOf[Tensor[T]]
@@ -186,7 +186,7 @@ class Concat[T: ClassTag](val dimension: Int)(
     var offset = 1
     var i = 0
     while (i < this.modules.length) {
-      val currentOutput = this.modules(i).output.asInstanceOf[Tensor[T]]
+      val currentOutput = this.modules(i).getOutput.asInstanceOf[Tensor[T]]
       this.modules(i).accGradParameters(
         input.asInstanceOf[Activity],
         gradOutput.narrow(dimension, offset, currentOutput.size(dimension))
@@ -206,7 +206,7 @@ class Concat[T: ClassTag](val dimension: Int)(
     }
     var i = 0
     while (i < this.modules.length) {
-      val currentOutput = this.modules(i).output.asInstanceOf[Tensor[T]]
+      val currentOutput = this.modules(i).getOutput.asInstanceOf[Tensor[T]]
       val _offset = offset
       val _i = i
       results(i) = Engine.model.invoke( () => {
@@ -233,7 +233,7 @@ class Concat[T: ClassTag](val dimension: Int)(
     i = 0
     offset = 1
     while (i < this.modules.length) {
-      val currentOutput = this.modules(i).output.asInstanceOf[Tensor[T]]
+      val currentOutput = this.modules(i).getOutput.asInstanceOf[Tensor[T]]
       val currentGradInput = this.modules(i)
         .backward(input.asInstanceOf[Activity], gradouts(i).asInstanceOf[Activity])
         .asInstanceOf[Tensor[T]]
@@ -261,7 +261,7 @@ class Concat[T: ClassTag](val dimension: Int)(
     var offset = 1
     var i = 0
     while (i < this.modules.length) {
-      val currentOutput = this.modules(i).output.asInstanceOf[Tensor[T]]
+      val currentOutput = this.modules(i).getOutput.asInstanceOf[Tensor[T]]
       this.modules(i).updateParameters(learningRate)
       i += 1
       offset += currentOutput.size(dimension)
@@ -320,19 +320,19 @@ class Concat[T: ClassTag](val dimension: Int)(
     val last = "   ... -> "
     val ext = "  |    "
     val extlast = "       "
-    s"${getPrintName}{$line${tab}input$line${
+    s"${getPrintName}{$getLine()${tab}input$getLine()${
       modules.zipWithIndex
         .map { case (model: AbstractModule[Activity, Activity, T], index: Int)
         => s"$tab$next(${index + 1}): ${
           if (index == modules.length - 1) {
-            model.setLine(line + tab + extlast)
+            model.setLine(getLine() + tab + extlast)
           } else {
-            model.setLine(line + tab + ext)
+            model.setLine(getLine() + tab + ext)
           }
         }"
         }
-        .mkString(line)
-    }$line$tab${last}output$line$tab}"
+        .mkString(getLine())
+    }$getLine()$tab${last}output$getLine()$tab}"
   }
 
   override def resetTimes(): Unit = {

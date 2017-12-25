@@ -15,7 +15,7 @@
  */
 package com.intel.analytics.bigdl.nn.keras
 
-import com.intel.analytics.bigdl.nn.abstractnn.{AbstractModule, Activity}
+import com.intel.analytics.bigdl.nn.abstractnn.{IModule, Activity}
 import com.intel.analytics.bigdl.tensor.Tensor
 import com.intel.analytics.bigdl.tensor.TensorNumericMath.TensorNumeric
 
@@ -23,15 +23,13 @@ import scala.reflect.ClassTag
 
 
 abstract class NewModule[A <: Activity: ClassTag, B <: Activity: ClassTag,
-T: ClassTag](implicit ev: TensorNumeric[T]) extends AbstractModule[A, B, T] {
-
-  labor = null  // reset labor to be null
+T: ClassTag](implicit ev: TensorNumeric[T]) extends IModule[A, B, T] {
 
   override def build(inputShape: Activity): Unit = {
     labor = doBuild(inputShape)
-    super.build(inputShape)
-    this.output = labor.output
-    this.gradInput = labor.gradInput
+    labor.build(inputShape)
+//    this.output = labor.output
+//    this.gradInput = labor.gradInput
 //    this.forwardTime = labor.forwardTime
 //    this.backwardTime = labor.backwardTime
 //    this.line = labor.line
@@ -42,7 +40,7 @@ T: ClassTag](implicit ev: TensorNumeric[T]) extends AbstractModule[A, B, T] {
 //    this.train = labor.train
   }
 
-  def doBuild(inputShape: Activity): AbstractModule[A, B, T]
+  def doBuild(inputShape: Activity): IModule[A, B, T]
 
   // This method would only be called after `doBuilt`
   override def doComputeOutputShape(inputShape: Activity): Activity = {

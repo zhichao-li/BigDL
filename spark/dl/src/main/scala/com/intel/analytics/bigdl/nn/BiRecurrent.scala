@@ -17,7 +17,7 @@
 package com.intel.analytics.bigdl.nn
 
 import com.intel.analytics.bigdl._
-import com.intel.analytics.bigdl.nn.abstractnn.{AbstractModule, Activity, TensorModule}
+import com.intel.analytics.bigdl.nn.abstractnn.{AbstractModule, Activity, IModule, TensorModule}
 import com.intel.analytics.bigdl.tensor.Tensor
 import com.intel.analytics.bigdl.tensor.TensorNumericMath.TensorNumeric
 import com.intel.analytics.bigdl.utils.serializer._
@@ -34,7 +34,7 @@ import scala.reflect.runtime._
  * @tparam T numeric type
  */
 class BiRecurrent[T : ClassTag] (
-  private val merge: AbstractModule[Table, Tensor[T], T] = null,
+  private val merge: IModule[Table, Tensor[T], T] = null,
   val batchNormParams: BatchNormParams[T] = null,
   val isSplitInput: Boolean = false)
   (implicit ev: TensorNumeric[T]) extends Container[Tensor[T], Tensor[T], T] {
@@ -64,7 +64,7 @@ class BiRecurrent[T : ClassTag] (
   if (merge == null) birnn.add(CAddTable[T](true))
   else birnn.add(merge)
 
-  override def add(module: AbstractModule[_ <: Activity, _ <: Activity, T]):
+  override def add(module: IModule[_ <: Activity, _ <: Activity, T]):
     BiRecurrent.this.type = {
     layer.add(module)
     revLayer.add(module.cloneModule())
@@ -152,7 +152,7 @@ class BiRecurrent[T : ClassTag] (
 
 object BiRecurrent extends ContainerSerializable {
   def apply[@specialized(Float, Double) T: ClassTag](
-    merge: AbstractModule[Table, Tensor[T], T] = null,
+    merge: IModule[Table, Tensor[T], T] = null,
     batchNormParams: BatchNormParams[T] = null,
     isSplitInput: Boolean = false)
     (implicit ev: TensorNumeric[T]) : BiRecurrent[T] = {
@@ -160,13 +160,13 @@ object BiRecurrent extends ContainerSerializable {
   }
 
   override def doLoadModule[T: ClassTag](context: DeserializeContext)
-    (implicit ev: TensorNumeric[T]) : AbstractModule[Activity, Activity, T] = {
+    (implicit ev: TensorNumeric[T]) : IModule[Activity, Activity, T] = {
 
     val attrMap = context.bigdlModule.getAttrMap
 
     val merge = DataConverter.
       getAttributeValue(context, attrMap.get("merge")).
-      asInstanceOf[AbstractModule[Table, Tensor[T], T]]
+      asInstanceOf[IModule[Table, Tensor[T], T]]
 
     val isSplitInput = DataConverter
       .getAttributeValue(context, attrMap.get("isSplitInput"))

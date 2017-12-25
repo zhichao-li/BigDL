@@ -20,7 +20,7 @@ import java.nio.charset.Charset
 
 import com.google.protobuf.ByteString
 import com.intel.analytics.bigdl.nn.{Graph, Module}
-import com.intel.analytics.bigdl.nn.abstractnn.AbstractModule
+import com.intel.analytics.bigdl.nn.abstractnn.IModule
 import com.intel.analytics.bigdl.tensor._
 import com.intel.analytics.bigdl.utils.Engine
 import org.tensorflow.framework.AttrValue.ListValue
@@ -89,7 +89,7 @@ object Tensorflow {
    * @param module
    * @return
    */
-  def bigdlModule(module: AbstractModule[_, _, _], inputs: java.lang.Iterable[String]): NodeDef = {
+  def bigdlModule(module: IModule[_, _, _], inputs: java.lang.Iterable[String]): NodeDef = {
     NodeDef.newBuilder()
       .setName(module.getName())
       .setOp(module.getClass.getName)

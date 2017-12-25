@@ -24,7 +24,7 @@ import java.util.{HashMap => JHashMap}
 import com.google.protobuf.{CodedInputStream, TextFormat}
 import com.intel.analytics.bigdl.Module
 import com.intel.analytics.bigdl.nn.Graph
-import com.intel.analytics.bigdl.nn.abstractnn.{AbstractModule, Activity}
+import com.intel.analytics.bigdl.nn.abstractnn.{IModule, Activity}
 import com.intel.analytics.bigdl.nn.ops.AssignGrad
 import com.intel.analytics.bigdl.python.api.{JTensor, PythonBigDL, PythonBigDLUtils}
 import com.intel.analytics.bigdl.tensor.{DoubleType, FloatType, Tensor}
@@ -287,14 +287,14 @@ object TensorflowLoader{
 
     // Map from tensorflow node to the converted BigDL node
     val convertedNode = new mutable.HashMap[Node[NodeDef],
-      Node[AbstractModule[Activity, Activity, T]]]()
+      Node[IModule[Activity, Activity, T]]]()
     val nameToNode =
-      new mutable.HashMap[String, Node[AbstractModule[Activity, Activity, T]]]()
+      new mutable.HashMap[String, Node[IModule[Activity, Activity, T]]]()
 
     val moduleToInputNodes =
-      new mutable.HashMap[Node[AbstractModule[Activity, Activity, T]], Seq[Node[NodeDef]]]()
+      new mutable.HashMap[Node[IModule[Activity, Activity, T]], Seq[Node[NodeDef]]]()
     val moduleToAllNodes =
-      new mutable.HashMap[Node[AbstractModule[Activity, Activity, T]], Set[Node[NodeDef]]]()
+      new mutable.HashMap[Node[IModule[Activity, Activity, T]], Set[Node[NodeDef]]]()
     val context = ctx.getOrElse(new Context[T])
 
     // BFS to keep the input order same
@@ -359,9 +359,9 @@ object TensorflowLoader{
      * Go through all tensorflow nodes
      * @param outputModuleNode
      */
-    def connect(outputModuleNode: Seq[Node[AbstractModule[Activity, Activity, T]]]) = {
-      val queue = new mutable.Queue[Node[AbstractModule[Activity, Activity, T]]]()
-      val visited = mutable.Set[Node[AbstractModule[Activity, Activity, T]]]()
+    def connect(outputModuleNode: Seq[Node[IModule[Activity, Activity, T]]]) = {
+      val queue = new mutable.Queue[Node[IModule[Activity, Activity, T]]]()
+      val visited = mutable.Set[Node[IModule[Activity, Activity, T]]]()
       queue.enqueue(outputModuleNode: _*)
 
       while (queue.nonEmpty) {
@@ -426,7 +426,7 @@ object TensorflowLoader{
   private[bigdl] def extract[T: ClassTag](graph: DirectedGraph[NodeDef],
       context: Context[T], byteOrder: ByteOrder)(
     implicit ev: TensorNumeric[T]): Option[(
-    AbstractModule[Activity, Activity, T],
+    IModule[Activity, Activity, T],
       List[Node[NodeDef]],
       Seq[Node[NodeDef]]
     )] = {

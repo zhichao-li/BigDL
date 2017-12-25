@@ -15,7 +15,7 @@
  */
 package com.intel.analytics.bigdl.utils.tf.loaders
 
-import com.intel.analytics.bigdl.nn.abstractnn.{AbstractModule, Activity}
+import com.intel.analytics.bigdl.nn.abstractnn.{AbstractModule, Activity, IModule}
 import com.intel.analytics.bigdl.tensor.Tensor
 import com.intel.analytics.bigdl.tensor.TensorNumericMath.TensorNumeric
 import com.intel.analytics.bigdl.utils.{T, Table}
@@ -36,14 +36,14 @@ abstract class Adapter[T: ClassTag](
 )(implicit ev: TensorNumeric[T])
   extends AbstractModule[Table, Activity, T]{
 
-  private var module : AbstractModule[Activity, Activity, T] = _
+  private var module : IModule[Activity, Activity, T] = _
   private var indexes : Array[Int] = _
   private var dataIndexes: Array[Int] = _
   private var zeroGrads: Array[Tensor[_]] = _
   private var realInput: Activity = _
   private var initTensors: Array[Tensor[_]] = _
 
-  def build(tensorArrays: Array[Tensor[_]]): AbstractModule[Activity, Activity, T]
+  def build(tensorArrays: Array[Tensor[_]]): IModule[Activity, Activity, T]
 
   override def updateOutput(input: Table): Activity = {
     var rebuildModule = false

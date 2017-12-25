@@ -18,7 +18,7 @@ package com.intel.analytics.bigdl.nn
 import com.intel.analytics.bigdl._
 import com.intel.analytics.bigdl.nn.Graph.ModuleNode
 import com.intel.analytics.bigdl.nn.Input
-import com.intel.analytics.bigdl.nn.abstractnn.{AbstractModule, Activity}
+import com.intel.analytics.bigdl.nn.abstractnn.{AbstractModule, Activity, IModule}
 import com.intel.analytics.bigdl.tensor.Tensor
 import com.intel.analytics.bigdl.tensor.TensorNumericMath.TensorNumeric
 import com.intel.analytics.bigdl.utils.serializer._
@@ -256,7 +256,7 @@ class BinaryTreeLSTM[T: ClassTag](
       }
       recursiveForward(b, inputs.select(1, b), tensorTree, tensorTree.getRoot)
       for (i <- 1 to cells(b - 1).size) {
-        output(b)(i).copy(unpackState(cells(b - 1)(i - 1).output.toTable)._2)
+        output(b)(i).copy(unpackState(cells(b - 1)(i - 1).getOutput.toTable)._2)
       }
     }
     output
@@ -328,8 +328,8 @@ class BinaryTreeLSTM[T: ClassTag](
 
     } else {
       val children = tree.children(nodeIndex)
-      val (lc, lh) = unpackState(cells(batch - 1)(children(0) - 1).output.toTable)
-      val (rc, rh) = unpackState(cells(batch - 1)(children(1) - 1).output.toTable)
+      val (lc, lh) = unpackState(cells(batch - 1)(children(0) - 1).getOutput.toTable)
+      val (rc, rh) = unpackState(cells(batch - 1)(children(1) - 1).getOutput.toTable)
       val composerGrad = cells(batch - 1)(nodeIndex - 1)
         .backward(T(lc, lh, rc, rh), T(gradOutput(1), gradOutput[Tensor[T]](2) + outputGrad))
         .toTable
@@ -419,7 +419,7 @@ object BinaryTreeLSTM extends ModuleSerializable {
     new BinaryTreeLSTM[T](inputSize, hiddenSize, gateOutput, withGraph)
 
   override def doLoadModule[T: ClassTag](context: DeserializeContext)
-    (implicit ev: TensorNumeric[T]) : AbstractModule[Activity, Activity, T] = {
+    (implicit ev: TensorNumeric[T]) : IModule[Activity, Activity, T] = {
 
     val binaryTreeLSTMModule = super.doLoadModule(context).asInstanceOf[BinaryTreeLSTM[T]]
     binaryTreeLSTMModule.composers.clear
@@ -458,14 +458,14 @@ object BinaryTreeLSTM extends ModuleSerializable {
     val composer = binaryTreeLSTM.composer
     val composerBuilder = AttrValue.newBuilder
     DataConverter.setAttributeValue(context, composerBuilder, composer,
-      ModuleSerializer.abstractModuleType)
+      ModuleSerializer.IModuleType)
     binaryTreeLSTMBuilder.putAttr("composer", composerBuilder.build)
 
 
     val leafModule = binaryTreeLSTM.leafModule
     val leafModuleBuilder = AttrValue.newBuilder
     DataConverter.setAttributeValue(context, leafModuleBuilder, leafModule,
-      ModuleSerializer.abstractModuleType)
+      ModuleSerializer.IModuleType)
     binaryTreeLSTMBuilder.putAttr("leafModule", leafModuleBuilder.build)
 
     val composers = binaryTreeLSTM.composers.toArray

@@ -20,7 +20,7 @@ import java.nio.file.Paths
 import com.google.protobuf.GeneratedMessage
 import com.intel.analytics.bigdl.models.resnet.Convolution
 import com.intel.analytics.bigdl.nn.Graph.ModuleNode
-import com.intel.analytics.bigdl.nn.abstractnn.{AbstractModule, Activity}
+import com.intel.analytics.bigdl.nn.abstractnn.{IModule, Activity}
 import com.intel.analytics.bigdl.nn._
 import com.intel.analytics.bigdl.tensor.Tensor
 import org.scalatest.{FlatSpec, Matchers}
@@ -56,16 +56,16 @@ class CaffePersisterSpec extends FlatSpec with Matchers{
   "Save graph module" should "Works properly" in {
 
     val convolution1 = new ModuleNode(Convolution(3, 4, 2, 2).
-      setName("conv1").asInstanceOf[AbstractModule[Activity, Activity, Double]])
+      setName("conv1").asInstanceOf[IModule[Activity, Activity, Double]])
 
     val convolution2 = new ModuleNode(Convolution(4, 3, 2, 2).setName("conv2")
-      .asInstanceOf[AbstractModule[Activity, Activity, Double]])
+      .asInstanceOf[IModule[Activity, Activity, Double]])
 
     val view = new ModuleNode(View(27).setName("view")
-      .asInstanceOf[AbstractModule[Activity, Activity, Double]])
+      .asInstanceOf[IModule[Activity, Activity, Double]])
 
     val ip = new ModuleNode(Linear(2, 27, withBias = false).setName("ip")
-      .asInstanceOf[AbstractModule[Activity, Activity, Double]])
+      .asInstanceOf[IModule[Activity, Activity, Double]])
 
     convolution1 -> convolution2
 
@@ -80,7 +80,7 @@ class CaffePersisterSpec extends FlatSpec with Matchers{
 
   "Persist V1 module" should "works properly" in {
     val module = new ModuleNode(Linear[Double](100, 10).
-      setName("simple linear").asInstanceOf[AbstractModule[Activity, Activity, Double]])
+      setName("simple linear").asInstanceOf[IModule[Activity, Activity, Double]])
     val graph = Graph(module, module)
     CaffePersister.persist("/tmp/v1.prototxt", "/tmp/v1.caffemodel",
       graph, useV2 = false, overwrite = true)
@@ -88,7 +88,7 @@ class CaffePersisterSpec extends FlatSpec with Matchers{
 
   "Persist V2 module" should "works properly" in {
     val module = new ModuleNode(Linear[Double](100, 10).
-      setName("simple linear").asInstanceOf[AbstractModule[Activity, Activity, Double]])
+      setName("simple linear").asInstanceOf[IModule[Activity, Activity, Double]])
     val graph = Graph(module, module)
     CaffePersister.persist("/tmp/v2.prototxt", "/tmp/v2.caffemodel",
       graph, useV2 = true, overwrite = true)

@@ -18,8 +18,7 @@ package com.intel.analytics.bigdl.nn
 import java.nio.ByteOrder
 
 import com.intel.analytics.bigdl.Module
-import com.intel.analytics.bigdl.nn.abstractnn.Activity
-import com.intel.analytics.bigdl.nn.abstractnn.AbstractModule
+import com.intel.analytics.bigdl.nn.abstractnn.{AbstractModule, Activity, IModule}
 import com.intel.analytics.bigdl.tensor.Tensor
 import com.intel.analytics.bigdl.tensor.TensorNumericMath.TensorNumeric
 import com.intel.analytics.bigdl.utils.File
@@ -40,8 +39,8 @@ object Module {
    * @return model loaded from path
    */
   @deprecated("Java based serialization not recommended any more, please use loadModule instead")
-  def load[T: ClassTag](path : String) : AbstractModule[Activity, Activity, T] = {
-    File.load[AbstractModule[Activity, Activity, T]](path)
+  def load[T: ClassTag](path : String) : IModule[Activity, Activity, T] = {
+    File.load[IModule[Activity, Activity, T]](path)
   }
 
   /**
@@ -56,18 +55,18 @@ object Module {
    */
   def loadModule[T: ClassTag](path : String,
     weightPath : String = null)(implicit ev: TensorNumeric[T])
-  : AbstractModule[Activity, Activity, T] = {
+  : IModule[Activity, Activity, T] = {
     ModuleLoader.loadFromFile(path, weightPath)
   }
 
-  def loadTorch[T: ClassTag](path : String) : AbstractModule[Activity, Activity, T] = {
-    File.loadTorch[AbstractModule[Activity, Activity, T]](path)
+  def loadTorch[T: ClassTag](path : String) : IModule[Activity, Activity, T] = {
+    File.loadTorch[IModule[Activity, Activity, T]](path)
   }
 
   @deprecated
-  def loadCaffe[T: ClassTag](model: AbstractModule[Activity, Activity, T],
+  def loadCaffe[T: ClassTag](model: IModule[Activity, Activity, T],
     defPath: String, modelPath: String, matchAll: Boolean = true)(
-    implicit ev: TensorNumeric[T]): AbstractModule[Activity, Activity, T] = {
+    implicit ev: TensorNumeric[T]): IModule[Activity, Activity, T] = {
     CaffeLoader.load[T](model, defPath, modelPath, matchAll)
   }
 
@@ -77,7 +76,7 @@ object Module {
    * @param modelPath caffe model binary file containing weight and bias
    */
   def loadCaffeModel[T: ClassTag](defPath: String, modelPath: String)(
-    implicit ev: TensorNumeric[T]): AbstractModule[Activity, Activity, T] = {
+    implicit ev: TensorNumeric[T]): IModule[Activity, Activity, T] = {
     CaffeLoader.loadCaffe[T](defPath, modelPath)._1
   }
   /**

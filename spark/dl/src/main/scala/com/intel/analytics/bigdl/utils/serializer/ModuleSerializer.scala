@@ -22,7 +22,7 @@ import com.intel.analytics.bigdl.nn._
 
 import scala.collection.JavaConverters._
 import scala.reflect.runtime.universe
-import com.intel.analytics.bigdl.nn.abstractnn.{AbstractModule, Activity, TensorModule}
+import com.intel.analytics.bigdl.nn.abstractnn.{IModule, Activity, TensorModule}
 import com.intel.analytics.bigdl.nn.ops.{DecodeRawSerializer, ParseExample, RandomUniform => RandomUniformOps}
 import com.intel.analytics.bigdl.nn.tf.StrideSlice
 import com.intel.analytics.bigdl.optim.Regularizer
@@ -44,7 +44,7 @@ object ModuleSerializer extends ModuleSerializable{
   var tensorNumericType : universe.Type = null
   var tensorType : universe.Type = null
   var regularizerType : universe.Type = null
-  var abstractModuleType : universe.Type = null
+  var IModuleType : universe.Type = null
   var tensorModuleType : universe.Type = null
   var moduleType : universe.Type = null
   var boundedModuleType : universe.Type = null
@@ -66,7 +66,7 @@ object ModuleSerializer extends ModuleSerializable{
     if (serializerMaps.contains(clsName)) {
       serializerMaps(clsName).serializeModule(serializerContext)
     } else {
-      val m = module.asInstanceOf[AbstractModule[_, _, _]]
+      val m = module.asInstanceOf[IModule[_, _, _]]
       m match {
         case container : Container[_, _, _] =>
           ContainerSerializer.serializeModule(serializerContext)
@@ -150,8 +150,8 @@ object ModuleSerializer extends ModuleSerializable{
           tensorType = ptype
         } else if (name == "regularizer") {
           regularizerType = ptype
-        } else if (name == "abstractModule") {
-          abstractModuleType = ptype
+        } else if (name == "IModule") {
+          IModuleType = ptype
         } else if (name == "tensorModule") {
           tensorModuleType = ptype
         } else if (name == "module") {
@@ -212,10 +212,10 @@ object ModuleSerializer extends ModuleSerializable{
 
 private case class GenericTypeWrapper[T: ClassTag](tensor : Tensor[T],
   regularizer : Regularizer[T],
-  abstractModule: AbstractModule[Activity, Activity, T],
+  IModule: IModule[Activity, Activity, T],
   tensorModule : TensorModule[T],
   module: Module[T],
-  boundedModule: AbstractModule[_ <: Activity, _ <: Activity, T],
+  boundedModule: IModule[_ <: Activity, _ <: Activity, T],
   ttpe : T
   )(implicit ev: TensorNumeric[T])
 

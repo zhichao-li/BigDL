@@ -18,7 +18,7 @@ package com.intel.analytics.bigdl.nn
 import java.util
 
 import com.intel.analytics.bigdl.nn.Graph.ModuleNode
-import com.intel.analytics.bigdl.nn.abstractnn.{AbstractModule, Activity}
+import com.intel.analytics.bigdl.nn.abstractnn.{AbstractModule, Activity, IModule}
 import com.intel.analytics.bigdl.nn.tf.{ControlDependency, WithoutInput}
 import com.intel.analytics.bigdl.tensor.Tensor
 import com.intel.analytics.bigdl.tensor.TensorNumericMath.TensorNumeric
@@ -41,7 +41,7 @@ class StaticGraph[T: ClassTag](
   private val _variables: Option[(Array[Tensor[T]], Array[Tensor[T]])] = None
 )(implicit ev: TensorNumeric[T]) extends Graph[T](_inputs, _outputs, _variables) {
   private val forwardExecution = forwardGraph.topologySort.reverse
-  private var backwardExecution: Array[Node[AbstractModule[Activity, Activity, T]]] = _
+  private var backwardExecution: Array[Node[IModule[Activity, Activity, T]]] = _
   private val inputCache = new Array[Activity](forwardExecution.length)
   private var backId2ForwardId: Array[Int] = _
   private var gradOutputCache: Array[Activity] = _
@@ -58,7 +58,7 @@ class StaticGraph[T: ClassTag](
       i += 1
     }
 
-    output = dummyOutput.element.output
+    output = dummyOutput.element.getOutput
     output
   }
 
@@ -111,7 +111,7 @@ class StaticGraph[T: ClassTag](
 
   private def backwardExecution(input: Activity, gradOutput: Activity,
     executeBackward: Boolean): Activity = {
-    dummyOutputGrad.element.gradInput = gradOutput
+    dummyOutputGrad.element.setGradInput(gradOutput)
 
     var i = 0
     while (i < backwardExecution.length - 1) {  // do not execute the dummy backward end

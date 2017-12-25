@@ -1,6 +1,6 @@
 ## How to add your own layer or criterion into BigDL
 If you'd like to create a layer or criterion which has not been covered by BigDL library, you just
-need to extend the AbstractModule or AbstractCriterion class in scala.
+need to extend the IModule or AbstractCriterion class in scala.
 
 Here we show how to do it with some examples.
 
@@ -8,11 +8,11 @@ Here we show how to do it with some examples.
 Say we want to create a layer which adds one to each element of the input tensor. We can write code
 like this:
 ```scala
-import com.intel.analytics.bigdl.nn.abstractnn.AbstractModule
+import com.intel.analytics.bigdl.nn.abstractnn.IModule
 import com.intel.analytics.bigdl.tensor.Tensor
 import com.intel.analytics.bigdl.utils.T
 
-class AddOneLayer extends AbstractModule[Tensor[Float], Tensor[Float], Float]{
+class AddOneLayer extends IModule[Tensor[Float], Tensor[Float], Float]{
 
   override def updateOutput(input: Tensor[Float]): Tensor[Float] = {
     output.resizeAs(input).copy(input).add(1.0f)
@@ -25,7 +25,7 @@ class AddOneLayer extends AbstractModule[Tensor[Float], Tensor[Float], Float]{
   }
 }
 ```
-In the above code piece, we create a new Layer class by extending the AbstractModule. AbstractModule
+In the above code piece, we create a new Layer class by extending the IModule. IModule
 has three generic type: **input data type**, **output data type** and **parameter type**. In this
 example, the new layer takes a float tensor as input, and outputs a float tensor.
 
@@ -60,11 +60,11 @@ output.
 
 Here's the code example:
 ```scala
-import com.intel.analytics.bigdl.nn.abstractnn.AbstractModule
+import com.intel.analytics.bigdl.nn.abstractnn.IModule
 import com.intel.analytics.bigdl.tensor.Tensor
 import com.intel.analytics.bigdl.utils.{T, Table}
 
-class AddTwoTensorLayer extends AbstractModule[Table, Tensor[Float], Float]{
+class AddTwoTensorLayer extends IModule[Table, Tensor[Float], Float]{
 
   override def updateOutput(input: Table): Tensor[Float] = {
     val firstTensor = input[Tensor[Float]](1)
@@ -95,11 +95,11 @@ Say we want a layer to split a N-d tensor into many (N - 1)-d tensors in the fir
 is the code example:
 
 ```scala
-import com.intel.analytics.bigdl.nn.abstractnn.AbstractModule
+import com.intel.analytics.bigdl.nn.abstractnn.IModule
 import com.intel.analytics.bigdl.tensor.Tensor
 import com.intel.analytics.bigdl.utils.{T, Table}
 
-class UnpackLayer extends AbstractModule[Tensor[Float], Table, Float]{
+class UnpackLayer extends IModule[Tensor[Float], Table, Float]{
 
   override def updateOutput(input: Tensor[Float]): Table = {
     require(input.nDimension() > 1)
@@ -126,16 +126,16 @@ Some layers are trainable, which means they have some parameters and the paramet
 the training process. Trainable layer need to override extra methods.
 
 Parameters are all tensors and their numeric type is determined by the third generic type of the
-AbstractModule.
+IModule.
 
 Say we want to create a tensor which multiply a N x 3 matrix with a 3 x 2 parameter, and get a N x 2
 output. It looks like our first example. Here is the initial code:
 ```scala
-import com.intel.analytics.bigdl.nn.abstractnn.AbstractModule
+import com.intel.analytics.bigdl.nn.abstractnn.IModule
 import com.intel.analytics.bigdl.tensor.Tensor
 import com.intel.analytics.bigdl.utils.{T, Table}
 
-class MatrixLayer extends AbstractModule[Tensor[Float], Tensor[Float], Float]{
+class MatrixLayer extends IModule[Tensor[Float], Tensor[Float], Float]{
 
   private val w = Tensor[Float](3, 2)
 
@@ -208,7 +208,7 @@ to reduce the 'distance'.
 Let's create a simple criterion to demostrate how it works. This criterion will calculate the sum of
 abstract value of elementwise difference between the two input tensors. Here is the code:
 ```scala
-import com.intel.analytics.bigdl.nn.abstractnn.{AbstractCriterion, AbstractModule}
+import com.intel.analytics.bigdl.nn.abstractnn.{AbstractCriterion, IModule}
 import com.intel.analytics.bigdl.tensor.Tensor
 import com.intel.analytics.bigdl.utils.{T, Table}
 

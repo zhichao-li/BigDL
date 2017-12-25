@@ -18,7 +18,7 @@ package com.intel.analytics.bigdl.utils.tf.loaders
 import java.nio.ByteOrder
 
 import com.intel.analytics.bigdl.Module
-import com.intel.analytics.bigdl.nn.abstractnn.{AbstractModule, Activity, DataFormat}
+import com.intel.analytics.bigdl.nn.abstractnn.{IModule, Activity, DataFormat}
 import com.intel.analytics.bigdl.nn.ops.Conv2DTranspose
 import com.intel.analytics.bigdl.tensor.TensorNumericMath.TensorNumeric
 import org.tensorflow.framework.NodeDef
@@ -58,7 +58,7 @@ class Conv2DBackpropInput extends TensorflowOpsLoader {
       case _ =>
         throw new IllegalArgumentException(s"not supported data format: $format")
     }
-    deconv.asInstanceOf[AbstractModule[Activity, Activity, T]]
+    deconv.asInstanceOf[IModule[Activity, Activity, T]]
   }
 }
 

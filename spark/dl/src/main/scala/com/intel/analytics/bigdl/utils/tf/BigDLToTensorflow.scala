@@ -18,7 +18,7 @@ package com.intel.analytics.bigdl.utils.tf
 import java.nio.ByteOrder
 
 import com.intel.analytics.bigdl.nn._
-import com.intel.analytics.bigdl.nn.abstractnn.{AbstractModule, DataFormat}
+import com.intel.analytics.bigdl.nn.abstractnn.{IModule, DataFormat}
 import com.intel.analytics.bigdl.tensor.Tensor
 import com.intel.analytics.bigdl.utils.T
 import Tensorflow._
@@ -36,7 +36,7 @@ trait BigDLToTensorflow {
    * Convert the module to a tensorflow nodedef
    * @return Mapped nodedef list, the first is the output node
    */
-  def toTFDef(module: AbstractModule[_, _, _], inputs: Seq[NodeDef],
+  def toTFDef(module: IModule[_, _, _], inputs: Seq[NodeDef],
               byteOrder: ByteOrder): Seq[NodeDef]
 }
 
@@ -70,7 +70,7 @@ object BigDLToTensorflow {
 }
 
 object InputToTF extends BigDLToTensorflow {
-  override def toTFDef(module: AbstractModule[_, _, _], inputs: Seq[NodeDef],
+  override def toTFDef(module: IModule[_, _, _], inputs: Seq[NodeDef],
                        byteOrder: ByteOrder): Seq[NodeDef] = {
     require(inputs.length == 1, "Input only accept one input")
 
@@ -79,7 +79,7 @@ object InputToTF extends BigDLToTensorflow {
 }
 
 object ReLUToTF extends BigDLToTensorflow {
-  override def toTFDef(module: AbstractModule[_, _, _], inputs: Seq[NodeDef],
+  override def toTFDef(module: IModule[_, _, _], inputs: Seq[NodeDef],
                        byteOrder: ByteOrder): Seq[NodeDef] = {
     require(inputs.length == 1, "Relu only accept one input")
 
@@ -88,7 +88,7 @@ object ReLUToTF extends BigDLToTensorflow {
 }
 
 object LinearToTF extends BigDLToTensorflow {
-  override def toTFDef(module: AbstractModule[_, _, _], inputs: Seq[NodeDef],
+  override def toTFDef(module: IModule[_, _, _], inputs: Seq[NodeDef],
                        byteOrder: ByteOrder): Seq[NodeDef] = {
     require(inputs.length == 1, "Linear only accept one input")
     val linear = module.asInstanceOf[Linear[_]]
@@ -103,7 +103,7 @@ object LinearToTF extends BigDLToTensorflow {
 }
 
 object SpatialConvolutionToTF extends BigDLToTensorflow {
-  override def toTFDef(module: AbstractModule[_, _, _], inputs: Seq[NodeDef],
+  override def toTFDef(module: IModule[_, _, _], inputs: Seq[NodeDef],
                        byteOrder: ByteOrder): Seq[NodeDef] = {
     require(inputs.length == 1, "SpatialConvolution only accept one input")
     val spatialConv = module.asInstanceOf[SpatialConvolution[_]]
@@ -177,7 +177,7 @@ object SpatialConvolutionToTF extends BigDLToTensorflow {
 }
 
 object TemporalConvolutionToTF extends BigDLToTensorflow {
-  override def toTFDef(module: AbstractModule[_, _, _], inputs: Seq[NodeDef],
+  override def toTFDef(module: IModule[_, _, _], inputs: Seq[NodeDef],
                        byteOrder: ByteOrder): Seq[NodeDef] = {
     require(inputs.length == 1, "SpatialConvolution only accept one input")
     val spatialConv = module.asInstanceOf[TemporalConvolution[_]]
@@ -213,7 +213,7 @@ object TemporalConvolutionToTF extends BigDLToTensorflow {
 }
 
 object SqueezeToTF extends BigDLToTensorflow {
-  override def toTFDef(module: AbstractModule[_, _, _], inputs: Seq[NodeDef],
+  override def toTFDef(module: IModule[_, _, _], inputs: Seq[NodeDef],
                        byteOrder: ByteOrder): Seq[NodeDef] = {
     require(inputs.length == 1, "Squeeze only accept one input")
     val sq = module.asInstanceOf[Squeeze[_]]
@@ -222,7 +222,7 @@ object SqueezeToTF extends BigDLToTensorflow {
 }
 
 object TanhToTF extends BigDLToTensorflow {
-  override def toTFDef(module: AbstractModule[_, _, _], inputs: Seq[NodeDef],
+  override def toTFDef(module: IModule[_, _, _], inputs: Seq[NodeDef],
                        byteOrder: ByteOrder): Seq[NodeDef] = {
     require(inputs.length == 1, "Tanh only accept one input")
     Seq(tanh(inputs(0), module.getName()))
@@ -230,7 +230,7 @@ object TanhToTF extends BigDLToTensorflow {
 }
 
 object ReshapeToTF extends BigDLToTensorflow {
-  override def toTFDef(module: AbstractModule[_, _, _], inputs: Seq[NodeDef],
+  override def toTFDef(module: IModule[_, _, _], inputs: Seq[NodeDef],
                        byteOrder: ByteOrder): Seq[NodeDef] = {
     require(inputs.length == 1, "Reshape only accept one input")
     val rh = module.asInstanceOf[Reshape[_]]
@@ -247,7 +247,7 @@ object ReshapeToTF extends BigDLToTensorflow {
 }
 
 object ViewToTF extends BigDLToTensorflow {
-  override def toTFDef(module: AbstractModule[_, _, _], inputs: Seq[NodeDef],
+  override def toTFDef(module: IModule[_, _, _], inputs: Seq[NodeDef],
                        byteOrder: ByteOrder): Seq[NodeDef] = {
     require(inputs.length == 1, "Reshape only accept one input")
     val viewLayer = module.asInstanceOf[View[_]]
@@ -265,7 +265,7 @@ object ViewToTF extends BigDLToTensorflow {
 }
 
 object MaxpoolToTF extends BigDLToTensorflow {
-  override def toTFDef(module: AbstractModule[_, _, _], inputs: Seq[NodeDef],
+  override def toTFDef(module: IModule[_, _, _], inputs: Seq[NodeDef],
                        byteOrder: ByteOrder): Seq[NodeDef] = {
     require(inputs.length == 1, "Maxpool only accept one input")
     val layer = module.asInstanceOf[SpatialMaxPooling[_]]
@@ -280,7 +280,7 @@ object MaxpoolToTF extends BigDLToTensorflow {
 }
 
 object PaddingToTF extends BigDLToTensorflow {
-  override def toTFDef(module: AbstractModule[_, _, _], inputs: Seq[NodeDef],
+  override def toTFDef(module: IModule[_, _, _], inputs: Seq[NodeDef],
                        byteOrder: ByteOrder): Seq[NodeDef] = {
     require(inputs.length == 1, "Padding only accept one input")
     val layer = module.asInstanceOf[Padding[_]]
@@ -300,7 +300,7 @@ object PaddingToTF extends BigDLToTensorflow {
 }
 
 object AvgpoolToTF extends BigDLToTensorflow {
-  override def toTFDef(module: AbstractModule[_, _, _], inputs: Seq[NodeDef],
+  override def toTFDef(module: IModule[_, _, _], inputs: Seq[NodeDef],
                        byteOrder: ByteOrder): Seq[NodeDef] = {
     require(inputs.length == 1, "Avgpool only accept one input")
     val layer = module.asInstanceOf[SpatialAveragePooling[_]]
@@ -315,7 +315,7 @@ object AvgpoolToTF extends BigDLToTensorflow {
 }
 
 object SigmoidToTF extends BigDLToTensorflow {
-  override def toTFDef(module: AbstractModule[_, _, _], inputs: Seq[NodeDef],
+  override def toTFDef(module: IModule[_, _, _], inputs: Seq[NodeDef],
                        byteOrder: ByteOrder): Seq[NodeDef] = {
     require(inputs.length == 1, "Sigmoid only accept one input")
     Seq(sigmoid(inputs(0), module.getName()))
@@ -323,7 +323,7 @@ object SigmoidToTF extends BigDLToTensorflow {
 }
 
 object DropoutToTF extends BigDLToTensorflow {
-  override def toTFDef(module: AbstractModule[_, _, _], inputs: Seq[NodeDef],
+  override def toTFDef(module: IModule[_, _, _], inputs: Seq[NodeDef],
                        byteOrder: ByteOrder): Seq[NodeDef] = {
     require(inputs.length == 1, "Dropout only accept one input")
     val layer = module.asInstanceOf[Dropout[_]]
@@ -334,7 +334,7 @@ object DropoutToTF extends BigDLToTensorflow {
 }
 
 object ScaleToTF extends BigDLToTensorflow {
-  override def toTFDef(module: AbstractModule[_, _, _], inputs: Seq[NodeDef],
+  override def toTFDef(module: IModule[_, _, _], inputs: Seq[NodeDef],
     byteOrder: ByteOrder): Seq[NodeDef] = {
     val layer = module.asInstanceOf[Scale[_]]
     val weight = const(layer.cmul.weight, layer.getName() + "/mul/weight", ByteOrder.LITTLE_ENDIAN)
@@ -346,14 +346,14 @@ object ScaleToTF extends BigDLToTensorflow {
 }
 
 object CAddTableToTF extends BigDLToTensorflow {
-  override def toTFDef(module: AbstractModule[_, _, _], inputs: Seq[NodeDef],
+  override def toTFDef(module: IModule[_, _, _], inputs: Seq[NodeDef],
                        byteOrder: ByteOrder): Seq[NodeDef] = {
     Seq(addN(inputs, module.getName()))
   }
 }
 
 object CMultTableToTF extends BigDLToTensorflow {
-  override def toTFDef(module: AbstractModule[_, _, _], inputs: Seq[NodeDef],
+  override def toTFDef(module: IModule[_, _, _], inputs: Seq[NodeDef],
                        byteOrder: ByteOrder): Seq[NodeDef] = {
     require(inputs.length == 2, "Tensorflow only support two tensor multiply together")
 
@@ -362,7 +362,7 @@ object CMultTableToTF extends BigDLToTensorflow {
 }
 
 object JoinTableToTF extends BigDLToTensorflow {
-  override def toTFDef(module: AbstractModule[_, _, _], inputs: Seq[NodeDef],
+  override def toTFDef(module: IModule[_, _, _], inputs: Seq[NodeDef],
                        byteOrder: ByteOrder): Seq[NodeDef] = {
     val layer = module.asInstanceOf[JoinTable[_]]
     val axis = const(Tensor.scalar[Int](layer.dimension - 1), layer.getName() + "/axis", byteOrder)
@@ -374,7 +374,7 @@ object JoinTableToTF extends BigDLToTensorflow {
 }
 
 object MeanToTF extends BigDLToTensorflow {
-  override def toTFDef(module: AbstractModule[_, _, _], inputs: Seq[NodeDef],
+  override def toTFDef(module: IModule[_, _, _], inputs: Seq[NodeDef],
                        byteOrder: ByteOrder): Seq[NodeDef] = {
     require(inputs.length == 1, "Mean only accept one input")
     val layer = module.asInstanceOf[Mean[_, _]]
@@ -389,7 +389,7 @@ object MeanToTF extends BigDLToTensorflow {
 }
 
 object SoftMaxToTF extends BigDLToTensorflow {
-  override def toTFDef(module: AbstractModule[_, _, _], inputs: Seq[NodeDef],
+  override def toTFDef(module: IModule[_, _, _], inputs: Seq[NodeDef],
                        byteOrder: ByteOrder): Seq[NodeDef] = {
     require(inputs.length == 1, "Softmax only accept one input")
     Seq(softmax(inputs(0), module.getName()))
@@ -397,7 +397,7 @@ object SoftMaxToTF extends BigDLToTensorflow {
 }
 
 object LogSoftMaxToTF extends BigDLToTensorflow {
-  override def toTFDef(module: AbstractModule[_, _, _], inputs: Seq[NodeDef],
+  override def toTFDef(module: IModule[_, _, _], inputs: Seq[NodeDef],
                        byteOrder: ByteOrder): Seq[NodeDef] = {
     require(inputs.length == 1, "LogSoftmax only accept one input")
     Seq(logSoftmax(inputs(0), module.getName()))
@@ -405,7 +405,7 @@ object LogSoftMaxToTF extends BigDLToTensorflow {
 }
 
 object BatchNorm2DToTF extends BigDLToTensorflow {
-  override def toTFDef(module: AbstractModule[_, _, _], inputs: Seq[NodeDef],
+  override def toTFDef(module: IModule[_, _, _], inputs: Seq[NodeDef],
                        byteOrder: ByteOrder): Seq[NodeDef] = {
     require(inputs.length == 1, "BatchNorm only accept one input")
     val layer = module.asInstanceOf[SpatialBatchNormalization[_]]
@@ -460,7 +460,7 @@ object BatchNorm2DToTF extends BigDLToTensorflow {
 }
 
 object LRNToTF extends BigDLToTensorflow {
-  override def toTFDef(module: AbstractModule[_, _, _], inputs: Seq[NodeDef],
+  override def toTFDef(module: IModule[_, _, _], inputs: Seq[NodeDef],
     byteOrder: ByteOrder): Seq[NodeDef] = {
     val layer = module.asInstanceOf[SpatialCrossMapLRN[_]]
     if (layer.format == DataFormat.NHWC) {

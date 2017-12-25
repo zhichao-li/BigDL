@@ -18,7 +18,7 @@ package com.intel.analytics.bigdl.utils.tf.loaders
 import java.nio.ByteOrder
 
 import com.intel.analytics.bigdl.Module
-import com.intel.analytics.bigdl.nn.abstractnn.{AbstractModule, Activity}
+import com.intel.analytics.bigdl.nn.abstractnn.{IModule, Activity}
 import com.intel.analytics.bigdl.nn.{Sequential, Mean => MeanNN}
 import com.intel.analytics.bigdl.tensor.Tensor
 import com.intel.analytics.bigdl.tensor.TensorNumericMath.TensorNumeric
@@ -62,7 +62,7 @@ class Mean extends TensorflowOpsLoader {
 class MeanLoadTF[T: ClassTag](val dataType: String,
                               val squeeze: Boolean)(implicit ev: TensorNumeric[T])
   extends Adapter[T](Array(2)) {
-  override def build(tensorArrays: Array[Tensor[_]]): AbstractModule[Activity, Activity, T] = {
+  override def build(tensorArrays: Array[Tensor[_]]): IModule[Activity, Activity, T] = {
     val dims = tensorArrays(0).asInstanceOf[Tensor[Int]]
     val dim = ArrayBuffer[Int]()
     val mean = Sequential[T]()

@@ -17,7 +17,7 @@
 package com.intel.analytics.bigdl.nn.keras
 
 import com.intel.analytics.bigdl.nn.Graph.ModuleNode
-import com.intel.analytics.bigdl.nn.abstractnn.{AbstractModule, Activity, TensorModule}
+import com.intel.analytics.bigdl.nn.abstractnn.{AbstractModule, Activity, IModule, TensorModule}
 import com.intel.analytics.bigdl.tensor.Tensor
 import com.intel.analytics.bigdl.tensor.TensorNumericMath.TensorNumeric
 import com.intel.analytics.bigdl.utils.Node
@@ -70,6 +70,6 @@ object NewInput {
     if (name != null) {
       module.setName(name)
     }
-    new Node(module.asInstanceOf[AbstractModule[Activity, Activity, T]])
+    new Node(module.asInstanceOf[IModule[Activity, Activity, T]])
   }
 }

@@ -29,7 +29,7 @@ import scala.reflect.ClassTag
 import caffe.Caffe
 import com.google.protobuf.{CodedOutputStream, GeneratedMessage, TextFormat}
 import com.intel.analytics.bigdl.nn.Graph.ModuleNode
-import com.intel.analytics.bigdl.nn.abstractnn.{AbstractModule, Activity}
+import com.intel.analytics.bigdl.nn.abstractnn.{IModule, Activity}
 import com.intel.analytics.bigdl.tensor.Tensor
 import org.apache.hadoop.conf.Configuration
 import org.apache.hadoop.fs.Path
@@ -45,7 +45,7 @@ import org.apache.log4j.Logger
  * @param overwrite whether to overwirte existing caffe files
  */
 class CaffePersister[T: ClassTag](val prototxtPath: String,
-      val modelPath: String, val module : AbstractModule[Activity, Activity, T],
+      val modelPath: String, val module : IModule[Activity, Activity, T],
       useV2 : Boolean = true, overwrite : Boolean = false)(implicit ev: TensorNumeric[T]) {
 
   private val logger = Logger.getLogger(getClass)
@@ -228,7 +228,7 @@ class CaffePersister[T: ClassTag](val prototxtPath: String,
 
 object CaffePersister{
   def persist[T: ClassTag](prototxtPath: String,
-               modelPath: String, module : AbstractModule[Activity, Activity, T],
+               modelPath: String, module : IModule[Activity, Activity, T],
   useV2 : Boolean = true, overwrite : Boolean = false)(implicit ev: TensorNumeric[T]) : Unit = {
     val caffePersist = new CaffePersister[T](prototxtPath, modelPath, module, useV2, overwrite)
     caffePersist.saveAsCaffe()

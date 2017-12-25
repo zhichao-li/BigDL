@@ -53,7 +53,7 @@ class DynamicGraph[T: ClassTag](
       forwardScheduler.schedule(node)
     }
 
-    output = dummyOutput.element.output
+    output = dummyOutput.element.getOutput
     output
   }
 

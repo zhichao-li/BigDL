@@ -19,7 +19,7 @@ import java.util
 
 import scala.collection.JavaConverters._
 import com.intel.analytics.bigdl.nn.Graph.ModuleNode
-import com.intel.analytics.bigdl.nn.abstractnn.{AbstractModule, Activity, TensorModule}
+import com.intel.analytics.bigdl.nn.abstractnn.{IModule, Activity, TensorModule}
 import com.intel.analytics.bigdl.nn.keras.NewModule
 import com.intel.analytics.bigdl.nn.ops.ControlOps
 import com.intel.analytics.bigdl.nn.tf.{ControlDependency, WithoutInput}
@@ -74,7 +74,7 @@ abstract class Graph[T: ClassTag](
   private val variables: Option[(Array[Tensor[T]], Array[Tensor[T]])] = None
 )(implicit ev: TensorNumeric[T]) extends Container[Activity, Activity, T]{
 
-  override def executionNodes(): List[Node[AbstractModule[Activity, Activity, T]]] =
+  override def executionNodes(): List[Node[IModule[Activity, Activity, T]]] =
     this.getForwardExecutions.reverse.toList
 
   /**
@@ -98,7 +98,7 @@ abstract class Graph[T: ClassTag](
   }
 
   private def calcSumTimesOfAllNodes(
-    timesOfAllNodes: Array[(AbstractModule[_ <: Activity, _ <: Activity, T], Long, Long)])
+    timesOfAllNodes: Array[(IModule[_ <: Activity, _ <: Activity, T], Long, Long)])
   : (Long, Long) = {
     var sumForward = 0L
     var sumBackward = 0L
@@ -110,7 +110,7 @@ abstract class Graph[T: ClassTag](
   }
 
   override def getTimes():
-  Array[(AbstractModule[_ <: Activity, _ <: Activity, T], Long, Long)] = {
+  Array[(IModule[_ <: Activity, _ <: Activity, T], Long, Long)] = {
     val timesOfAllNodes = this.modules.flatMap(_.getTimes()).toArray
     val (sumForward, sumBackward) = calcSumTimesOfAllNodes(timesOfAllNodes)
     timesOfAllNodes ++ Array((this, this.forwardTime - sumForward, this.backwardTime - sumBackward))
@@ -129,7 +129,7 @@ abstract class Graph[T: ClassTag](
     }
   }
 
-  override def add(module: AbstractModule[_ <: Activity, _ <: Activity, T]): Graph.this.type = {
+  override def add(module: IModule[_ <: Activity, _ <: Activity, T]): Graph.this.type = {
     throw new IllegalArgumentException("Graph: Please don't use add method in Graph container. " +
       "A graph container should not be changed after it is constructed")
   }
@@ -200,8 +200,8 @@ abstract class Graph[T: ClassTag](
   }
 
   protected var dummyOutputGrad: ModuleNode[T] = _
-  protected var backwardGraph: DirectedGraph[AbstractModule[Activity, Activity, T]] = _
-  protected var backwardNodes: Array[Node[AbstractModule[Activity, Activity, T]]] = _
+  protected var backwardGraph: DirectedGraph[IModule[Activity, Activity, T]] = _
+  protected var backwardNodes: Array[Node[IModule[Activity, Activity, T]]] = _
 
   /**
    * Generate backward graph and apply the stopGrad
@@ -232,7 +232,7 @@ abstract class Graph[T: ClassTag](
    * whether stop propagating gradInput back
    * @return
    */
-  protected def isStopGradient(module: AbstractModule[_ <: Activity, _ <: Activity, T]): Boolean = {
+  protected def isStopGradient(module: IModule[_ <: Activity, _ <: Activity, T]): Boolean = {
     null != stopGradientLayers && stopGradientLayers.contains(module.getName())
   }
 
@@ -280,7 +280,7 @@ abstract class Graph[T: ClassTag](
 
 
   protected def getInput(
-    node: Node[AbstractModule[Activity, Activity, T]],
+    node: Node[IModule[Activity, Activity, T]],
     input: Activity
   ): Activity = {
     if (inputs.length == 1) {
@@ -304,12 +304,12 @@ abstract class Graph[T: ClassTag](
         .map(n => {
           n._2.fromIndex match {
             case Some(i) =>
-              if (n._1.element.output == null || (i == 1 && n._1.element.output.isTensor)) {
-                n._1.element.output
+              if (n._1.element.getOutput == null || (i == 1 && n._1.element.getOutput.isTensor)) {
+                n._1.element.getOutput
               } else {
-                n._1.element.output.toTable.apply[Activity](i)
+                n._1.element.getOutput.toTable.apply[Activity](i)
               }
-            case None => n._1.element.output
+            case None => n._1.element.getOutput
           }
         })
       if (prevActivities.length == 1) {
@@ -326,19 +326,19 @@ abstract class Graph[T: ClassTag](
 
     curNode.prevNodesAndEdges.filterNot(n => n._1.element.isInstanceOf[ControlDependency[T]])
       .foreach(n => {
-        val otherActivity = if (n._1.element.gradInput.isTensor || n._1.nextEdges.length == 1) {
-          n._1.element.gradInput
+        val otherActivity = if (n._1.element.getGradInput.isTensor || n._1.nextEdges.length == 1) {
+          n._1.element.getGradInput
         } else {
           val index = n._1.nextEdges.indexOf(n._2) + 1
-          n._1.element.gradInput.toTable.apply[Activity](index)
+          n._1.element.getGradInput.toTable.apply[Activity](index)
         }
 
         n._2.fromIndex match {
           case Some(i) =>
-            if (i == 1 && curNode.element.output.isTensor) {
+            if (i == 1 && curNode.element.getOutput.isTensor) {
               curGradOutput = accActivity(curGradOutput, otherActivity)
             } else {
-              if (curNode.element.output.isTable && curGradOutput == null) {
+              if (curNode.element.getOutput.isTable && curGradOutput == null) {
                 curGradOutput = T()
               }
               val curActivity = curGradOutput.toTable.getOrElse[Activity](i, null)
@@ -349,8 +349,8 @@ abstract class Graph[T: ClassTag](
         }
       })
 
-    if (curNode.element.output.isTable) {
-      addZeroTensorToMissingGradOutput(curNode.element.output.toTable, curGradOutput.toTable)
+    if (curNode.element.getOutput.isTable) {
+      addZeroTensorToMissingGradOutput(curNode.element.getOutput.toTable, curGradOutput.toTable)
     }
 
     curGradOutput
@@ -358,9 +358,9 @@ abstract class Graph[T: ClassTag](
 
   protected def fetchModelGradInput(): Activity = {
     if (inputs.length == 1) {
-      inputs.head.element.gradInput
+      inputs.head.element.getGradInput
     } else {
-      T.seq(inputs.map(n => n.element.gradInput))
+      T.seq(inputs.map(n => n.element.getGradInput))
     }
   }
 
@@ -374,7 +374,7 @@ abstract class Graph[T: ClassTag](
    * get forward executions, the dummy node will be filtered
    * @return
    */
-  def getForwardExecutions: Array[Node[AbstractModule[Activity, Activity, T]]] = {
+  def getForwardExecutions: Array[Node[IModule[Activity, Activity, T]]] = {
     forwardNodes.filterNot(_.eq(dummyOutput))
   }
 
@@ -385,7 +385,7 @@ abstract class Graph[T: ClassTag](
    * exception
    * @return
    */
-  def getSortedForwardExecutions: Array[Node[AbstractModule[Activity, Activity, T]]] = {
+  def getSortedForwardExecutions: Array[Node[IModule[Activity, Activity, T]]] = {
     forwardGraph.topologySort
       .filterNot(_.element.isInstanceOf[ControlDependency[T]]).reverse
       .filter(n => !n.eq(dummyOutput))
@@ -456,7 +456,7 @@ object Graph extends ContainerSerializable {
    * Node for graph container. The module should have a tensor/table input while a tensor output
    * @tparam T
    */
-  type ModuleNode[T] = Node[AbstractModule[Activity, Activity, T]]
+  type ModuleNode[T] = Node[IModule[Activity, Activity, T]]
 
   /**
    * Build multiple inputs, multiple outputs graph container.
@@ -529,7 +529,7 @@ object Graph extends ContainerSerializable {
   }
 
   override def doLoadModule[T: ClassTag](context: DeserializeContext)
-    (implicit ev: TensorNumeric[T]) : AbstractModule[Activity, Activity, T] = {
+    (implicit ev: TensorNumeric[T]) : IModule[Activity, Activity, T] = {
 
     val module = context.bigdlModule
     val subModules = module.getSubModulesList.asScala
@@ -612,7 +612,7 @@ object Graph extends ContainerSerializable {
       val preNodes = preNodesAndEdges.map(_._1.element.getName)
       val nextNodes = preNodesAndEdges.map(_._1.element.getName)
       val currNode = execution.element
-        .asInstanceOf[AbstractModule[Activity, Activity, T]]
+        .asInstanceOf[IModule[Activity, Activity, T]]
       val subModel = ModuleSerializer.serialize(SerializeContext(
         ModuleData(currNode, preNodes, nextNodes), context.storages, context.storageType))
       // add edges

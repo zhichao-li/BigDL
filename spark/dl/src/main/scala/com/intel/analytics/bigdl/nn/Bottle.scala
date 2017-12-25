@@ -85,7 +85,7 @@ class Bottle[T: ClassTag](
       val input_ = input.view(inShape.storage().array().map(_.toInt))
       val gradOutput_ = gradOutput.view(outShape.storage().array().map(_.toInt))
       modules(0).updateGradInput(input_, gradOutput_)
-      val t2 = modules(0).gradInput.toTensor[T].resizeAs(input)
+      val t2 = modules(0).getGradInput.toTensor[T].resizeAs(input)
       gradInput.set(t2)
     } else {
       val t1 = modules(0).updateGradInput(input, gradOutput).toTensor[T]

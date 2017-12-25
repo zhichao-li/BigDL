@@ -18,7 +18,7 @@ package com.intel.analytics.bigdl.nn
 
 import com.intel.analytics.bigdl._
 import com.intel.analytics.bigdl.nn.Graph.ModuleNode
-import com.intel.analytics.bigdl.nn.abstractnn.{AbstractModule, Activity, TensorModule}
+import com.intel.analytics.bigdl.nn.abstractnn.{AbstractModule, Activity, IModule, TensorModule}
 import com.intel.analytics.bigdl.optim.Regularizer
 import com.intel.analytics.bigdl.tensor.Tensor
 import com.intel.analytics.bigdl.tensor.TensorNumericMath.TensorNumeric
@@ -75,7 +75,7 @@ class GRU[T : ClassTag] (
   var h2g: ModuleNode[T] = _
   val featDim = 2
 
-  override var cell: AbstractModule[Activity, Activity, T] = buildModel()
+  override var cell: IModule[Activity, Activity, T] = buildModel()
 
   override var preTopology: TensorModule[T] =
   if (p != 0) { null } else {

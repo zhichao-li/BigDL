@@ -17,7 +17,7 @@
 package com.intel.analytics.bigdl.nn
 
 import com.intel.analytics.bigdl._
-import com.intel.analytics.bigdl.nn.abstractnn.{AbstractModule, Activity, TensorModule}
+import com.intel.analytics.bigdl.nn.abstractnn.{AbstractModule, Activity, IModule, TensorModule}
 import com.intel.analytics.bigdl.tensor.Tensor
 import com.intel.analytics.bigdl.tensor.TensorNumericMath.TensorNumeric
 import com.intel.analytics.bigdl.utils.{T, Table}
@@ -55,7 +55,7 @@ class RecurrentDecoder[T : ClassTag](val seqLength: Int)
    * @param module module to be add
    * @return this container
    */
-  override def add(module: AbstractModule[_ <: Activity, _ <: Activity, T]):
+  override def add(module: IModule[_ <: Activity, _ <: Activity, T]):
   RecurrentDecoder.this.type = {
     require(module.isInstanceOf[Cell[T]], "Recurrent: contained module should be Cell type")
 
@@ -231,7 +231,7 @@ object RecurrentDecoder extends ContainerSerializable {
   }
 
   override def doLoadModule[T: ClassTag](context: DeserializeContext)
-    (implicit ev: TensorNumeric[T]) : AbstractModule[Activity, Activity, T] = {
+    (implicit ev: TensorNumeric[T]) : IModule[Activity, Activity, T] = {
 
     val attrMap = context.bigdlModule.getAttrMap
     // val module = super.doLoadModule(context)
@@ -271,7 +271,7 @@ object RecurrentDecoder extends ContainerSerializable {
     val topologyBuilder = AttrValue.newBuilder
     DataConverter.setAttributeValue(context,
       topologyBuilder, recurrentDecoder.topology,
-      ModuleSerializer.abstractModuleType)
+      ModuleSerializer.IModuleType)
     recurrentBuilder.putAttr("topology", topologyBuilder.build)
 
     val preTopologyBuilder = AttrValue.newBuilder

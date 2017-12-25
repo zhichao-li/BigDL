@@ -327,7 +327,7 @@ object BatchNormalization extends ModuleSerializable {
   }
 
   override def doLoadModule[T: ClassTag](context: DeserializeContext)
-    (implicit ev: TensorNumeric[T]) : AbstractModule[Activity, Activity, T] = {
+    (implicit ev: TensorNumeric[T]) : IModule[Activity, Activity, T] = {
     val attrMap = context.bigdlModule.getAttrMap
     val batchNorm = super.doLoadModule(context).asInstanceOf[BatchNormalization[T]]
 

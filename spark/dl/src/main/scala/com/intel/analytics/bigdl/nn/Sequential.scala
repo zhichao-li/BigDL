@@ -48,7 +48,7 @@ class Sequential[T: ClassTag]
     var i = modules.length - 1
     var error = nextError.asInstanceOf[Activity]
     while (i > 0) {
-      val input = modules(i - 1).output
+      val input = modules(i - 1).getOutput
       error = modules(i).updateGradInput(input, error)
       i -= 1
     }
@@ -66,8 +66,8 @@ class Sequential[T: ClassTag]
     var currentGradOutput = gradOutput
     while (i > 0) {
       val previousModule = modules(i - 1)
-      currentModule.accGradParameters(previousModule.output, currentGradOutput)
-      currentGradOutput = currentModule.gradInput
+      currentModule.accGradParameters(previousModule.getOutput, currentGradOutput)
+      currentGradOutput = currentModule.getGradInput
       currentModule = previousModule
       i -= 1
     }
@@ -79,7 +79,7 @@ class Sequential[T: ClassTag]
     var i = modules.length - 1
     var error = nextError.asInstanceOf[Activity]
     while (i > 0) {
-      val input = modules(i - 1).output
+      val input = modules(i - 1).getOutput
       error = modules(i).backward(input, error)
       i -= 1
     }
@@ -134,19 +134,19 @@ class Sequential[T: ClassTag]
   override def toString(): String = {
     val tab = "  "
 
-    s"${getPrintName}{${line + tab}[input -> ${
+    s"${getPrintName}{${getLine + tab}[input -> ${
       modules.zipWithIndex.map {
         case (m: AbstractModule[Activity, Activity, T], i: Int) => "(" + (i + 1) + ")"
       }.
         mkString(" -> ")
-    } -> output]${line + tab}" +
+    } -> output]${getLine + tab}" +
       s"${
         modules.zipWithIndex.map {
           case (model: AbstractModule[Activity, Activity, T], index: Int)
-          => s"(${index + 1}): ${model.setLine(line + tab)}"
+          => s"(${index + 1}): ${model.setLine(getLine + tab)}"
         }.
-          mkString(line + tab)
-      }$line}"
+          mkString(getLine + tab)
+      }$getLine}"
   }
 
   override def getEndNodes(startNodes: Array[ModuleNode[T]]): Array[ModuleNode[T]] = {

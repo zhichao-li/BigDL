@@ -16,7 +16,7 @@
 
 package com.intel.analytics.bigdl.nn
 
-import com.intel.analytics.bigdl.nn.abstractnn.{AbstractModule, Activity, TensorModule}
+import com.intel.analytics.bigdl.nn.abstractnn.{AbstractModule, Activity, IModule, TensorModule}
 import com.intel.analytics.bigdl.tensor.Tensor
 import com.intel.analytics.bigdl.tensor.TensorNumericMath.TensorNumeric
 import com.intel.analytics.bigdl.utils.serializer.DataConverter.ArrayConverter
@@ -41,7 +41,7 @@ class MultiRNNCell[T : ClassTag](val cells: Array[Cell[T]])(implicit ev: TensorN
 
   override var preTopology: TensorModule[T] = null
 
-  override var cell: AbstractModule[Activity, Activity, T] = buildModel()
+  override var cell: IModule[Activity, Activity, T] = buildModel()
 
   override def hidResize(hidden: Activity, batchSize: Int, stepShape: Array[Int]): Activity = {
     if (hidden == null) {
@@ -180,12 +180,12 @@ object MultiRNNCell extends ModuleSerializable {
   }
 
   override def doLoadModule[T: ClassTag](context : DeserializeContext)
-    (implicit ev: TensorNumeric[T]) : AbstractModule[Activity, Activity, T] = {
+    (implicit ev: TensorNumeric[T]) : IModule[Activity, Activity, T] = {
 
     val attrMap = context.bigdlModule.getAttrMap
 
     val cells = DataConverter.getAttributeValue(context, attrMap.get("cells")).
-      asInstanceOf[Array[AbstractModule[_, _, T]]].map(_.asInstanceOf[Cell[T]])
+      asInstanceOf[Array[IModule[_, _, T]]].map(_.asInstanceOf[Cell[T]])
 
     val multiRNNCell = MultiRNNCell[T](cells)
 

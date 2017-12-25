@@ -19,7 +19,7 @@ import java.nio.ByteOrder
 
 import com.intel.analytics.bigdl.Module
 import com.intel.analytics.bigdl.nn._
-import com.intel.analytics.bigdl.nn.abstractnn.{AbstractModule, Activity, DataFormat}
+import com.intel.analytics.bigdl.nn.abstractnn.{IModule, Activity, DataFormat}
 import com.intel.analytics.bigdl.nn.ops.{Conv2D, Conv3D}
 import com.intel.analytics.bigdl.tensor.TensorNumericMath.TensorNumeric
 import com.intel.analytics.bigdl.utils.Node
@@ -62,6 +62,6 @@ class Conv3D extends TensorflowOpsLoader {
       case _ =>
         throw new IllegalArgumentException(s"not supported data format: $format")
     }
-    conv.asInstanceOf[AbstractModule[Activity, Activity, T]]
+    conv.asInstanceOf[IModule[Activity, Activity, T]]
   }
 }

@@ -21,7 +21,7 @@ import com.intel.analytics.bigdl.numeric.NumericFloat
 import com.intel.analytics.bigdl.tensor.Tensor
 import com.intel.analytics.bigdl.utils.{T, Table}
 
-class AbstractModuleSpec extends FlatSpec with Matchers {
+class IModuleSpec extends FlatSpec with Matchers {
   "Get name" should "find the module if it exists" in {
     val m = Linear(4, 3).setName("module")
     m("module").get should be(m)
