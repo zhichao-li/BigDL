@@ -42,9 +42,9 @@ object Predictor {
     if (batch != null) {
       localModel.forward(batch.getInput())
       val output = if (outputLayer == null) {
-        localModel.output.toTensor[T]
+        localModel.getOutput.toTensor[T]
       } else {
-        localModel(outputLayer).get.output.toTensor[T]
+        localModel(outputLayer).get.getOutput.toTensor[T]
       }
       val result = if (shareBuffer) output else output.clone()
       val batchOut = if (result.dim() == 1) {

@@ -238,9 +238,9 @@ class ResNetSpec extends TorchSpec {
 
     def feval(x: Tensor[Float]): (Float, Tensor[Float]) = {
       model.forward(input)
-      criterion.forward(model.output.asInstanceOf[Tensor[Float]], labels)
+      criterion.forward(model.getOutput.asInstanceOf[Tensor[Float]], labels)
       model.zeroGradParameters()
-      val gradOutputTest = criterion.backward(model.output.asInstanceOf[Tensor[Float]], labels)
+      val gradOutputTest = criterion.backward(model.getOutput.asInstanceOf[Tensor[Float]], labels)
       model.backward(input, gradOutputTest)
       (criterion.output, grad)
     }
@@ -249,7 +249,7 @@ class ResNetSpec extends TorchSpec {
     }
 
     val output = TH.map("output").asInstanceOf[Tensor[Float]]
-    val outputTest = model.output.toTensor[Float]
+    val outputTest = model.getOutput.toTensor[Float]
     var abss = 0.0
     for (i <- 0 until outputTest.nElement()) {
       val tmp = abs(outputTest.storage().array()(i) - output.storage().array()(i))
@@ -274,7 +274,7 @@ class ResNetSpec extends TorchSpec {
     assert(abss < 2e-6)
     println(s"gradOutputTestAbs:$abss")
 
-    val gradInput = model.gradInput.asInstanceOf[Tensor[Float]]
+    val gradInput = model.getGradInput.asInstanceOf[Tensor[Float]]
     val gradInputTorch = TH.map("gradInput").asInstanceOf[Tensor[Float]]
 
     abss = 0.0

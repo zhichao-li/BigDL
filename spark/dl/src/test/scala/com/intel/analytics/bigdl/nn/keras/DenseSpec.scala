@@ -28,14 +28,13 @@ import org.scalatest.{FlatSpec, Matchers}
 class DenseSpec extends FlatSpec with Matchers {
 
   "Graph: Dense + Linear" should "works correctly" in {
-    val input = NewInput[Float](inputShape = Array(10))
+    val input = Input[Float](inputShape = Array(10))
     val d = new Dense[Float](20).setName("dense1").inputs(input)
     val d2 = new Dense[Float](5).setName("dense2").inputs(d)
     // mix with the old layer
     val d3 = new Linear[Float](inputSize = 5, outputSize = 30).setName("dense3").inputs(d2)
     val d4 = new Dense[Float](6).setName("dense4").inputs(d3)
     val graph = Graph[Float](input, d4)
-    graph.compile()
     val inputData = Tensor[Float](Array(20, 10)).rand()
     val output = graph.forward(inputData)
   }
@@ -52,7 +51,6 @@ class DenseSpec extends FlatSpec with Matchers {
     seq.add(d2)
     seq.add(d3)
     seq.add(d4)
-    seq.compile()
     val inputData = Tensor[Float](Array(20, 10)).rand()
     val output = seq.forward(inputData)
   }
@@ -70,7 +68,7 @@ class DenseSpec extends FlatSpec with Matchers {
 
   "Sequential: pure old style with compile" should "works correctly" in {
     val seq = Sequential[Float]()
-    val input = new NewInput(inputShape = Array(5))
+    val input = new Input(inputShape = Array(5))
     val d1 = new Linear[Float](inputSize = 5, outputSize = 6).setName("dense1")
     val d2 = new Linear[Float](inputSize = 6, outputSize = 7).setName("dense2")
     seq.add(input)
@@ -94,7 +92,7 @@ class DenseSpec extends FlatSpec with Matchers {
   }
 
   "Graph: pure old style with compile" should "works correctly" in {
-    val input = NewInput[Float](inputShape = Array(5))
+    val input = Input[Float](inputShape = Array(5))
     val d1 = new Linear[Float](inputSize = 5, outputSize = 6).inputs(input)
     val d2 = new Linear[Float](inputSize = 6, outputSize = 7).inputs(d1)
     val graph = Graph[Float](input, d2)

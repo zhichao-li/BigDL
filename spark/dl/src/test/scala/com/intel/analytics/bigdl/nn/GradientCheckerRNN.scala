@@ -41,9 +41,9 @@ class GradientCheckerRNN(stepSize: Double = 0.01, threshold: Double = 0.01) {
     val sgd = new SGD[Double]
     def feval(x: Tensor[Double]): (Double, Tensor[Double]) = {
       layer.forward(input)
-      criterion.forward(layer.output.asInstanceOf[Tensor[Double]], label)
+      criterion.forward(layer.getOutput.asInstanceOf[Tensor[Double]], label)
       layer.zeroGradParameters()
-      val gradOutputTest = criterion.backward(layer.output.asInstanceOf[Tensor[Double]], label)
+      val gradOutputTest = criterion.backward(layer.getOutput.asInstanceOf[Tensor[Double]], label)
       layer.backward(input, gradOutputTest)
       (criterion.output, grad)
     }
@@ -55,11 +55,11 @@ class GradientCheckerRNN(stepSize: Double = 0.01, threshold: Double = 0.01) {
       var originalValue = weights.valueAt(i)
       weights.setValue(i, originalValue + stepSize)
       layer.forward(input)
-      criterion.forward(layer.output.asInstanceOf[Tensor[Double]], label)
+      criterion.forward(layer.getOutput.asInstanceOf[Tensor[Double]], label)
       var gradPlus = criterion.output
       weights.setValue(i, originalValue - stepSize)
       layer.forward(input)
-      criterion.forward(layer.output.asInstanceOf[Tensor[Double]], label)
+      criterion.forward(layer.getOutput.asInstanceOf[Tensor[Double]], label)
       var gradMinus = criterion.output
       var estimatedGradient = (gradPlus - gradMinus) / (2*stepSize)
       weights.setValue(i, originalValue)

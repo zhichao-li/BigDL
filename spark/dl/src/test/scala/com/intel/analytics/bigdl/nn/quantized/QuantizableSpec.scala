@@ -119,7 +119,7 @@ class QuantizableSpec extends FlatSpec with Matchers {
     linear.updateOutput(input)
     linear2.updateOutput(input)
 
-    linear.output shouldEqual linear2.output
+    linear.getOutput shouldEqual linear2.getOutput
   }
 
   "quantize a quantized SpatialConvolution" should "work correctly" in {
@@ -143,7 +143,7 @@ class QuantizableSpec extends FlatSpec with Matchers {
     conv.updateOutput(input)
     conv2.updateOutput(input)
 
-    conv.output shouldEqual conv2.output
+    conv.getOutput shouldEqual conv2.getOutput
   }
 
   "JNI test" should "work correctly" in {
@@ -170,7 +170,7 @@ class QuantizableSpec extends FlatSpec with Matchers {
     logger.info(quantizedGraph)
     quantizedGraph.forward(input)
 
-    graph.output.toTensor should be (quantizedGraph.output.toTensor)
+    graph.getOutput.toTensor should be (quantizedGraph.getOutput.toTensor)
   }
 
   private def equalWithPrecision(t1: Tensor[Float], t2: Tensor[Float], precision: Int): Boolean = {

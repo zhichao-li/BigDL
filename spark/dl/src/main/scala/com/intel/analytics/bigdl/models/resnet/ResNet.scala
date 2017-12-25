@@ -71,13 +71,13 @@ object ResNet {
       model match {
         case container: Container[Activity, Activity, Float] =>
           container.modules.foreach( m => {
-            if (m.gradInput.isInstanceOf[Tensor[_]] &&
+            if (m.getGradInput.isInstanceOf[Tensor[_]] &&
               !m.getClass.getName.equals(packageName + "ConcatTable")) {
               val key = sharingKey(m)
               if (!cache.contains(key)) {
                 cache.put(key, Storage(Array(1.0f)))
               }
-              m.gradInput = Tensor(cache.get(key).get, 1, Array(0))
+              m.setGradInput(Tensor(cache.get(key).get, 1, Array(0)))
             }
             matchModels(m)
           })
@@ -85,7 +85,7 @@ object ResNet {
           if (!cache.contains(index % 2)) {
             cache.put(index % 2, Storage(Array(1.0f)))
           }
-          concatTable.gradInput = Tensor[Float](cache.get(index % 2).get, 1, Array(0))
+          concatTable.setGradInput(Tensor[Float](cache.get(index % 2).get, 1, Array(0)))
           index = index + 1
         case spatialShareConvolution
           if (spatialShareConvolution.isInstanceOf[SpatialShareConvolution[Float]]) =>

@@ -104,12 +104,12 @@ abstract class Container[A <: Activity : ClassTag,
         } else {
           preNodes.map{_.element.getOutputShape()}.toList
         }
-        val n = if (node.element.isInstanceOf[NewModule[A, B, T]]) {
-          node.element.asInstanceOf[NewModule[A, B, T]]
-        } else {
-          node.element
-        }
-        n.build(gatherFinalResult(inputShapes))
+//        val n = if (node.element.isInstanceOf[NewModule[A, B, T]]) {
+//          node.element.asInstanceOf[NewModule[A, B, T]]
+//        } else {
+//          node.element
+//        }
+      node.element.build(gatherFinalResult(inputShapes))
 //      }
       i += 1
     }
@@ -123,6 +123,7 @@ abstract class Container[A <: Activity : ClassTag,
    */
   def add(module: IModule[_ <: Activity, _ <: Activity, T]): this.type = {
     modules += module.asInstanceOf[IModule[Activity, Activity, T]]
+    compile()
     this
   }
 

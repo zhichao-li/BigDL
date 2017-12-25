@@ -838,10 +838,10 @@ class DynamicGraphSpec  extends FlatSpec with Matchers {
     gradientBPNoBack.toTensor.nElement() should be(0)
     val namedModule1 = Utils.getNamedModules(funcModelOriginal)
     val namedModule2 = Utils.getNamedModules(funcModelNoBack)
-    namedModule2("r1").gradInput.toTensor.nElement() should be(0)
-    namedModule2("conv1").gradInput.toTensor.nElement() should be(0)
-    namedModule2("tanh1").gradInput.toTensor.nElement() should be(0)
-    namedModule2("pool1").gradInput.toTensor.nElement() should be(0)
+    namedModule2("r1").getGradInput.toTensor.nElement() should be(0)
+    namedModule2("conv1").getGradInput.toTensor.nElement() should be(0)
+    namedModule2("tanh1").getGradInput.toTensor.nElement() should be(0)
+    namedModule2("pool1").getGradInput.toTensor.nElement() should be(0)
 
     namedModule2("conv2").asInstanceOf[SpatialConvolution[Float]].parameters()._2 should be(
       namedModule2("conv2").asInstanceOf[SpatialConvolution[Float]].parameters()._2)
@@ -893,11 +893,11 @@ class DynamicGraphSpec  extends FlatSpec with Matchers {
     graphNoBack.backward(input, gradOutput)
     graphNoBackExpect.forward(input)
     graphNoBackExpect.backward(input, Tensor(T(3.0f, 4.0f)))
-    output1_1.element.gradInput.toTensor.nElement() should be (0)
-    cadd_2.element.gradInput should be (cadd_1.element.gradInput)
-    fc1_2.element.gradInput should be (fc1_1.element.gradInput)
-    fc2_2.element.gradInput should be (fc2_1.element.gradInput)
-    output2.element.gradInput should be (output2_1.element.gradInput)
+    output1_1.element.getGradInput.toTensor.nElement() should be (0)
+    cadd_2.element.getGradInput should be (cadd_1.element.getGradInput)
+    fc1_2.element.getGradInput should be (fc1_1.element.getGradInput)
+    fc2_2.element.getGradInput should be (fc2_1.element.getGradInput)
+    output2.element.getGradInput should be (output2_1.element.getGradInput)
   }
 
   "Dynamic Graph propagate false in concat subpath" should "work properly" in {
@@ -933,9 +933,9 @@ class DynamicGraphSpec  extends FlatSpec with Matchers {
 
     graph.backward(input, gradOutput)
     graphNoBack.backward(input, gradOutput)
-    fc2_1.element.gradInput.toTensor.nElement() should be (0)
-    output2.element.gradInput should be (output2_1.element.gradInput)
-    fc1_1.element.gradInput should be (fc1.element.gradInput)
+    fc2_1.element.getGradInput.toTensor.nElement() should be (0)
+    output2.element.getGradInput should be (output2_1.element.getGradInput)
+    fc1_1.element.getGradInput should be (fc1.element.getGradInput)
     fc1_1.element.parameters()._2 should be (fc1.element.parameters()._2)
   }
 
@@ -972,11 +972,11 @@ class DynamicGraphSpec  extends FlatSpec with Matchers {
 
     graph.backward(input, gradOutput)
     graphNoBack.backward(input, gradOutput)
-    fc2_1.element.gradInput.toTensor.nElement() should be (0)
-    output2.element.gradInput should be (output2_1.element.gradInput)
-    fc1_1.element.gradInput should be (fc1.element.gradInput)
+    fc2_1.element.getGradInput.toTensor.nElement() should be (0)
+    output2.element.getGradInput should be (output2_1.element.getGradInput)
+    fc1_1.element.getGradInput should be (fc1.element.getGradInput)
     fc1_1.element.parameters()._2 should be (fc1.element.parameters()._2)
-    reshape.element.gradInput.toTensor.nElement() should be (0)
+    reshape.element.getGradInput.toTensor.nElement() should be (0)
   }
 
   "Dynamic Graph propagate false reset to true" should "work properly" in {
@@ -1012,9 +1012,9 @@ class DynamicGraphSpec  extends FlatSpec with Matchers {
 
     graph.backward(input, gradOutput)
     graphNoBack.backward(input, gradOutput)
-    fc2_1.element.gradInput.toTensor.nElement() should be (0)
-    output2.element.gradInput should be (output2_1.element.gradInput)
-    fc1_1.element.gradInput should be (fc1.element.gradInput)
+    fc2_1.element.getGradInput.toTensor.nElement() should be (0)
+    output2.element.getGradInput should be (output2_1.element.getGradInput)
+    fc1_1.element.getGradInput should be (fc1.element.getGradInput)
     fc1_1.element.parameters()._2 should be (fc1.element.parameters()._2)
 
     // reset propagateBack
@@ -1134,11 +1134,11 @@ class DynamicGraphSpec  extends FlatSpec with Matchers {
 
     graph.backward(input, gradOutput)
     graphNoBack.backward(input, gradOutput)
-    fc2_1.element.gradInput.toTensor.nElement() should be (0)
-    output2.element.gradInput should be (output2_1.element.gradInput)
-    fc1_1.element.gradInput should be (fc1.element.gradInput)
+    fc2_1.element.getGradInput.toTensor.nElement() should be (0)
+    output2.element.getGradInput should be (output2_1.element.getGradInput)
+    fc1_1.element.getGradInput should be (fc1.element.getGradInput)
     fc1_1.element.parameters()._2 should be (fc1.element.parameters()._2)
-    reshape.element.gradInput.toTensor.nElement() should be (0)
+    reshape.element.getGradInput.toTensor.nElement() should be (0)
   }
 
   "save graph to tensorboard log dir" should "work" in {
@@ -1155,8 +1155,8 @@ class DynamicGraphSpec  extends FlatSpec with Matchers {
   }
 
   "Dynamic Graph" should "support switch with two branch" in {
-    val data = Input("data")
-    val condition = Input("condition")
+    val data = Input(name="data")
+    val condition = Input(name="condition")
     val swtich = ControlNodes.switch(condition, data)
     val echo1 = Echo().inputs(swtich.trueEdge())
     val echo2 = Echo().inputs(swtich.falseEdge())
@@ -1171,8 +1171,8 @@ class DynamicGraphSpec  extends FlatSpec with Matchers {
   }
 
   "Dynamic Graph" should "support switch with two branch with merge" in {
-    val data = Input("data")
-    val condition = Input("condition")
+    val data = Input(name="data")
+    val condition = Input(name="condition")
     val swtich = ControlNodes.switch(condition, data)
     val echo1 = Echo().inputs(swtich.trueEdge())
     val echo2 = Echo().inputs(swtich.falseEdge())

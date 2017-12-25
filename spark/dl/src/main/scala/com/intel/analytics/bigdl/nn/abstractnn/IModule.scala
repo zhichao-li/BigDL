@@ -37,6 +37,101 @@ import com.intel.analytics.bigdl.utils.tf.{TensorflowDataFormat, TensorflowSaver
 
 import scala.reflect.ClassTag
 
+trait NameUtilities[A <: Activity, B <: Activity, T] {
+  self: IModule[A, B, T] =>
+  private var namePostfix = Integer.toHexString(java.util.UUID.randomUUID().hashCode())
+
+  def getNamePostfix : String = namePostfix
+
+  def setNamePostfix(namePostfix : String) : Unit = this.namePostfix = namePostfix
+
+
+  /**
+   * The name of the module
+   */
+  protected var name : String = null
+
+  def hasName: Boolean = name != null
+
+  /**
+   * Set the module name
+   *
+   * @param name
+   * @return
+   */
+  def setName(name : String) : this.type = {
+    this.name = name
+    this
+  }
+
+  /**
+   * Get the module name, default name is className@namePostfix
+   *
+   * @return
+   */
+  def getName() : String = {
+    if (this.name == null) {
+      s"${this.getClass.getSimpleName}${namePostfix}"
+    } else {
+      this.name
+    }
+  }
+
+  def getPrintName(): String = {
+    val postfix = if (name == null) {
+      namePostfix
+    } else {
+      name
+    }
+    s"${this.getClass.getSimpleName}[${postfix}]"
+
+  }
+}
+
+trait GraphUtilities[A <: Activity, B <: Activity, T] {
+   self: IModule[A, B, T] =>
+  /**
+   * Build graph: some other modules point to current module
+   * @param nodes upstream module nodes
+   * @return node containing current module
+   */
+  def inputs(nodes : ModuleNode[T]*): ModuleNode[T] = {
+    val curNode = new ModuleNode[T](this)
+    nodes.foreach(node => {
+      node.add(curNode, Edge())
+    })
+    curNode
+  }
+
+  /**
+   * Build graph: some other modules point to current module
+   * @param nodes upstream module nodes in an array
+   * @return node containing current module
+   */
+  def inputs(nodes : Array[ModuleNode[T]]): ModuleNode[T] = {
+    val curNode = new ModuleNode[T](this)
+    nodes.foreach(node => {
+      node.add(curNode, Edge())
+    })
+    curNode
+  }
+
+  /**
+   * Build graph: some other modules point to current module
+   * @param first distinguish from another inputs when input parameter list is empty
+   * @param nodesWithIndex upstream module nodes and the output tensor index. The start index is 1.
+   * @return node containing current module
+   */
+  def inputs(first: (ModuleNode[T], Int), nodesWithIndex : (ModuleNode[T], Int)*): ModuleNode[T] = {
+    val curNode = new ModuleNode[T](this)
+    first._1.add(curNode, Edge(first._2))
+    nodesWithIndex.foreach(nodeWithIndex => {
+      nodeWithIndex._1.add(curNode, Edge(nodeWithIndex._2))
+    })
+    curNode
+  }
+}
+
 /**
  * Module is the basic component of a neural network. It forward activities and backward gradients.
  * Modules can connect to others to construct a complex neural network.
@@ -46,17 +141,13 @@ import scala.reflect.ClassTag
  * @tparam T Numeric type of parameter(e.g. weight, bias). Only support float/double now
  */
 abstract class IModule[A <: Activity: ClassTag, B <: Activity: ClassTag, T: ClassTag]
-  extends Serializable {
-
+  extends Serializable with GraphUtilities[A, B, T] with NameUtilities[A, B, T]{
+  // TODO: All implemented methods without state should move to here
   def getOutput: B
 
   def getGradInput: A
 
   def setGradInput(gradInput: A): Unit
-
-  def getNamePostfix : String = Integer.toHexString(java.util.UUID.randomUUID().hashCode())
-
-  def setNamePostfix(namePostfix : String) : Unit
 
   def setInputShape(inputShape: Activity): Unit
 
@@ -113,25 +204,6 @@ abstract class IModule[A <: Activity: ClassTag, B <: Activity: ClassTag, T: Clas
    * @return
    */
   def clearState() : IModule[A, B, T]
-
-
-  def hasName: Boolean
-  /**
-   * Set the module name
-   *
-   * @param name
-   * @return
-   */
-  def setName(name : String) : IModule[A, B, T]
-
-  /**
-   * Get the module name, default name is className@namePostfix
-   *
-   * @return
-   */
-  def getName() : String
-
-  def getPrintName(): String
 
   override def toString(): String = getPrintName
 
@@ -402,28 +474,6 @@ abstract class IModule[A <: Activity: ClassTag, B <: Activity: ClassTag, T: Clas
    * @return current module
    */
   def loadModelWeights(srcModel: Module[Float], matchAll: Boolean = true): IModule[A, B, T]
-
-  /**
-   * Build graph: some other modules point to current module
-   * @param nodes upstream module nodes
-   * @return node containing current module
-   */
-  def inputs(nodes : ModuleNode[T]*): ModuleNode[T]
-
-  /**
-   * Build graph: some other modules point to current module
-   * @param nodes upstream module nodes in an array
-   * @return node containing current module
-   */
-  def inputs(nodes : Array[ModuleNode[T]]): ModuleNode[T]
-
-  /**
-   * Build graph: some other modules point to current module
-   * @param first distinguish from another inputs when input parameter list is empty
-   * @param nodesWithIndex upstream module nodes and the output tensor index. The start index is 1.
-   * @return node containing current module
-   */
-  def inputs(first: (ModuleNode[T], Int), nodesWithIndex : (ModuleNode[T], Int)*): ModuleNode[T]
 
   /**
    * Find a module with given name. If there is no module with given name, it will return None. If

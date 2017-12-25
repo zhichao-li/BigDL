@@ -33,7 +33,8 @@ import org.apache.spark.rdd.RDD
 
 import scala.reflect.ClassTag
 
-class IModuleAdapter[A <: Activity: ClassTag, B <: Activity: ClassTag, T: ClassTag] {
+class IModuleAdapter[A <: Activity: ClassTag, B <: Activity: ClassTag, T: ClassTag]
+(implicit ev: TensorNumeric[T]) extends IModule[A, B, T]{
 
   protected  var labor: IModule[A, B, T] = null  // reset labor to be null
 
@@ -42,10 +43,6 @@ class IModuleAdapter[A <: Activity: ClassTag, B <: Activity: ClassTag, T: ClassT
   def getGradInput: A = labor.getGradInput
 
   def setGradInput(gradInput: A): Unit = labor.setGradInput(gradInput)
-
-  def getNamePostfix : String = labor.getNamePostfix
-
-  def setNamePostfix(namePostfix : String) : Unit = labor.setNamePostfix(namePostfix)
 
   def setInputShape(inputShape: Activity): Unit = labor.setGradInput(inputShape)
 
@@ -57,7 +54,7 @@ class IModuleAdapter[A <: Activity: ClassTag, B <: Activity: ClassTag, T: ClassT
 
   def build(inputShape: Activity): Unit = labor.build(inputShape)
 
-  def doComputeOutputShape(inputShape: Activity): Activity = inputShape
+  override def doComputeOutputShape(inputShape: Activity): Activity = inputShape
 
   def forward(input: A): B = labor.forward(input)
 
@@ -99,25 +96,6 @@ class IModuleAdapter[A <: Activity: ClassTag, B <: Activity: ClassTag, T: ClassT
    * @return
    */
   def clearState() : IModule[A, B, T] = labor.clearState()
-
-
-  def hasName: Boolean = labor.hasName
-  /**
-   * Set the module name
-   *
-   * @param name
-   * @return
-   */
-  def setName(name : String) : IModule[A, B, T] = labor.setName(name)
-
-  /**
-   * Get the module name, default name is className@namePostfix
-   *
-   * @return
-   */
-  def getName() : String = labor.getName()
-
-  def getPrintName(): String = labor.getPrintName()
 
   override def toString(): String = getPrintName
 
@@ -253,8 +231,6 @@ class IModuleAdapter[A <: Activity: ClassTag, B <: Activity: ClassTag, T: ClassT
   def checkEngineType(): IModule[A, B, T] = labor.checkEngineType()
 
   def cloneModule(): IModule[A, B, T] = labor.cloneModule()  // TODO: clone itself??
-
-  def canEqual(other: Any): Boolean = other.isInstanceOf[IModule[A, B, T]]
 
   /**
    * Save this module to path.
@@ -393,28 +369,6 @@ class IModuleAdapter[A <: Activity: ClassTag, B <: Activity: ClassTag, T: ClassT
   def loadModelWeights(srcModel: Module[Float], matchAll: Boolean = true): IModule[A, B, T] =
     labor.loadModelWeights(srcModel = srcModel, matchAll = matchAll)
 
-  /**
-   * Build graph: some other modules point to current module
-   * @param nodes upstream module nodes
-   * @return node containing current module
-   */
-  def inputs(nodes : ModuleNode[T]*): ModuleNode[T] = labor.inputs(nodes : _*)
-
-  /**
-   * Build graph: some other modules point to current module
-   * @param nodes upstream module nodes in an array
-   * @return node containing current module
-   */
-  def inputs(nodes : Array[ModuleNode[T]]): ModuleNode[T] = labor.inputs(nodes)
-
-  /**
-   * Build graph: some other modules point to current module
-   * @param first distinguish from another inputs when input parameter list is empty
-   * @param nodesWithIndex upstream module nodes and the output tensor index. The start index is 1.
-   * @return node containing current module
-   */
-  def inputs(first: (ModuleNode[T], Int), nodesWithIndex : (ModuleNode[T], Int)*): ModuleNode[T] =
-  labor.inputs(first, nodesWithIndex : _*)
 
   /**
    * Find a module with given name. If there is no module with given name, it will return None. If

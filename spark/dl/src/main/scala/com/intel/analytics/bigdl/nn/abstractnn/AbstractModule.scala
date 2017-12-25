@@ -57,11 +57,6 @@ abstract class TensorModule[T: ClassTag]
 abstract class AbstractModule[A <: Activity: ClassTag, B <: Activity: ClassTag, T: ClassTag](
   implicit ev: TensorNumeric[T]) extends IModule[A, B, T] {
 
-  private var namePostfix = Integer.toHexString(java.util.UUID.randomUUID().hashCode())
-
-  override def getNamePostfix : String = namePostfix
-
-  def setNamePostfix(namePostfix : String) : Unit = this.namePostfix = namePostfix
 
   var labor = this
 
@@ -181,47 +176,6 @@ abstract class AbstractModule[A <: Activity: ClassTag, B <: Activity: ClassTag, 
     case tensor: Tensor[T] => Tensor[T]()
     case table: Table => T()
     case _ => throw new IllegalArgumentException("Activity only support tensor and table now")
-  }
-
-  /**
-   * The name of the module
-   */
-  private var name : String = null
-
-  def hasName: Boolean = name != null
-
-  /**
-   * Set the module name
-   *
-   * @param name
-   * @return
-   */
-  def setName(name : String) : this.type = {
-    this.name = name
-    this
-  }
-
-  /**
-   * Get the module name, default name is className@namePostfix
-   *
-   * @return
-   */
-  override def getName() : String = {
-    if (this.name == null) {
-      s"${this.getClass.getSimpleName}${namePostfix}"
-    } else {
-      this.name
-    }
-  }
-
-  protected def getPrintName(): String = {
-    val postfix = if (name == null) {
-      namePostfix
-    } else {
-      name
-    }
-    s"${this.getClass.getSimpleName}[${postfix}]"
-
   }
 
   override def toString(): String = getPrintName
@@ -746,46 +700,6 @@ abstract class AbstractModule[A <: Activity: ClassTag, B <: Activity: ClassTag, 
     }
   }
 
-  /**
-   * Build graph: some other modules point to current module
-   * @param nodes upstream module nodes
-   * @return node containing current module
-   */
-  def inputs(nodes : ModuleNode[T]*): ModuleNode[T] = {
-    val curNode = new ModuleNode[T](this)
-    nodes.foreach(node => {
-      node.add(curNode, Edge())
-    })
-    curNode
-  }
-
-  /**
-   * Build graph: some other modules point to current module
-   * @param nodes upstream module nodes in an array
-   * @return node containing current module
-   */
-  def inputs(nodes : Array[ModuleNode[T]]): ModuleNode[T] = {
-    val curNode = new ModuleNode[T](this)
-    nodes.foreach(node => {
-      node.add(curNode, Edge())
-    })
-    curNode
-  }
-
-  /**
-   * Build graph: some other modules point to current module
-   * @param first distinguish from another inputs when input parameter list is empty
-   * @param nodesWithIndex upstream module nodes and the output tensor index. The start index is 1.
-   * @return node containing current module
-   */
-  def inputs(first: (ModuleNode[T], Int), nodesWithIndex : (ModuleNode[T], Int)*): ModuleNode[T] = {
-    val curNode = new ModuleNode[T](this)
-    first._1.add(curNode, Edge(first._2))
-    nodesWithIndex.foreach(nodeWithIndex => {
-      nodeWithIndex._1.add(curNode, Edge(nodeWithIndex._2))
-    })
-    curNode
-  }
 
   /**
    * Find a module with given name. If there is no module with given name, it will return None. If
