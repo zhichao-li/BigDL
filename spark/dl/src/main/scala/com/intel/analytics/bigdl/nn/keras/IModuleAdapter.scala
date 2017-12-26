@@ -398,12 +398,12 @@ class IModuleAdapter[A <: Activity: ClassTag, B <: Activity: ClassTag, T: ClassT
   def quantize(): Module[T] = labor.quantize()
 
 
-  /**
-   * Generate graph module with start nodes
-   * @param startNodes
-   * @return
-   */
-  def toGraph(startNodes: ModuleNode[T]*): Graph[T] = labor.toGraph(startNodes : _*)
+//  /**
+//   * Generate graph module with start nodes
+//   * @param startNodes
+//   * @return
+//   */
+//  def toGraph(startNodes: ModuleNode[T]*): Graph[T] = labor.toGraph(startNodes : _*)
 
 
   def getClassTagNumerics() : (Array[ClassTag[_]], Array[TensorNumeric[_]]) =
@@ -413,10 +413,10 @@ class IModuleAdapter[A <: Activity: ClassTag, B <: Activity: ClassTag, T: ClassT
 
   def getNumericType(): TensorDataType = labor.getNumericType()
 
-  private[bigdl] def getEndNodes(startNodes: Array[ModuleNode[T]]): Array[ModuleNode[T]] = {
-    labor.getEndNodes(startNodes)
-  }
-
-  private[nn] def allocateAs(dest: Activity): Activity = labor.allocateAs(dest)
+//  private[bigdl] def getEndNodes(startNodes: Array[ModuleNode[T]]): Array[ModuleNode[T]] = {
+//    labor.getEndNodes(startNodes)
+//  }
+//
+//  private[nn] def allocateAs(dest: Activity): Activity = labor.allocateAs(dest)
 
 }

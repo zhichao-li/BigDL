@@ -98,7 +98,7 @@ class DenseSpec extends FlatSpec with Matchers {
     val graph = Graph[Float](input, d2)
     val inputData = Tensor[Float](Array(20, 5)).rand()
     val output = graph.forward(inputData)
-    graph.compile()
+//    graph.compile()
     require(d2.element.getOutputShape().toTensor[Int].toArray().sameElements(Array(7)))
     require(d2.element.getInputShape().toTensor[Int].toArray().sameElements(Array(6)))
   }

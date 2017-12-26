@@ -740,28 +740,6 @@ abstract class AbstractModule[A <: Activity: ClassTag, B <: Activity: ClassTag, 
     Quantization.quantize(this)
   }
 
-
-  /**
-   * Generate end nodes of current module with start nodes
-   * @param startNodes: current start nodes
-   * @return current end nodes
-   */
-  private[bigdl] def getEndNodes(startNodes: Array[ModuleNode[T]]): Array[ModuleNode[T]] = {
-    val endNodes = Array(this.inputs(startNodes: _*))
-    endNodes
-  }
-
-  /**
-   * Generate graph module with start nodes
-   * @param startNodes
-   * @return
-   */
-  def toGraph(startNodes: ModuleNode[T]*): Graph[T] = {
-    val starts = if (startNodes.isEmpty) Array(Input[T]()) else startNodes.toArray
-    val endNodes = this.getEndNodes(starts)
-    Graph(starts, endNodes)
-  }
-
   def getClassTagNumerics() : (Array[ClassTag[_]], Array[TensorNumeric[_]]) = {
     (Array(scala.reflect.classTag[T]), Array(ev))
   }

@@ -22,7 +22,7 @@ import com.intel.analytics.bigdl._
 import com.intel.analytics.bigdl.tensor.{Tensor, TensorDataType}
 import com.intel.analytics.bigdl.tensor.TensorNumericMath.TensorNumeric
 import com.intel.analytics.bigdl.utils._
-import com.intel.analytics.bigdl.nn.{Module, _}
+import com.intel.analytics.bigdl.nn.{Graph, Module, _}
 import com.intel.analytics.bigdl.utils.TorchObject.TYPE_MODULE
 import org.apache.commons.lang3.SerializationUtils
 import org.apache.spark.rdd.RDD
@@ -90,46 +90,7 @@ trait NameUtilities[A <: Activity, B <: Activity, T] {
 
 trait GraphUtilities[A <: Activity, B <: Activity, T] {
    self: IModule[A, B, T] =>
-  /**
-   * Build graph: some other modules point to current module
-   * @param nodes upstream module nodes
-   * @return node containing current module
-   */
-  def inputs(nodes : ModuleNode[T]*): ModuleNode[T] = {
-    val curNode = new ModuleNode[T](this)
-    nodes.foreach(node => {
-      node.add(curNode, Edge())
-    })
-    curNode
-  }
 
-  /**
-   * Build graph: some other modules point to current module
-   * @param nodes upstream module nodes in an array
-   * @return node containing current module
-   */
-  def inputs(nodes : Array[ModuleNode[T]]): ModuleNode[T] = {
-    val curNode = new ModuleNode[T](this)
-    nodes.foreach(node => {
-      node.add(curNode, Edge())
-    })
-    curNode
-  }
-
-  /**
-   * Build graph: some other modules point to current module
-   * @param first distinguish from another inputs when input parameter list is empty
-   * @param nodesWithIndex upstream module nodes and the output tensor index. The start index is 1.
-   * @return node containing current module
-   */
-  def inputs(first: (ModuleNode[T], Int), nodesWithIndex : (ModuleNode[T], Int)*): ModuleNode[T] = {
-    val curNode = new ModuleNode[T](this)
-    first._1.add(curNode, Edge(first._2))
-    nodesWithIndex.foreach(nodeWithIndex => {
-      nodeWithIndex._1.add(curNode, Edge(nodeWithIndex._2))
-    })
-    curNode
-  }
 }
 
 /**
@@ -141,6 +102,7 @@ trait GraphUtilities[A <: Activity, B <: Activity, T] {
  * @tparam T Numeric type of parameter(e.g. weight, bias). Only support float/double now
  */
 abstract class IModule[A <: Activity: ClassTag, B <: Activity: ClassTag, T: ClassTag]
+(implicit ev: TensorNumeric[T])
   extends Serializable with GraphUtilities[A, B, T] with NameUtilities[A, B, T]{
   // TODO: All implemented methods without state should move to here
   def getOutput: B
@@ -501,24 +463,76 @@ abstract class IModule[A <: Activity: ClassTag, B <: Activity: ClassTag, T: Clas
 
   def quantize(): Module[T]
 
-
-  /**
-   * Generate graph module with start nodes
-   * @param startNodes
-   * @return
-   */
-  def toGraph(startNodes: ModuleNode[T]*): Graph[T]
-
-
   def getClassTagNumerics() : (Array[ClassTag[_]], Array[TensorNumeric[_]])
 
   def getLine(): String
 
   def getNumericType(): TensorDataType
 
-  private[bigdl] def getEndNodes(startNodes: Array[ModuleNode[T]]): Array[ModuleNode[T]]
 
-  private[nn] def allocateAs(dest: Activity): Activity
+  // Graph Utilities
+
+  /**
+   * Build graph: some other modules point to current module
+   * @param nodes upstream module nodes
+   * @return node containing current module
+   */
+  def inputs(nodes : ModuleNode[T]*): ModuleNode[T] = {
+    val curNode = new ModuleNode[T](this)
+    nodes.foreach(node => {
+      node.add(curNode, Edge())
+    })
+    curNode
+  }
+
+  /**
+   * Build graph: some other modules point to current module
+   * @param nodes upstream module nodes in an array
+   * @return node containing current module
+   */
+  def inputs(nodes : Array[ModuleNode[T]]): ModuleNode[T] = {
+    val curNode = new ModuleNode[T](this)
+    nodes.foreach(node => {
+      node.add(curNode, Edge())
+    })
+    curNode
+  }
+
+  /**
+   * Build graph: some other modules point to current module
+   * @param first distinguish from another inputs when input parameter list is empty
+   * @param nodesWithIndex upstream module nodes and the output tensor index. The start index is 1.
+   * @return node containing current module
+   */
+  def inputs(first: (ModuleNode[T], Int), nodesWithIndex : (ModuleNode[T], Int)*): ModuleNode[T] = {
+    val curNode = new ModuleNode[T](this)
+    first._1.add(curNode, Edge(first._2))
+    nodesWithIndex.foreach(nodeWithIndex => {
+      nodeWithIndex._1.add(curNode, Edge(nodeWithIndex._2))
+    })
+    curNode
+  }
+
+  /**
+   * Generate end nodes of current module with start nodes
+   * @param startNodes: current start nodes
+   * @return current end nodes
+   */
+  private[bigdl] def getEndNodes(startNodes: Array[ModuleNode[T]]): Array[ModuleNode[T]] = {
+    val endNodes = Array(this.inputs(startNodes: _*))
+    endNodes
+  }
+
+  /**
+   * Generate graph module with start nodes
+   * @param startNodes
+   * @return
+   */
+  def toGraph(startNodes: ModuleNode[T]*): Graph[T] = {
+    val starts = if (startNodes.isEmpty) Array(Input[T]()) else startNodes.toArray
+    val endNodes = this.getEndNodes(starts)
+    Graph(starts, endNodes)
+  }
 
 }
 
