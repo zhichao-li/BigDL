@@ -50,6 +50,3 @@ class Dense[T: ClassTag](val outputDim: Int,
   }
 }
 
-object Dense extends App {
-
-}

@@ -58,7 +58,7 @@ abstract class AbstractModule[A <: Activity: ClassTag, B <: Activity: ClassTag, 
   implicit ev: TensorNumeric[T]) extends IModule[A, B, T] {
 
 
-  var labor = this
+//  var labor = this
 
   private var inputShapeValue: Activity = null
 
@@ -77,13 +77,13 @@ abstract class AbstractModule[A <: Activity: ClassTag, B <: Activity: ClassTag, 
 
   def getOutputShape(): Activity = {
     if (outputShapeValue == null) {
-      throw new RuntimeException("You should build this model first before getting the inputshape")
+      throw new RuntimeException("You should build this model first before getting the outputshape")
     }
     outputShapeValue
   }
 
   def isBuilt(): Boolean = {
-    labor != null
+    outputShapeValue != null
   }
 
   def build(inputShape: Activity): Unit = {

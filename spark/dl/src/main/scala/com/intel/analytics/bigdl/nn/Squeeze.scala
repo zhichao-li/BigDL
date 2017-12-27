@@ -15,7 +15,7 @@
  */
 package com.intel.analytics.bigdl.nn
 
-import com.intel.analytics.bigdl.nn.abstractnn.{AbstractModule, TensorModule}
+import com.intel.analytics.bigdl.nn.abstractnn.{AbstractModule, Activity, TensorModule}
 import com.intel.analytics.bigdl.tensor.Tensor
 import com.intel.analytics.bigdl.tensor.TensorNumericMath.{NumericWildcard, TensorNumeric}
 
@@ -40,6 +40,26 @@ class Squeeze[T: ClassTag](
       dims(i) += 1
       i += 1
     }
+  }
+
+  // TODO: Add unittest to cover this method
+  override def computeOutputShape(inputShape: Activity): Activity = {
+    val input = inputShape.toTensor[Int]
+    val dummyOutput = Tensor(input.toArray())
+    if (dims != null) {
+      var i = 0
+      while(i < dims.length) {
+        dummyOutput.squeeze(dims(i))
+        i += 1
+      }
+    } else {
+      dummyOutput.squeeze()
+    }
+
+    if (batchMode && dims == null && input.size(1) == 1) {
+      dummyOutput.addSingletonDimension()
+    }
+    Tensor(data = dummyOutput.size(), shape = Array(dummyOutput.size().length))
   }
 
   override def updateOutput(input: Tensor[_]): Tensor[_] = {

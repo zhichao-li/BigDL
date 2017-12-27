@@ -40,8 +40,7 @@ T: ClassTag](implicit ev: TensorNumeric[T]) extends IModuleAdapter[A, B, T] {
 
   def doBuild(inputShape: Activity): IModule[A, B, T]
 
-  // This method would only be called after `doBuilt`
-  override def doComputeOutputShape(inputShape: Activity): Activity = {
-    this.labor.doComputeOutputShape(inputShape)
+  override def computeOutputShape(inputShape: Activity): Activity = {
+    this.labor.computeOutputShape(inputShape)
   }
 }

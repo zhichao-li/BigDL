@@ -17,8 +17,9 @@
 package com.intel.analytics.bigdl.nn
 
 import com.intel.analytics.bigdl.nn.Graph.ModuleNode
-import com.intel.analytics.bigdl.nn.abstractnn.{AbstractModule, Activity}
+import com.intel.analytics.bigdl.nn.abstractnn.{AbstractModule, Activity, IModule}
 import com.intel.analytics.bigdl.tensor.TensorNumericMath.TensorNumeric
+import com.intel.analytics.bigdl.utils.Node
 
 import scala.reflect.ClassTag
 import scala.collection.mutable.ArrayBuffer
@@ -31,6 +32,18 @@ import scala.collection.mutable.ArrayBuffer
 @SerialVersionUID(5375403296928513267L)
 class Sequential[T: ClassTag]
 (implicit ev: TensorNumeric[T]) extends Container[Activity, Activity, T] {
+
+  override def buildingPath(): List[Node[IModule[Activity, Activity, T]]] = {
+    val nodes = modules.map(Node(_))
+    var i = 0
+    var j = 1
+    while (i < nodes.length && j < nodes.length) {
+      nodes(i).add(nodes(i + 1))
+      i += 1
+      j += 1
+    }
+    return nodes.toList
+  }
 
   override def updateOutput(input: Activity): Activity = {
     var i = 0
@@ -136,13 +149,13 @@ class Sequential[T: ClassTag]
 
     s"${getPrintName}{${getLine + tab}[input -> ${
       modules.zipWithIndex.map {
-        case (m: AbstractModule[Activity, Activity, T], i: Int) => "(" + (i + 1) + ")"
+        case (m: IModule[Activity, Activity, T], i: Int) => "(" + (i + 1) + ")"
       }.
         mkString(" -> ")
     } -> output]${getLine + tab}" +
       s"${
         modules.zipWithIndex.map {
-          case (model: AbstractModule[Activity, Activity, T], index: Int)
+          case (model: IModule[Activity, Activity, T], index: Int)
           => s"(${index + 1}): ${model.setLine(getLine + tab)}"
         }.
           mkString(getLine + tab)

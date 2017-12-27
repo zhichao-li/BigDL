@@ -16,7 +16,7 @@
 
 package com.intel.analytics.bigdl.nn
 
-import com.intel.analytics.bigdl.nn.abstractnn.{Initializable, TensorModule}
+import com.intel.analytics.bigdl.nn.abstractnn.{Activity, Initializable, TensorModule}
 import com.intel.analytics.bigdl.optim.Regularizer
 import com.intel.analytics.bigdl.tensor.Tensor
 import com.intel.analytics.bigdl.tensor.TensorNumericMath.TensorNumeric
@@ -98,6 +98,25 @@ class TemporalConvolution[T: ClassTag](
 
   @transient
   protected var results: Array[Future[Unit]] = _
+
+  override def computeOutputShape(inputShape: Activity): Activity = {
+    val input = inputShape.toTensor[Int]
+    var dimSeq = 1
+    var dimFeat = 2
+    if (input.dim() == 3) {
+      dimSeq = 2
+      dimFeat = 3
+    }
+    val nInputFrame = input.size(dimSeq)
+    var nOutputFrame = (nInputFrame - kernelW) / strideW + 1
+    val outputShape = if (input.dim() == 2) {
+      Array(nOutputFrame, outputFrameSize)
+    } else {
+      val batchSize = input.size(1)
+      Array(batchSize, nOutputFrame, outputFrameSize)
+    }
+    Tensor(data = outputShape, shape = Array(outputShape.length))
+  }
 
   override def reset(): Unit = {
     if (initWeight == null) {

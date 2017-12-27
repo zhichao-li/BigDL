@@ -36,7 +36,7 @@ import scala.reflect.ClassTag
 class IModuleAdapter[A <: Activity: ClassTag, B <: Activity: ClassTag, T: ClassTag]
 (implicit ev: TensorNumeric[T]) extends IModule[A, B, T]{
 
-  protected  var labor: IModule[A, B, T] = null  // reset labor to be null
+  protected  var labor: IModule[A, B, T] = null
 
   def getOutput: B = labor.getOutput
 
@@ -54,7 +54,7 @@ class IModuleAdapter[A <: Activity: ClassTag, B <: Activity: ClassTag, T: ClassT
 
   def build(inputShape: Activity): Unit = labor.build(inputShape)
 
-  override def doComputeOutputShape(inputShape: Activity): Activity = inputShape
+  override def computeOutputShape(inputShape: Activity): Activity = inputShape
 
   def forward(input: A): B = labor.forward(input)
 

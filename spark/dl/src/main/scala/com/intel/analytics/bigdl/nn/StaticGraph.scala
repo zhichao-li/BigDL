@@ -45,8 +45,7 @@ class StaticGraph[T: ClassTag](
   private val inputCache = new Array[Activity](forwardExecution.length)
   private var backId2ForwardId: Array[Int] = _
   private var gradOutputCache: Array[Activity] = _
-
-  compile()  // should before buildBackwardgraph
+  compile()
   buildBackwardGraph()
 
   override def updateOutput(input: Activity): Activity = {

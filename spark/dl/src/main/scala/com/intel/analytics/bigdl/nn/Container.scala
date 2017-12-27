@@ -17,6 +17,7 @@
 package com.intel.analytics.bigdl.nn
 
 import com.intel.analytics.bigdl.Module
+import com.intel.analytics.bigdl.nn.Graph.ModuleNode
 import com.intel.analytics.bigdl.nn.abstractnn.{AbstractModule, Activity, IModule}
 import com.intel.analytics.bigdl.nn.keras.NewModule
 import com.intel.analytics.bigdl.tensor.Tensor
@@ -42,39 +43,16 @@ abstract class Container[A <: Activity : ClassTag,
     B <: Activity : ClassTag, T: ClassTag](
   implicit ev: TensorNumeric[T]) extends AbstractModule[A, B, T] {
 
-//  private var train: Boolean = true
-
-//  protected var forwardTime = 0L
-//
-//  protected var backwardTime = 0L
-//
-//  /**
-//   * The cached output. So we don't compute it again when need it
-//   */
-//  var output: B = Activity.allocate[B, T]()
-//
-//  /**
-//   * The cached gradient of activities. So we don't compute it again when need it
-//   */
-//  var gradInput: A = Activity.allocate[A, T]()
-
   // list of sub modules
   val modules: ArrayBuffer[IModule[Activity, Activity, T]]
   = ArrayBuffer[IModule[Activity, Activity, T]]()
 
-  def executionNodes(): List[Node[IModule[Activity, Activity, T]]] = {
-    val nodes = modules.map(Node(_))
-    var i = 0
-    var j = 1
-    while (i < nodes.length && j < nodes.length) {
-      nodes(i).add(nodes(i + 1))
-      i += 1
-      j += 1
-    }
-    return nodes.toList
+  // Return empty list as compile do nothing by default.
+  def buildingPath(): List[Node[IModule[Activity, Activity, T]]] = {
+    List()
   }
 
-  def compile(): Unit = {
+  private def doCompile(executionNodes: List[ModuleNode[T]]): Unit = {
     def gatherFinalResult(values: List[Activity]): Activity = {
       if (values.isEmpty) {
         return null
@@ -90,28 +68,30 @@ abstract class Container[A <: Activity : ClassTag,
       }
     }
     var i = 0
-    val executionNodes = this.executionNodes()
     while (i < executionNodes.length) {
       val node = executionNodes(i)
-//      if (!node.element.isBuilt()) {
-        val preNodes = node.prevNodes
-        val inputShapes = if (preNodes.isEmpty) {
-          if (node.element.getInputShape() == null) {
-            throw new RuntimeException("The first layer should explicitly declare inputShape")
-          } else {
-            List(node.element.getInputShape())
-          }
+      val preNodes = node.prevNodes
+      val inputShapes = if (preNodes.isEmpty) {
+        if (node.element.getInputShape() == null &&
+          !executionNodes.forall(_.isInstanceOf[AbstractModule[Activity, Activity, T]])) {
+          throw new RuntimeException("The first layer should explicitly declare inputShape")
         } else {
-          preNodes.map{_.element.getOutputShape()}.toList
+          List(node.element.getInputShape())
         }
-//        val n = if (node.element.isInstanceOf[NewModule[A, B, T]]) {
-//          node.element.asInstanceOf[NewModule[A, B, T]]
-//        } else {
-//          node.element
-//        }
+      } else {
+        preNodes.map{_.element.getOutputShape()}.toList
+      }
       node.element.build(gatherFinalResult(inputShapes))
-//      }
       i += 1
+    }
+  }
+  final def compile(): Unit = {
+    val executionNodes = this.buildingPath()
+    try {
+      doCompile(executionNodes)
+    } catch {
+      case _: Throwable =>
+
     }
   }
 

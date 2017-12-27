@@ -159,14 +159,10 @@ abstract class IModule[A <: Activity: ClassTag, B <: Activity: ClassTag, T: Clas
 
   def build(inputShape: Activity): Unit
 
-  final def computeOutputShape(inputShape: Activity): Activity = {
-    if (! isBuilt) {
-      throw new RuntimeException("The model haven't been built")
-    }
-    doComputeOutputShape(inputShape)
-  }
-
-  def doComputeOutputShape(inputShape: Activity): Activity = inputShape
+  /**
+   * The inputShape should be exactly the same as the input data
+   */
+  def computeOutputShape(inputShape: Activity): Activity = inputShape
 
   /**
    * Get the scale of gradientWeight
