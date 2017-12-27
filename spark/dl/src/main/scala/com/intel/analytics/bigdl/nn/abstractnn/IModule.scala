@@ -151,6 +151,8 @@ abstract class IModule[A <: Activity: ClassTag, B <: Activity: ClassTag, T: Clas
 
   def setInputShape(inputShape: Activity): Unit
 
+  def setOutputShape(outputShape: Activity): Unit
+
   def getInputShape(): Activity
 
   def getOutputShape(): Activity

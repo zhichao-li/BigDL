@@ -403,4 +403,17 @@ class LinearSpec extends FlatSpec with Matchers {
     linear.weight should be (exceptedWeight)
     linear.bias should be (exceptedBias)
   }
+
+  // TODO: extract this as a comparing method
+  "computeOutputShape" should "work" in {
+    val linear = Linear[Float](3, 5)
+    val inputData = Tensor[Float](Array(2, 3)).randn()
+    val seq = Sequential[Float]()
+    seq.add(InputLayer(inputShape = Array(3)))
+    seq.add(linear)
+    val calcOutputShape = seq.getOutputShape().toTensor[Int].toArray()
+    val forwardOutputShape = seq.forward(inputData).toTensor[Float].size()
+    calcOutputShape.sameElements(forwardOutputShape.slice(1, forwardOutputShape.length))
+  }
+
 }

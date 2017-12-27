@@ -44,6 +44,8 @@ class IModuleAdapter[A <: Activity: ClassTag, B <: Activity: ClassTag, T: ClassT
 
   def setGradInput(gradInput: A): Unit = labor.setGradInput(gradInput)
 
+  def setOutputShape(outputShape: Activity): Unit = labor.setOutputShape(outputShape)
+
   def setInputShape(inputShape: Activity): Unit = labor.setGradInput(inputShape)
 
   def getInputShape(): Activity = labor.getInputShape()

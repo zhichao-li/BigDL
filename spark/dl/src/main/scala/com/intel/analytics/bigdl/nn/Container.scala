@@ -52,21 +52,23 @@ abstract class Container[A <: Activity : ClassTag,
     List()
   }
 
-  private def doCompile(executionNodes: List[ModuleNode[T]]): Unit = {
-    def gatherFinalResult(values: List[Activity]): Activity = {
-      if (values.isEmpty) {
-        return null
-      }
-      if (values.length == 1) {
-        return values(0)
-      } else {
-        val t = new Table()
-        values.foreach {v =>
-          t.insert(v)
-        }
-        return t
-      }
+  def gatherFinalResult(values: List[Activity]): Activity = {
+    if (values.isEmpty) {
+      return null
     }
+    if (values.length == 1) {
+      return values(0)
+    } else {
+      val t = new Table()
+      values.foreach {v =>
+        t.insert(v)
+      }
+      return t
+    }
+  }
+
+  private def doCompile(executionNodes: List[ModuleNode[T]]): Unit = {
+
     var i = 0
     while (i < executionNodes.length) {
       val node = executionNodes(i)
@@ -87,12 +89,7 @@ abstract class Container[A <: Activity : ClassTag,
   }
   final def compile(): Unit = {
     val executionNodes = this.buildingPath()
-    try {
-      doCompile(executionNodes)
-    } catch {
-      case _: Throwable =>
-
-    }
+    doCompile(executionNodes)
   }
 
   /**
@@ -104,6 +101,9 @@ abstract class Container[A <: Activity : ClassTag,
   def add(module: IModule[_ <: Activity, _ <: Activity, T]): this.type = {
     modules += module.asInstanceOf[IModule[Activity, Activity, T]]
     compile()
+    val buildingPath = this.buildingPath()
+    this.setInputShape(buildingPath(0).element.getInputShape())
+    this.setOutputShape(buildingPath(buildingPath.length - 1).element.getOutputShape())
     this
   }
 

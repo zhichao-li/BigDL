@@ -68,6 +68,11 @@ abstract class AbstractModule[A <: Activity: ClassTag, B <: Activity: ClassTag, 
     this.inputShapeValue = inputShape
   }
 
+  def setOutputShape(outputShape: Activity): Unit = {
+    this.outputShapeValue = outputShape
+  }
+
+
   def getInputShape(): Activity = {
     if (inputShapeValue == null) {
      throw new RuntimeException("You should build this model first before getting the inputshape")

@@ -69,3 +69,15 @@ object Input {
     new Node(module.asInstanceOf[AbstractModule[Activity, Activity, T]])
   }
 }
+
+object InputLayer {
+  def apply[T: ClassTag](name : String = null,
+      inputShape: Array[Int] = null)(implicit ev: TensorNumeric[T])
+  : AbstractModule[Activity, Activity, T] = {
+    val module = new Input(inputShape)
+    if (name != null) {
+      module.setName(name)
+    }
+    module
+  }
+}
