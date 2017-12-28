@@ -42,13 +42,12 @@ import scala.reflect.ClassTag
 abstract class Container[A <: Activity : ClassTag,
     B <: Activity : ClassTag, T: ClassTag](
   implicit ev: TensorNumeric[T]) extends AbstractModule[A, B, T] {
-
   // list of sub modules
   val modules: ArrayBuffer[IModule[Activity, Activity, T]]
   = ArrayBuffer[IModule[Activity, Activity, T]]()
 
   // Return empty list as compile do nothing by default.
-  def buildingPath(): List[Node[IModule[Activity, Activity, T]]] = {
+  def compilingPath(): List[Node[IModule[Activity, Activity, T]]] = {
     List()
   }
 
@@ -67,16 +66,14 @@ abstract class Container[A <: Activity : ClassTag,
     }
   }
 
-  private def doCompile(executionNodes: List[ModuleNode[T]]): Unit = {
-
+  protected def doCompile(executionNodes: List[ModuleNode[T]]): Unit = {
     var i = 0
     while (i < executionNodes.length) {
       val node = executionNodes(i)
       val preNodes = node.prevNodes
       val inputShapes = if (preNodes.isEmpty) {
-        if (node.element.getInputShape() == null &&
-          !executionNodes.forall(_.isInstanceOf[AbstractModule[Activity, Activity, T]])) {
-          throw new RuntimeException("The first layer should explicitly declare inputShape")
+        if (node.element.getInputShape() == null) {
+            throw new RuntimeException("The first layer should explicitly declare inputShape")
         } else {
           List(node.element.getInputShape())
         }
@@ -87,9 +84,18 @@ abstract class Container[A <: Activity : ClassTag,
       i += 1
     }
   }
+
   final def compile(): Unit = {
-    val executionNodes = this.buildingPath()
-    doCompile(executionNodes)
+    val executionNodes = this.compilingPath()
+    try {
+      doCompile(executionNodes)
+    } catch {
+      case e: RuntimeException =>
+        // For pure old-style model, it's fine that it cann't be compiled for compatibility.
+        if (!executionNodes.forall(_.isInstanceOf[ModuleNode[T]])) {
+            throw e
+        }
+    }
   }
 
   /**
@@ -100,10 +106,6 @@ abstract class Container[A <: Activity : ClassTag,
    */
   def add(module: IModule[_ <: Activity, _ <: Activity, T]): this.type = {
     modules += module.asInstanceOf[IModule[Activity, Activity, T]]
-    compile()
-    val buildingPath = this.buildingPath()
-    this.setInputShape(buildingPath(0).element.getInputShape())
-    this.setOutputShape(buildingPath(buildingPath.length - 1).element.getOutputShape())
     this
   }
 

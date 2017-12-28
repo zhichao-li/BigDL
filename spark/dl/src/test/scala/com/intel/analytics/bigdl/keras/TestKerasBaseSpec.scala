@@ -31,7 +31,6 @@ class TestKerasBaseSpec extends KerasBaseSpec{
     val linear = new Linear[Float](3, 2)
     def weightConverter(in: Array[Tensor[Float]]): Array[Tensor[Float]] = Array(in(0).t(), in(1))
     checkOutputAndGrad(linear, kerasCode, weightConverter)
-
   }
 
   "Layer without weights" should "be ok" in {

@@ -23,15 +23,22 @@ import scala.reflect.ClassTag
 
 
 abstract class NewModule[A <: Activity: ClassTag, B <: Activity: ClassTag,
-T: ClassTag](implicit ev: TensorNumeric[T]) extends IModuleAdapter[A, B, T] {
+T: ClassTag](inputShape: Array[Int])(implicit ev: TensorNumeric[T])
+  extends IModuleAdapter[A, B, T] {
 
   private var inputShapeValue: Activity = null
 
-  override def setInputShape(inputShape: Activity): Unit = {
-    this.inputShapeValue = inputShape
+  if (inputShape != null) {
+    this.inputShapeValue = Tensor(data = inputShape, shape = Array(inputShape.length))
   }
 
-  override def getInputShape(): Activity = inputShapeValue
+  override def getInputShape(): Activity = {
+    if (this.inputShapeValue != null) {
+      this.inputShapeValue
+    } else {
+      this.labor.getInputShape()
+    }
+  }
 
   override def build(inputShape: Activity): Unit = {
     labor = doBuild(inputShape)

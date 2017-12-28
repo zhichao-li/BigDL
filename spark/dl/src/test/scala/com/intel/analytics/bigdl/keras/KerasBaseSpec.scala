@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 package com.intel.analytics.bigdl.keras
-import com.intel.analytics.bigdl.nn.abstractnn.{AbstractCriterion, IModule}
+import com.intel.analytics.bigdl.nn.{InputLayer, Sequential}
+import com.intel.analytics.bigdl.nn.abstractnn.{AbstractCriterion, Activity, IModule}
 import com.intel.analytics.bigdl.tensor.Tensor
 import com.intel.analytics.bigdl.tensor.TensorNumericMath.TensorNumeric.NumericFloat
 import com.intel.analytics.bigdl.utils.BigDLSpecHelper
@@ -36,22 +37,28 @@ abstract class KerasBaseSpec extends BigDLSpecHelper {
 
   // weightConverter: convert keras weight to BigDL format,
   // do nothing for the default converter
-  def checkOutputAndGrad(bmodel: IModule[Tensor[Float], Tensor[Float], Float],
+  def checkOutputAndGrad(blayer: IModule[Tensor[Float], Tensor[Float], Float],
                          kerasCode: String,
                          weightConverter: (Array[Tensor[Float]]) => Array[Tensor[Float]]
                          = defaultWeightConverter,
                          precision: Double = 1e-5): Unit = {
     ifskipTest()
     val (gradInput, gradWeight, weights, input, target, output) = KerasRunner.run(kerasCode)
+
+    val bmodel = Sequential[Float]()
+    bmodel.add(InputLayer(inputShape = input.size().slice(1, input.size().length)))
+    bmodel.add(blayer.asInstanceOf[IModule[Activity, Activity, Float]])
+
     // Ensure they share the same weights
     if (weights != null) {
-      bmodel.setWeightsBias(weightConverter(weights))
+      blayer.setWeightsBias(weightConverter(weights))
     }
 
-    val boutput = bmodel.forward(input)
+    val boutput = bmodel.forward(input).toTensor[Float]
     boutput.almostEqual(output, precision) should be(true)
 
-    val bgradInput = bmodel.backward(input, boutput.clone())
+    val bgradInput = bmodel.backward(input.asInstanceOf[Activity],
+      boutput.clone().asInstanceOf[Activity]).toTensor[Float]
     bgradInput.almostEqual(gradInput, precision) should be(true)
 
     val parameters = bmodel.parameters()

@@ -33,7 +33,7 @@ import scala.collection.mutable.ArrayBuffer
 class Sequential[T: ClassTag]
 (implicit ev: TensorNumeric[T]) extends Container[Activity, Activity, T] {
 
-  override def buildingPath(): List[Node[IModule[Activity, Activity, T]]] = {
+  override def compilingPath(): List[Node[IModule[Activity, Activity, T]]] = {
     val nodes = modules.map(Node(_))
     var i = 0
     var j = 1
@@ -43,6 +43,18 @@ class Sequential[T: ClassTag]
       j += 1
     }
     return nodes.toList
+  }
+
+  override def doCompile(executionNodes: List[ModuleNode[T]]): Unit = {
+    super.doCompile(executionNodes)
+    this.setInputShape(executionNodes(0).element.getInputShape())
+    this.setOutputShape(executionNodes(executionNodes.length - 1).element.getOutputShape())
+  }
+
+  override def add(module: IModule[_ <: Activity, _ <: Activity, T]): this.type = {
+    super.add(module)
+    compile()
+    this
   }
 
   override def updateOutput(input: Activity): Activity = {

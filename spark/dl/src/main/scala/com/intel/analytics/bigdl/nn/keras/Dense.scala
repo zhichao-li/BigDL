@@ -32,10 +32,7 @@ class Dense[T: ClassTag](val outputDim: Int,
                          var bRegularizer: Regularizer[T] = null,
                          val bias: Boolean = true,
                          var inputShape: Array[Int] = null
-      )(implicit ev: TensorNumeric[T]) extends NewModule[Tensor[T], Tensor[T], T] {
-  if (inputShape != null) {
-    setInputShape(Tensor(data = inputShape, shape = Array(inputShape.length)))
-  }
+      )(implicit ev: TensorNumeric[T]) extends NewModule[Tensor[T], Tensor[T], T](inputShape) {
 
   override def doBuild(inputShape: Activity): IModule[Tensor[T], Tensor[T], T] = {
     val model = Linear(
