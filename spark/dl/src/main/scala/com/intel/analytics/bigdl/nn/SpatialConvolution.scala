@@ -17,7 +17,7 @@
 package com.intel.analytics.bigdl.nn
 
 import com.intel.analytics.bigdl.Module
-import com.intel.analytics.bigdl.nn.abstractnn.{DataFormat, Initializable, TensorModule}
+import com.intel.analytics.bigdl.nn.abstractnn.{Activity, DataFormat, Initializable, TensorModule}
 import com.intel.analytics.bigdl.nn.quantized.Quantizable
 import com.intel.analytics.bigdl.optim.Regularizer
 import com.intel.analytics.bigdl.tensor.TensorNumericMath.TensorNumeric
@@ -171,6 +171,29 @@ class SpatialConvolution[T: ClassTag](
       biasInitMethod.init(bias, VariableFormat.ONE_D)
     }
     zeroGradParameters()
+  }
+
+  override def computeOutputShape(inputShape: Activity): Activity = {
+    val input = inputShape.toTensor[Int]
+    val (dimHeight, dimWidth, channelDim) = format.getHWCDims(input.dim())
+    val inputWidth = input.size(dimWidth)
+    val inputHeight = input.size(dimHeight)
+    val sizes =
+      if (padW == -1 && padH == -1) {
+        Utils.getSAMEOutSizeAndPadding(inputHeight, inputWidth, strideH, strideW, kernelH, kernelW)
+      } else {
+        Utils.getOutSizeAndPadding(inputHeight, inputWidth, strideH, strideW,
+          kernelH, kernelW, padH, padW, ceilMode = false)
+      }
+    val outputHeight = sizes(4)
+    val outputWidth = sizes(5)
+    val outputShape = if (input.dim() == 3) {
+      getOutputShape(outputHeight, outputWidth)
+    } else {
+      val batchSize = input.size(1)
+      getOutputShape(outputHeight, outputWidth, batchSize)
+    }
+    Tensor(data = outputShape, shape = Array(outputShape.length))
   }
 
   private def getOutputShape(oh: Int, ow: Int, batchSize: Int = -1): Array[Int] = {
