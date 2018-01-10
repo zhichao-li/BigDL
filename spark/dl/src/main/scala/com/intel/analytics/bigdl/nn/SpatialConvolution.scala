@@ -173,11 +173,12 @@ class SpatialConvolution[T: ClassTag](
     zeroGradParameters()
   }
 
-  override def computeOutputShape(inputShape: Activity): Activity = {
-    val input = inputShape.toTensor[Int]
-    val (dimHeight, dimWidth, channelDim) = format.getHWCDims(input.dim())
-    val inputWidth = input.size(dimWidth)
-    val inputHeight = input.size(dimHeight)
+  override def computeBatchOutputShape(inputShape: Activity): Activity = {
+//    val input = Tensor(inputShape.toTensor[Int].toArray())
+    val input = inputShape.asInstanceOf[Tensor[Int]].toArray()
+    val (dimHeight, dimWidth, channelDim) = format.getHWCDims(input.length)
+    val inputWidth = input(dimWidth -1)
+    val inputHeight = input(dimHeight -1)
     val sizes =
       if (padW == -1 && padH == -1) {
         Utils.getSAMEOutSizeAndPadding(inputHeight, inputWidth, strideH, strideW, kernelH, kernelW)
@@ -187,10 +188,10 @@ class SpatialConvolution[T: ClassTag](
       }
     val outputHeight = sizes(4)
     val outputWidth = sizes(5)
-    val outputShape = if (input.dim() == 3) {
+    val outputShape = if (input.length == 3) {
       getOutputShape(outputHeight, outputWidth)
     } else {
-      val batchSize = input.size(1)
+      val batchSize = input(0)
       getOutputShape(outputHeight, outputWidth, batchSize)
     }
     Tensor(data = outputShape, shape = Array(outputShape.length))

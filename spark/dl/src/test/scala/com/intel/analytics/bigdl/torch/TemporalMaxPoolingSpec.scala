@@ -17,7 +17,7 @@
 package com.intel.analytics.bigdl.torch
 
 import com.intel.analytics.bigdl._
-import com.intel.analytics.bigdl.nn.{GradientChecker, TemporalMaxPooling}
+import com.intel.analytics.bigdl.nn.{GradientChecker, InputLayer, Sequential, TemporalMaxPooling}
 import com.intel.analytics.bigdl.tensor.Tensor
 import com.intel.analytics.bigdl.utils.RandomGenerator._
 
@@ -146,6 +146,7 @@ class TemporalMaxPoolingSpec extends TorchSpec {
     println("Test case : TemporalMaxPooling, Torch : " + luaTime + " s, Scala : " +
       scalaTime / 1e9 + " s")
   }
+
   "A TemporalMaxPooling" should "be good in gradient check for input" in {
     torchCheck()
     val seed = 100
@@ -155,5 +156,17 @@ class TemporalMaxPoolingSpec extends TorchSpec {
 
     val checker = new GradientChecker(1e-4)
     checker.checkLayer[Double](layer, input, 1e-3) should be(true)
+  }
+
+  "TemporalMaxPooling computeOutputShape" should "work properly" in {
+    val layer = TemporalMaxPooling[Float](2, 2)
+    val inputData = Tensor[Float](Array(2, 3, 4)).randn()
+    val seq = Sequential[Float]()
+    seq.add(InputLayer(inputShape = Array(3, 4)))
+    seq.add(layer)
+    val calcOutputShape = seq.getOutputShape().toTensor[Int].toArray()
+    val forwardOutputShape = seq.forward(inputData).toTensor[Float].size()
+    calcOutputShape.sameElements(forwardOutputShape.slice
+    (1, forwardOutputShape.length)) should be (true)
   }
 }
