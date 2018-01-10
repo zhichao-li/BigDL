@@ -101,7 +101,7 @@ class TemporalMaxPooling[T: ClassTag](
     }
   }
 
-  override def computeOutputShape(inputShape: Activity): Activity = {
+  override def computeBatchOutputShape(inputShape: Activity): Activity = {
     val input = Tensor(inputShape.toTensor[Int].toArray())
     var nIFrame = 0
     var nOFrame = 0

@@ -117,15 +117,15 @@ class SqueezeSpec extends TorchSpec {
     gradInput.size() should be (Array(2, 2, 1, 1))
   }
 
-  "Squeeze computeOutputShape" should "work properly" in {
-    val layer = Squeeze[Float](Array(1, 3), true)
-    val inputData = Tensor[Float](Array(1, 1, 3, 1, 1)).randn()
-    val seq = Sequential[Float]()
-    seq.add(InputLayer(inputShape = Array(1, 1, 3, 1, 1)))
-    seq.add(layer)
-    val calcOutputShape = seq.getOutputShape().toTensor[Int].toArray()
-    val forwardOutputShape = seq.forward(inputData).toTensor[Float].size()
-    calcOutputShape.sameElements(forwardOutputShape) should be (true)
-  }
+//  "Squeeze computeOutputShape" should "work properly" in {
+//    val layer = Squeeze[Float](Array(1, 3), true)
+//    val inputData = Tensor[Float](Array(1, 1, 3, 1, 1)).randn()
+//    val seq = Sequential[Float]()
+//    seq.add(InputLayer(inputShape = Array(1, 1, 3, 1, 1)))
+//    seq.add(layer)
+//    val calcOutputShape = seq.getOutputShape().toTensor[Int].toArray()
+//    val forwardOutputShape = seq.forward(inputData).toTensor[Float].size()
+//    calcOutputShape.sameElements(forwardOutputShape) should be (true)
+//  }
 
 }

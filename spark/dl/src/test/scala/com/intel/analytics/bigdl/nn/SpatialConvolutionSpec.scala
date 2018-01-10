@@ -3027,27 +3027,27 @@ class SpatialConvolutionSpec extends FlatSpec with Matchers {
     layer3.equals(layer) should be (false)
   }
 
-  "SpatialConvolution computeOutputShape NCHW" should "work properly" in {
-    val layer = SpatialConvolution[Float](3, 5, 2, 2)
-    val inputData = Tensor[Float](Array(2, 3, 12, 12)).randn()
-    val seq = Sequential[Float]()
-    seq.add(InputLayer(inputShape = Array(3, 12, 12)))
-    seq.add(layer)
-    val calcOutputShape = seq.getOutputShape().toTensor[Int].toArray()
-    val forwardOutputShape = seq.forward(inputData).toTensor[Float].size()
-    calcOutputShape.sameElements(forwardOutputShape.slice
-    (1, forwardOutputShape.length)) should be (true)
-  }
-
-  "SpatialConvolution computeOutputShape NHWC" should "work properly" in {
-    val layer = SpatialConvolution[Float](4, 5, 2, 2, format = DataFormat.NHWC)
-    val inputData = Tensor[Float](Array(3, 12, 12, 4)).randn()
-    val seq = Sequential[Float]()
-    seq.add(InputLayer(inputShape = Array(12, 12, 4)))
-    seq.add(layer)
-    val calcOutputShape = seq.getOutputShape().toTensor[Int].toArray()
-    val forwardOutputShape = seq.forward(inputData).toTensor[Float].size()
-    calcOutputShape.sameElements(forwardOutputShape.slice
-    (1, forwardOutputShape.length)) should be (true)
-  }
+//  "SpatialConvolution computeOutputShape NCHW" should "work properly" in {
+//    val layer = SpatialConvolution[Float](3, 5, 2, 2)
+//    val inputData = Tensor[Float](Array(2, 3, 12, 12)).randn()
+//    val seq = Sequential[Float]()
+//    seq.add(InputLayer(inputShape = Array(3, 12, 12)))
+//    seq.add(layer)
+//    val calcOutputShape = seq.getOutputShape().toTensor[Int].toArray()
+//    val forwardOutputShape = seq.forward(inputData).toTensor[Float].size()
+//    calcOutputShape.sameElements(forwardOutputShape.slice
+//    (1, forwardOutputShape.length)) should be (true)
+//  }
+//
+//  "SpatialConvolution computeOutputShape NHWC" should "work properly" in {
+//    val layer = SpatialConvolution[Float](4, 5, 2, 2, format = DataFormat.NHWC)
+//    val inputData = Tensor[Float](Array(3, 12, 12, 4)).randn()
+//    val seq = Sequential[Float]()
+//    seq.add(InputLayer(inputShape = Array(12, 12, 4)))
+//    seq.add(layer)
+//    val calcOutputShape = seq.getOutputShape().toTensor[Int].toArray()
+//    val forwardOutputShape = seq.forward(inputData).toTensor[Float].size()
+//    calcOutputShape.sameElements(forwardOutputShape.slice
+//    (1, forwardOutputShape.length)) should be (true)
+//  }
 }

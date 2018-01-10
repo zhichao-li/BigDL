@@ -32,7 +32,7 @@ object TestUtils {
    * Compare the output of `computeOutputShape` with the `forward` result
    */
   def compareOutputShape(layer: AbstractModule[Activity, Activity, Float],
-                            inputShape: Array[Int]): Boolean = {
+                         inputShape: Array[Int]): Boolean = {
     val inputData = Tensor[Float](Array(2) ++ inputShape).randn()
     val seq = Sequential[Float]()
     seq.add(InputLayer[Float](inputShape = inputShape))
