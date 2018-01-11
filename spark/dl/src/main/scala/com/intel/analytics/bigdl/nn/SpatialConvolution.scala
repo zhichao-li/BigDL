@@ -174,8 +174,7 @@ class SpatialConvolution[T: ClassTag](
   }
 
   override def computeBatchOutputShape(inputShape: Activity): Activity = {
-//    val input = Tensor(inputShape.toTensor[Int].toArray())
-    val input = inputShape.asInstanceOf[Tensor[Int]].toArray()
+    val input = inputShape.toTensor[Int].toArray()
     val (dimHeight, dimWidth, channelDim) = format.getHWCDims(input.length)
     val inputWidth = input(dimWidth -1)
     val inputHeight = input(dimHeight -1)
@@ -188,11 +187,9 @@ class SpatialConvolution[T: ClassTag](
       }
     val outputHeight = sizes(4)
     val outputWidth = sizes(5)
-    val outputShape = if (input.length == 3) {
-      getOutputShape(outputHeight, outputWidth)
-    } else {
-      val batchSize = input(0)
-      getOutputShape(outputHeight, outputWidth, batchSize)
+    var outputShape = getOutputShape(outputHeight, outputWidth)
+    if (input.length == 4) {
+      outputShape = Array(-1) ++ outputShape
     }
     Tensor(data = outputShape, shape = Array(outputShape.length))
   }

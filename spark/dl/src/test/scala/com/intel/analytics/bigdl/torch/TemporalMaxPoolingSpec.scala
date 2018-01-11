@@ -161,14 +161,6 @@ class TemporalMaxPoolingSpec extends TorchSpec {
 
   "TemporalMaxPooling computeOutputShape" should "work properly" in {
     val layer = TemporalMaxPooling[Float](2, 2)
-//    val inputData = Tensor[Float](Array(2, 3, 4)).randn()
-//    val seq = Sequential[Float]()
-//    seq.add(InputLayer(inputShape = Array(3, 4)))
-//    seq.add(layer)
-//    val calcOutputShape = seq.getOutputShape().toTensor[Int].toArray()
-//    val forwardOutputShape = seq.forward(inputData).toTensor[Float].size()
-//    calcOutputShape.sameElements(forwardOutputShape.slice
-//    (1, forwardOutputShape.length)) should be (true)
     TestUtils.compareOutputShape(layer, Array(3, 4)) should be (true)
   }
 }
