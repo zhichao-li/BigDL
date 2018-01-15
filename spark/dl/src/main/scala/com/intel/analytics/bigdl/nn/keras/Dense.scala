@@ -52,7 +52,6 @@ class Dense[T: ClassTag](val outputDim: Int,
 }
 
 object Dense {
-
   def apply[@specialized(Float, Double) T: ClassTag](
     outputDim: Int,
     init: InitializationMethod = RandomUniform,
@@ -61,14 +60,8 @@ object Dense {
     bRegularizer: Regularizer[T] = null,
     bias: Boolean = true,
     inputShape: Array[Int] = null)(implicit ev: TensorNumeric[T]) : Dense[T] = {
-      new Dense[T](
-        outputDim,
-        init,
-        activation,
-        wRegularizer,
-        bRegularizer,
-        bias,
-        inputShape)
+      new Dense[T](outputDim, init, activation,
+        wRegularizer, bRegularizer, bias, inputShape)
   }
 }
 

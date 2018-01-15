@@ -472,12 +472,13 @@ object Utils {
     out
   }
 
-  private[nn] def getPadFromBorderMode(borderMode: String = "valid"): Array[Int] = {
+  private[nn] def getPadsFromBorderMode(borderMode: String = "valid"): (Int, Int) = {
     if (borderMode == "same") {
-      // padW, padH
-      Array(-1, -1)
+      // padH, padW
+      (-1, -1)
     } else {
-      Array(0, 0)
+      (0, 0)
     }
   }
+  
 }

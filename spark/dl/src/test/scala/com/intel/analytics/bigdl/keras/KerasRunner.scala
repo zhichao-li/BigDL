@@ -109,11 +109,18 @@ object KerasRunner {
                               keyName: String): Array[Tensor[Float]] = {
     if (!pvalues.keySet.filter(key => key.contains(keyName)).isEmpty) {
       val weightNum = pvalues.keySet.filter(key => key.contains(keyName)).size / 2
-      Range(0, weightNum).map {i =>
-        Tensor[Float](
-          data = pvalues(s"${keyName}_${i}_value"),
-          shape = pvalues(s"${keyName}_${i}_shape").map(_.toInt))
-      }.toArray
+      if (weightNum > 1) { // with bias
+        Range(0, weightNum).map {i =>
+          Tensor[Float](
+            data = pvalues(s"${keyName}_${i}_value"),
+            shape = pvalues(s"${keyName}_${i}_shape").map(_.toInt))
+        }.toArray
+      }
+      else { // without bias
+        Array(Tensor[Float](
+          data = pvalues(s"${keyName}_value"),
+          shape = pvalues(s"${keyName}_shape").map(_.toInt)))
+      }
     } else {
       null
     }

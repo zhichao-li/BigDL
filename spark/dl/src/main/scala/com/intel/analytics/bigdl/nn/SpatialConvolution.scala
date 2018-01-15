@@ -173,9 +173,13 @@ class SpatialConvolution[T: ClassTag](
     zeroGradParameters()
   }
 
-  override def computeBatchOutputShape(inputShape: Activity): Activity = {
+  override def computeOutputShape(inputShape: Activity): Activity = {
     val input = inputShape.toTensor[Int].toArray()
+    require(input.length == 3,
+      "SpatialConvolution: " + ErrorInfo.constrainInputAs3DOrBatch)
     val (dimHeight, dimWidth, channelDim) = format.getHWCDims(input.length)
+    require(input(channelDim -1) == nInputPlane, s"input channel size " +
+      s"${input(channelDim -1)} is not the same as nInputPlane $nInputPlane")
     val inputWidth = input(dimWidth -1)
     val inputHeight = input(dimHeight -1)
     val sizes =
@@ -187,10 +191,9 @@ class SpatialConvolution[T: ClassTag](
       }
     val outputHeight = sizes(4)
     val outputWidth = sizes(5)
-    var outputShape = getOutputShape(outputHeight, outputWidth)
-    if (input.length == 4) {
-      outputShape = Array(-1) ++ outputShape
-    }
+    require(outputWidth >= 1 && outputHeight >= 1,
+      s"output size is too small. outputWidth: $outputWidth, outputHeight: $outputHeight")
+    val outputShape = getOutputShape(outputHeight, outputWidth)
     Tensor(data = outputShape, shape = Array(outputShape.length))
   }
 

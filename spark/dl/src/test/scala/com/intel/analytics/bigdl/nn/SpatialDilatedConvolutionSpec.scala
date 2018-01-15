@@ -61,7 +61,7 @@ class SpatialDilatedConvolutionSpec extends FlatSpec with Matchers {
 
   "SpatialDilatedConvolution computeOutputShape" should "work properly" in {
     val layer = SpatialDilatedConvolution[Float](4, 6, 2, 2, 1, 1, 2, 2, 2, 2)
-    TestUtils.compareOutputShape(layer, Array(4, 32, 32)) should be (true)
+    TestUtils.compareOutputShape(layer, Array(4, 30, 32)) should be (true)
   }
 
 }

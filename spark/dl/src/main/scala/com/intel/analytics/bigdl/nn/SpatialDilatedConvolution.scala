@@ -148,16 +148,15 @@ class SpatialDilatedConvolution[T: ClassTag](
     }
   }
 
-  override def computeBatchOutputShape(inputShape: Activity): Activity = {
+  override def computeOutputShape(inputShape: Activity): Activity = {
     val input = inputShape.toTensor[Int].toArray()
 
-    val inputWidth = input(3)
-    val inputHeight = input(2)
+    val inputWidth = input(2)
+    val inputHeight = input(1)
     val outputWidth = (inputWidth + 2*padW - (dilationW * (kW - 1) + 1)) / dW + 1
     val outputHeight = (inputHeight + 2*padH - (dilationH * (kH - 1) + 1)) / dH + 1
-    val batchSize = input(0)
 
-    val outputShape = Array(batchSize, nOutputPlane, outputHeight, outputWidth)
+    val outputShape = Array(nOutputPlane, outputHeight, outputWidth)
     Tensor(data = outputShape, shape = Array(outputShape.length))
   }
 

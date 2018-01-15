@@ -16,7 +16,7 @@
 
 package com.intel.analytics.bigdl.nn
 
-import com.intel.analytics.bigdl.nn.abstractnn.TensorModule
+import com.intel.analytics.bigdl.nn.abstractnn.{Activity, TensorModule}
 import com.intel.analytics.bigdl.tensor.Tensor
 import com.intel.analytics.bigdl.tensor.TensorNumericMath.TensorNumeric
 import com.intel.analytics.bigdl.utils.Engine
@@ -35,6 +35,8 @@ class SoftMax[T: ClassTag]()(implicit ev: TensorNumeric[T]) extends TensorModule
 
   @transient
   private var results: Array[Future[Unit]] = null
+
+  override def computeOutputShape(inputShape: Activity): Activity = inputShape
 
   override def updateOutput(input: Tensor[T]): Tensor[T] = {
     require(1 <= input.nDimension() && input.nDimension() <= 4,

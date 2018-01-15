@@ -55,6 +55,14 @@ class Reshape[T: ClassTag](
   // in this layer, if input is contiguous, inplace is true. otherwise, inplace is false
   private var inplace: Boolean = true
 
+  override def computeOutputShape(inputShape: Activity): Activity = {
+    require(size.product == inputShape.toTensor[Int].toArray().product,
+    s"element number must match Reshape size. But In ${this.getName()} : " +
+      s"element number is: ${ inputShape.toTensor[Int].toArray().product } , " +
+      s"reshape size is: ${size.product}")
+    Tensor(data = size, shape = Array(size.length))
+  }
+
   override def updateOutput(input: Tensor[T]): Tensor[T] = {
 
     if ((batchMode.nonEmpty && !batchMode.get) ||

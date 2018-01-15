@@ -101,28 +101,15 @@ class TemporalMaxPooling[T: ClassTag](
     }
   }
 
-  override def computeBatchOutputShape(inputShape: Activity): Activity = {
+  override def computeOutputShape(inputShape: Activity): Activity = {
     val input = inputShape.toTensor[Int].toArray()
-//    val input = Tensor(inputShape.toTensor[Int].toArray())
-    var nIFrame = 0
-    var nOFrame = 0
-    var frameSize = 0
+    val dimS = 1
+    val dimF = 2
+    val nIFrame = input(dimS -1)
+    val frameSize = input(dimF -1)
+    val nOFrame = (nIFrame - kW) / dW + 1
 
-    var dimS = 1 // sequence dimension
-    var dimF = 2 // feature dimension
-    if (input.length == 3) {
-      dimS = 2
-      dimF = 3
-    }
-    nIFrame = input(dimS -1)
-    frameSize = input(dimF -1)
-    nOFrame = (nIFrame - kW) / dW + 1
-    val outputShape = if (input.length == 2) {
-      Array(nOFrame, frameSize)
-    } else {
-      val nbFrame = input(0)
-      Array(nbFrame, nOFrame, frameSize)
-    }
+    val outputShape = Array(nOFrame, frameSize)
     Tensor(data = outputShape, shape = Array(outputShape.length))
   }
 

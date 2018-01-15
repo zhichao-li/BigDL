@@ -15,7 +15,7 @@
  */
 package com.intel.analytics.bigdl.nn
 
-import com.intel.analytics.bigdl.nn.abstractnn.{AbstractModule, TensorModule}
+import com.intel.analytics.bigdl.nn.abstractnn.{AbstractModule, Activity, TensorModule}
 import com.intel.analytics.bigdl.tensor.Tensor
 import com.intel.analytics.bigdl.tensor.TensorNumericMath.TensorNumeric
 
@@ -37,6 +37,8 @@ class SoftSign[T: ClassTag]()
 
   output = Tensor[T]()
   gradInput = Tensor[T]()
+
+  override def computeOutputShape(inputShape: Activity): Activity = inputShape
 
   override def updateOutput(input: Tensor[T]): Tensor[T] = {
     if (null == temp) {

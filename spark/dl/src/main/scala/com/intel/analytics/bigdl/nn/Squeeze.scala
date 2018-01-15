@@ -42,25 +42,6 @@ class Squeeze[T: ClassTag](
     }
   }
 
-  override def computeBatchOutputShape(inputShape: Activity): Activity = {
-    val input = inputShape.toTensor[Int]
-    val dummyOutput = Tensor(input.toArray())
-    if (dims != null) {
-      var i = 0
-      while(i < dims.length) {
-        dummyOutput.squeeze(dims(i))
-        i += 1
-      }
-    } else {
-      dummyOutput.squeeze()
-    }
-
-    if (batchMode && dims == null && input.toArray()(0) == 1) {
-      dummyOutput.addSingletonDimension()
-    }
-    Tensor(data = dummyOutput.size(), shape = Array(dummyOutput.size().length))
-  }
-
   override def updateOutput(input: Tensor[_]): Tensor[_] = {
     if (output.getType() != input.getType()) {
       output = input.emptyInstance()
