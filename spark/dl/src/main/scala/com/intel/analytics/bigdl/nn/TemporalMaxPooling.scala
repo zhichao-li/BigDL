@@ -103,6 +103,7 @@ class TemporalMaxPooling[T: ClassTag](
 
   override def computeOutputShape(inputShape: Activity): Activity = {
     val input = inputShape.toTensor[Int].toArray()
+    shapeCheck(Tensor(input), null, null, kW, dW)
     val dimS = 1
     val dimF = 2
     val nIFrame = input(dimS -1)

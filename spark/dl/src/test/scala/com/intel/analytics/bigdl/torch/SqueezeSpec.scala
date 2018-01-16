@@ -117,10 +117,4 @@ class SqueezeSpec extends TorchSpec {
     output.size() should be (Array(2, 2))
     gradInput.size() should be (Array(2, 2, 1, 1))
   }
-
-  "Squeeze computeOutputShape" should "work properly" in {
-    val layer = Squeeze[Float](Array(1, 3), true)
-    TestUtils.compareOutputShape(layer, Array(1, 1, 3, 1, 1)) should be (true)
-  }
-
 }
