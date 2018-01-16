@@ -16,7 +16,7 @@
 
 package com.intel.analytics.bigdl.nn.keras
 
-import com.intel.analytics.bigdl.nn.{SpatialMaxPooling, Utils}
+import com.intel.analytics.bigdl.nn.{SpatialMaxPooling}
 import com.intel.analytics.bigdl.nn.abstractnn.{AbstractModule, Activity, DataFormat}
 import com.intel.analytics.bigdl.tensor.Tensor
 import com.intel.analytics.bigdl.tensor.TensorNumericMath.TensorNumeric
@@ -33,7 +33,7 @@ class MaxPooling2D[T: ClassTag] (val poolSize: (Int, Int) = (2, 2),
   extends KerasModule[Tensor[T], Tensor[T], T](inputShape) {
 
   override def doBuild(inputShape: Activity): AbstractModule[Tensor[T], Tensor[T], T] = {
-    val pads = Utils.getPadsFromBorderMode(borderMode)
+    val pads = KerasUtils.getPadsFromBorderMode(borderMode)
     if (strides == null) {
       strides = poolSize
     }

@@ -16,10 +16,15 @@
 
 package com.intel.analytics.bigdl.nn.keras
 
-import com.intel.analytics.bigdl.nn.Sequential
-import com.intel.analytics.bigdl.nn.abstractnn.{AbstractModule, Activity, TensorModule}
+object KerasUtils {
 
-import scala.reflect.ClassTag
+  private[keras] def getPadsFromBorderMode(borderMode: String = "valid"): (Int, Int) = {
+    if (borderMode == "same") {
+      // padH, padW
+      (-1, -1)
+    } else {
+      (0, 0)
+    }
+  }
 
-
-
+}

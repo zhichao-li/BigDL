@@ -40,7 +40,7 @@ class Convolution2D[T: ClassTag](val nbFilter: Int,
   extends KerasModule[Tensor[T], Tensor[T], T](inputShape) {
 
   override def doBuild(inputShape: Activity): AbstractModule[Tensor[T], Tensor[T], T] = {
-    val pads = Utils.getPadsFromBorderMode(borderMode)
+    val pads = KerasUtils.getPadsFromBorderMode(borderMode)
     val layer = SpatialConvolution(
       nInputPlane = inputShape.toTensor[Int].toArray()(format.getHWCDims(3)._3 - 1),
       nOutputPlane = nbFilter,

@@ -471,14 +471,5 @@ object Utils {
 
     out
   }
-
-  private[nn] def getPadsFromBorderMode(borderMode: String = "valid"): (Int, Int) = {
-    if (borderMode == "same") {
-      // padH, padW
-      (-1, -1)
-    } else {
-      (0, 0)
-    }
-  }
   
 }
