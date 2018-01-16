@@ -16,7 +16,7 @@
 
 package com.intel.analytics.bigdl.nn
 
-import com.intel.analytics.bigdl.nn.abstractnn.TensorModule
+import com.intel.analytics.bigdl.nn.abstractnn.{Activity, TensorModule}
 import com.intel.analytics.bigdl.tensor.{DenseTensorApply, Tensor, TensorFunc6}
 import com.intel.analytics.bigdl.tensor.TensorNumericMath.TensorNumeric
 
@@ -34,6 +34,8 @@ class HardSigmoid[T: ClassTag]
 
   val minValue = ev.fromType[Double](-2.5)
   val maxValue = ev.fromType[Double](2.5)
+
+  override def computeOutputShape(inputShape: Activity): Activity = inputShape
 
   override def updateOutput(input: Tensor[T]): Tensor[T] = {
     output.resizeAs(input)

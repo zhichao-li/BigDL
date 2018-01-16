@@ -15,7 +15,7 @@
  */
 package com.intel.analytics.bigdl.nn
 
-import com.intel.analytics.bigdl.nn.abstractnn.TensorModule
+import com.intel.analytics.bigdl.nn.abstractnn.{Activity, TensorModule}
 import com.intel.analytics.bigdl.tensor.TensorNumericMath.TensorNumeric
 
 import scala.math.tanh
@@ -33,6 +33,8 @@ class Tanh[T: ClassTag](
   implicit ev: TensorNumeric[T]) extends TensorModule[T] {
 
   private val buffer: Tensor[T] = Tensor[T]()
+
+  override def computeOutputShape(inputShape: Activity): Activity = inputShape
 
   override def updateOutput(input: Tensor[T]): Tensor[T] = {
     output.resizeAs(input)

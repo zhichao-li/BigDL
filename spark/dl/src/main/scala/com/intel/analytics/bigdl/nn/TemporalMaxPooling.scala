@@ -15,7 +15,7 @@
  */
 package com.intel.analytics.bigdl.nn
 
-import com.intel.analytics.bigdl.nn.abstractnn.TensorModule
+import com.intel.analytics.bigdl.nn.abstractnn.{Activity, TensorModule}
 import com.intel.analytics.bigdl.tensor.{DoubleType, FloatType, Tensor}
 import com.intel.analytics.bigdl.tensor.TensorNumericMath.TensorNumeric
 
@@ -101,6 +101,18 @@ class TemporalMaxPooling[T: ClassTag](
     }
   }
 
+  override def computeOutputShape(inputShape: Activity): Activity = {
+    val input = inputShape.toTensor[Int].toArray()
+    shapeCheck(Tensor(input), null, null, kW, dW)
+    val dimS = 1
+    val dimF = 2
+    val nIFrame = input(dimS -1)
+    val frameSize = input(dimF -1)
+    val nOFrame = (nIFrame - kW) / dW + 1
+
+    val outputShape = Array(nOFrame, frameSize)
+    Tensor(data = outputShape, shape = Array(outputShape.length))
+  }
 
   def updateOutput(input: Tensor[T]): Tensor[T] = {
     var nIFrame = 0

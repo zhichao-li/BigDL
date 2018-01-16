@@ -17,7 +17,7 @@
 package com.intel.analytics.bigdl.nn
 
 import com.intel.analytics.bigdl.Module
-import com.intel.analytics.bigdl.nn.abstractnn.{DataFormat, Initializable, TensorModule}
+import com.intel.analytics.bigdl.nn.abstractnn.{Activity, DataFormat, Initializable, TensorModule}
 import com.intel.analytics.bigdl.nn.quantized.Quantizable
 import com.intel.analytics.bigdl.optim.Regularizer
 import com.intel.analytics.bigdl.tensor.TensorNumericMath.TensorNumeric
@@ -171,6 +171,30 @@ class SpatialConvolution[T: ClassTag](
       biasInitMethod.init(bias, VariableFormat.ONE_D)
     }
     zeroGradParameters()
+  }
+
+  override def computeOutputShape(inputShape: Activity): Activity = {
+    val input = inputShape.toTensor[Int].toArray()
+    require(input.length == 3,
+      "SpatialConvolution: " + ErrorInfo.constrainInputAs3DOrBatch)
+    val (dimHeight, dimWidth, channelDim) = format.getHWCDims(input.length)
+    require(input(channelDim -1) == nInputPlane, s"input channel size " +
+      s"${input(channelDim -1)} is not the same as nInputPlane $nInputPlane")
+    val inputWidth = input(dimWidth -1)
+    val inputHeight = input(dimHeight -1)
+    val sizes =
+      if (padW == -1 && padH == -1) {
+        Utils.getSAMEOutSizeAndPadding(inputHeight, inputWidth, strideH, strideW, kernelH, kernelW)
+      } else {
+        Utils.getOutSizeAndPadding(inputHeight, inputWidth, strideH, strideW,
+          kernelH, kernelW, padH, padW, ceilMode = false)
+      }
+    val outputHeight = sizes(4)
+    val outputWidth = sizes(5)
+    require(outputWidth >= 1 && outputHeight >= 1,
+      s"output size is too small. outputWidth: $outputWidth, outputHeight: $outputHeight")
+    val outputShape = getOutputShape(outputHeight, outputWidth)
+    Tensor(data = outputShape, shape = Array(outputShape.length))
   }
 
   private def getOutputShape(oh: Int, ow: Int, batchSize: Int = -1): Array[Int] = {

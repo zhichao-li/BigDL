@@ -16,8 +16,9 @@
 
 package com.intel.analytics.bigdl.torch
 
-import com.intel.analytics.bigdl.nn.Squeeze
+import com.intel.analytics.bigdl.nn.{InputLayer, Sequential, Squeeze}
 import com.intel.analytics.bigdl.tensor.Tensor
+import com.intel.analytics.bigdl.utils.TestUtils
 
 import scala.util.Random
 

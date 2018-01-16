@@ -87,6 +87,39 @@ class SpatialMaxPooling[T: ClassTag](
     this
   }
 
+  override def computeOutputShape(inputShape: Activity): Activity = {
+    val input = inputShape.toTensor[Int].toArray()
+    require(input.length == 3,
+      "SpatialMaxPooling: " + ErrorInfo.constrainInputAs3DOrBatch)
+    val (dimh, dimw, dimc) = format.getHWCDims(input.length)
+    val nInputPlane = input(dimc -1)
+    val inputHeight = input(dimh -1)
+    val inputWidth = input(dimw -1)
+    val sizes =
+      if (padW == -1 && padH == -1) {
+        Utils.getSAMEOutSizeAndPadding(inputHeight, inputWidth, dH, dW, kH, kW)
+      } else {
+        require(inputWidth >= kW - padW && inputHeight >= kH - padH,
+          "input smaller than kernel size. " +
+            s"current input size($inputWidth, $inputHeight), " +
+            s"kernel size(${kW-padW}, ${kH-padH})")
+        require(kW / 2 >= padW && kH / 2 >= padH,
+          "pad should be smaller than half of kernel size. " +
+          s"current pad size($padW, $padH), " + s"kernel size($kW, $kH)")
+        Utils.getOutSizeAndPadding(inputHeight, inputWidth, dH, dW, kH, kW, padH, padW, ceilMode)
+      }
+    val oHeight = sizes(4)
+    val oWidth = sizes(5)
+
+    val outputShape = format match {
+      case DataFormat.NCHW =>
+        Array(nInputPlane, oHeight, oWidth)
+      case DataFormat.NHWC =>
+        Array(oHeight, oWidth, nInputPlane)
+    }
+    Tensor(data = outputShape, shape = Array(outputShape.length))
+  }
+
   override def updateOutput(input: Tensor[T]): Tensor[T] = {
     require(input.dim() == 3 || input.dim() == 4,
       "SpatialMaxPooling: " + ErrorInfo.constrainInputAs3DOrBatch)

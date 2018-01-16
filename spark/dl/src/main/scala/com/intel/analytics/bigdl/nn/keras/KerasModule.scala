@@ -117,9 +117,15 @@ abstract class KerasModule[A <: Activity: ClassTag, B <: Activity: ClassTag, T: 
   def doBuild(inputShape: Activity): AbstractModule[A, B, T]
 
 
-  override def forward(input: A): B = labor.forward(input)
+  override def forward(input: A): B = {
+    output = labor.forward(input)
+    output
+  }
 
-  override def backward(input: A, gradOutput: B): A = labor.backward(input, gradOutput)
+  override def backward(input: A, gradOutput: B): A = {
+    gradInput = labor.backward(input, gradOutput)
+    gradInput
+  }
 
   /**
    * Get the scale of gradientWeight

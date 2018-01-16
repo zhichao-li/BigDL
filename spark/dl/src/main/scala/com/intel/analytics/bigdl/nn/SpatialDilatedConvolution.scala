@@ -17,12 +17,13 @@
 package com.intel.analytics.bigdl.nn
 
 import com.intel.analytics.bigdl.Module
-import com.intel.analytics.bigdl.nn.abstractnn.{Initializable, TensorModule}
+import com.intel.analytics.bigdl.nn.abstractnn.{Activity, Initializable, TensorModule}
 import com.intel.analytics.bigdl.optim.Regularizer
 import com.intel.analytics.bigdl.tensor.{DenseTensorBLAS, DoubleType, FloatType, Tensor}
 import com.intel.analytics.bigdl.tensor.TensorNumericMath.TensorNumeric
 import com.intel.analytics.bigdl.utils.RandomGenerator._
 import com.intel.analytics.bigdl.utils.{T, Table}
+
 import scala.reflect.ClassTag
 
 /**
@@ -145,6 +146,18 @@ class SpatialDilatedConvolution[T: ClassTag](
         gradOutput.size(dimW) == outputWidth
       )
     }
+  }
+
+  override def computeOutputShape(inputShape: Activity): Activity = {
+    val input = inputShape.toTensor[Int].toArray()
+
+    val inputWidth = input(2)
+    val inputHeight = input(1)
+    val outputWidth = (inputWidth + 2*padW - (dilationW * (kW - 1) + 1)) / dW + 1
+    val outputHeight = (inputHeight + 2*padH - (dilationH * (kH - 1) + 1)) / dH + 1
+
+    val outputShape = Array(nOutputPlane, outputHeight, outputWidth)
+    Tensor(data = outputShape, shape = Array(outputShape.length))
   }
 
   override def updateOutput(input: Tensor[T]): Tensor[T] = {
