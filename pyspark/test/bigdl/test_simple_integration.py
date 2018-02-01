@@ -172,6 +172,10 @@ class TestSimple():
         res = model.node("fc1")
         assert res.element().name() == "fc1"
 
+    def test_sss(self):
+        from bigdl.nn.keras.layer import Dense
+        dense = Dense(10, input_shape=(3, 4))
+
     def test_save_graph_topology(self):
         fc1 = Linear(4, 2)()
         fc2 = Linear(4, 2)()
