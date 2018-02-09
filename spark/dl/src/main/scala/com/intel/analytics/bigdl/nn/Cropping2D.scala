@@ -43,7 +43,7 @@ class Cropping2D[T: ClassTag](
     val heightCrop: Array[Int],
     val widthCrop: Array[Int],
     val dataFormat: DataFormat = DataFormat.NCHW
-  )(implicit ev: TensorNumeric[T]) extends TensorModule[T] {
+  )(implicit ev: TensorNumeric[T]) extends TensorModule[T]{
 
   require(heightCrop.length == 2, "heightCrop should be an array of length 2")
   require(widthCrop.length == 2, "widthCrop should be an array of length 2")

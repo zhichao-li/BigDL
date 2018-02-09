@@ -68,7 +68,8 @@ class SpatialDilatedConvolution[T: ClassTag](
   val dilationH: Int = 1,
   var wRegularizer: Regularizer[T] = null,
   var bRegularizer: Regularizer[T] = null
-)(implicit ev: TensorNumeric[T]) extends TensorModule[T] with Initializable {
+)(implicit ev: TensorNumeric[T]) extends TensorModule[T] with Initializable
+ {
 
   val weight: Tensor[T] = Tensor[T](nOutputPlane, nInputPlane, kH, kW)
   val gradWeight = Tensor[T](nOutputPlane, nInputPlane, kH, kW)

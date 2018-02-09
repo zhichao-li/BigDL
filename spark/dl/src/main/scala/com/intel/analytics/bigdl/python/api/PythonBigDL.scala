@@ -258,7 +258,7 @@ class PythonBigDL[T: ClassTag](implicit ev: TensorNumeric[T]) extends Serializab
     optimizer
   }
 
-  def createSequential(isKeras: Boolean = false): Sequential[T] = {
+  def createSequential(isKeras: Boolean = false): Container[Activity, Activity, T] = {
     if (isKeras) {
       nn.keras.Sequential[T]()
     }

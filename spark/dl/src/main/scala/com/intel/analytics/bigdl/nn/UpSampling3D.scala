@@ -16,7 +16,7 @@
 
 package com.intel.analytics.bigdl.nn
 
-import com.intel.analytics.bigdl.nn.abstractnn.TensorModule
+import com.intel.analytics.bigdl.nn.abstractnn.{TensorModule}
 import com.intel.analytics.bigdl.tensor.Tensor
 import com.intel.analytics.bigdl.tensor.TensorNumericMath.TensorNumeric
 import com.intel.analytics.bigdl.utils.Shape
@@ -35,7 +35,7 @@ import scala.reflect.ClassTag
  */
 @SerialVersionUID(3462228835945094156L)
 class UpSampling3D[T: ClassTag](val size: Array[Int])
-  (implicit ev: TensorNumeric[T]) extends TensorModule[T] {
+  (implicit ev: TensorNumeric[T]) extends TensorModule[T]{
 
   require(size != null && size.length == 3, "the size should be 3 dims")
 

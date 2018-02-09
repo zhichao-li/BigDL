@@ -755,17 +755,42 @@ abstract class AbstractModule[A <: Activity: ClassTag, B <: Activity: ClassTag, 
     curNode
   }
 
+  protected def processInputs(nodes: Seq[ModuleNode[T]]): ModuleNode[T] = {
+    val curNode = new ModuleNode[T](this)
+    nodes.foreach(node => {
+      node.add(curNode, Edge())
+    })
+    curNode
+  }
+
+  protected def processInputs(first: (ModuleNode[T], Int),
+      nodesWithIndex : (ModuleNode[T], Int)*): ModuleNode[T] = {
+    val curNode = new ModuleNode[T](this)
+    first._1.add(curNode, Edge(first._2))
+    nodesWithIndex.foreach(nodeWithIndex => {
+      nodeWithIndex._1.add(curNode, Edge(nodeWithIndex._2))
+    })
+    curNode
+  }
+
+  /**
+   * Build graph: some other modules point to current module
+   * @param nodes upstream module nodes
+   * @return node containing current module
+   */
+  def inputs(nodes : ModuleNode[T]*): ModuleNode[T] = {
+    excludeInvalidLayers(nodes.map{_.element})
+    processInputs(nodes)
+  }
+
   /**
    * Build graph: some other modules point to current module
    * @param nodes upstream module nodes in an array
    * @return node containing current module
    */
   def inputs(nodes : Array[ModuleNode[T]]): ModuleNode[T] = {
-    val curNode = new ModuleNode[T](this)
-    nodes.foreach(node => {
-      node.add(curNode, Edge())
-    })
-    curNode
+    excludeInvalidLayers(nodes.map{_.element})
+    processInputs(nodes)
   }
 
   /**
@@ -774,14 +799,10 @@ abstract class AbstractModule[A <: Activity: ClassTag, B <: Activity: ClassTag, 
    * @param nodesWithIndex upstream module nodes and the output tensor index. The start index is 1.
    * @return node containing current module
    */
-  def inputs(first: (ModuleNode[T], Int), nodesWithIndex : (ModuleNode[T], Int)*)
-  : ModuleNode[T] = {
-    val curNode = new ModuleNode[T](this)
-    first._1.add(curNode, Edge(first._2))
-    nodesWithIndex.foreach(nodeWithIndex => {
-      nodeWithIndex._1.add(curNode, Edge(nodeWithIndex._2))
-    })
-    curNode
+  def inputs(first: (ModuleNode[T], Int), nodesWithIndex : (ModuleNode[T], Int)*): ModuleNode[T] = {
+    excludeInvalidLayers(List(first._1.element))
+    excludeInvalidLayers(nodesWithIndex.map(_._1.element))
+    processInputs(first, nodesWithIndex: _*)
   }
 
   /**

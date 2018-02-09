@@ -17,13 +17,14 @@
 package com.intel.analytics.bigdl.nn.keras
 
 import com.intel.analytics.bigdl.nn._
-import com.intel.analytics.bigdl.nn.abstractnn.{AbstractModule, DataFormat}
+import com.intel.analytics.bigdl.nn.abstractnn.{AbstractModule, Activity, DataFormat}
 import com.intel.analytics.bigdl.tensor.Tensor
 import com.intel.analytics.bigdl.tensor.TensorNumericMath.TensorNumeric
 
+import scala.collection.mutable
 import scala.reflect.ClassTag
 
-object KerasUtils {
+private[keras] object KerasUtils {
 
   private[keras] def getPadsFromBorderMode(borderMode: String = "valid"): (Int, Int) = {
     if (borderMode == "same") {
@@ -44,6 +45,13 @@ object KerasUtils {
       case _ => throw new IllegalArgumentException(s"Unsupported initialization method: " +
         s"${init.toLowerCase()}")
     }
+  }
+
+  private[keras] def getKerasActivation[T : ClassTag] (activation: String)
+    (implicit ev: TensorNumeric[T]): AbstractModule[Tensor[T], Tensor[T], T] = {
+    val torchActivation = getActivation(activation)
+    new IdentityShapeWrapper(torchActivation)
+      .asInstanceOf[AbstractModule[Tensor[T], Tensor[T], T]]
   }
 
   private[keras] def getActivation[T : ClassTag] (activation: String)
@@ -103,6 +111,28 @@ object KerasUtils {
     dimOrdering.toLowerCase() match {
       case "tf" => "CHANNEL_LAST"
       case "th" => "CHANNEL_FIRST"
+    }
+  }
+
+
+  def checkIsUnique[T: ClassTag](modules: Array[AbstractModule[Activity, Activity, T]]): Unit = {
+    val tmpSet = mutable.HashSet[AbstractModule[Activity, Activity, T]]()
+    def check(m: AbstractModule[Activity, Activity, T]): Unit = {
+      if (tmpSet.contains(m)) {
+        throw new RuntimeException(s"Layer $m should not be used more than once")
+      } else {
+        tmpSet += m
+      }
+    }
+    modules.foreach {module =>
+      module match {
+        case k: KerasLayer[Activity, Activity, T] =>
+          check(k)
+        case c: Container[Activity, Activity, T] =>
+          checkIsUnique(c.modules.toArray)
+        case a: AbstractModule[_, _, T] =>
+          check(a)
+      }
     }
   }
 

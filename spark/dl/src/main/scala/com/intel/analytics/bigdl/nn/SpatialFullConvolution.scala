@@ -86,7 +86,7 @@ class SpatialFullConvolution[T: ClassTag](
   var wRegularizer: Regularizer[T] = null,
   var bRegularizer: Regularizer[T] = null
   )(implicit ev: TensorNumeric[T])
-  extends AbstractModule[Activity, Tensor[T], T] with Initializable {
+  extends AbstractModule[Activity, Tensor[T], T] with Initializable{
 
   require(adjW <= dW - 1 && adjH <= dH - 1,
     "SpatialFullConvolution: adjW=$adjW and adjH=$adjH must be smaller than " +

@@ -71,7 +71,8 @@ class LocallyConnected2D[T: ClassTag](
   val initGradBias: Tensor[T] = null,
   val withBias: Boolean = true,
   val format: DataFormat = DataFormat.NCHW
-)(implicit ev: TensorNumeric[T]) extends TensorModule[T] with Initializable {
+)(implicit ev: TensorNumeric[T]) extends TensorModule[T] with Initializable
+ {
   require((padW >= 0 && padH >= 0) || (padW == -1 && padH == -1),
     s"Illegal padding configuration (padW: $padW, padH: $padH)")
 
@@ -168,23 +169,6 @@ class LocallyConnected2D[T: ClassTag](
     zeroGradParameters()
   }
 
-  private def getOutputShape(oh: Int, ow: Int, batchSize: Int = -1): Array[Int] = {
-    format match {
-      case DataFormat.NCHW =>
-        if (batchSize == -1) {
-          Array(nOutputPlane, oh, ow)
-        } else {
-          Array(batchSize, nOutputPlane, oh, ow)
-        }
-      case DataFormat.NHWC =>
-        if (batchSize == -1) {
-          Array(oh, ow, nOutputPlane)
-        } else {
-          Array(batchSize, oh, ow, nOutputPlane)
-        }
-    }
-  }
-
   private def getFInputShape(oh: Int, ow: Int, batchSize: Int = -1): Array[Int] = {
     format match {
       case DataFormat.NCHW =>
@@ -217,19 +201,6 @@ class LocallyConnected2D[T: ClassTag](
     }
   }
 
-  override def computeOutputShape(inputShape: Shape): Shape = {
-    val input = inputShape.toSingle().toArray
-    require(input.length == 4,
-      s"LocallyConnected2D requires 4D input, but got input dim ${input.length}")
-    val (dimHeight, dimWidth, channelDim) = format.getHWCDims(input.length)
-    require(input(channelDim -1) == nInputPlane, s"input channel size " +
-      s"${input(channelDim -1)} is not the same as nInputPlane $nInputPlane")
-    require(outputWidth >= 1 && outputHeight >= 1,
-      s"output size is too small. outputWidth: $outputWidth, outputHeight: $outputHeight")
-    val outputShape = getOutputShape(outputHeight, outputWidth)
-    Shape(Array(input(0)) ++ outputShape)
-  }
-
   override def updateOutput(input: Tensor[T]): Tensor[T] = {
     require(input.dim() == 3 || input.dim() == 4,
       "LocallyConnected2D: " + ErrorInfo.constrainInputAs3DOrBatch)
@@ -248,7 +219,8 @@ class LocallyConnected2D[T: ClassTag](
 
     if (input.dim() == 3) {
       require(input.isContiguous())
-      output.resize(getOutputShape(outputHeight, outputWidth))
+      output.resize(LocallyConnected2D.getOutputShape(format, nOutputPlane,
+        outputHeight, outputWidth))
       if (_1x1) {
         fInput.set(input)
         fInput.resize(getFInputShape(outputHeight, outputWidth))
@@ -270,7 +242,8 @@ class LocallyConnected2D[T: ClassTag](
         nOutputPlane, outputWidth, outputHeight)
     } else {
       val batchSize = input.size(1)
-      output.resize(getOutputShape(outputHeight, outputWidth, batchSize))
+      output.resize(LocallyConnected2D.getOutputShape(format,
+        nOutputPlane, outputHeight, outputWidth, batchSize))
       if (_1x1) {
         fInput.set(input)
         fInput.resize(getFInputShape(outputHeight, outputWidth, batchSize))
@@ -921,6 +894,28 @@ class LocallyConnected2D[T: ClassTag](
 }
 
 object LocallyConnected2D {
+
+  private[bigdl] def getOutputShape(format: DataFormat,
+      nOutputPlane: Int,
+      oh: Int,
+      ow: Int,
+      batchSize: Int = -1): Array[Int] = {
+    format match {
+      case DataFormat.NCHW =>
+        if (batchSize == -1) {
+          Array(nOutputPlane, oh, ow)
+        } else {
+          Array(batchSize, nOutputPlane, oh, ow)
+        }
+      case DataFormat.NHWC =>
+        if (batchSize == -1) {
+          Array(oh, ow, nOutputPlane)
+        } else {
+          Array(batchSize, oh, ow, nOutputPlane)
+        }
+    }
+  }
+
   def apply[@specialized(Float, Double) T: ClassTag](
     nInputPlane: Int,
     inputWidth: Int,

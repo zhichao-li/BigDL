@@ -47,10 +47,6 @@ abstract class Container[A <: Activity : ClassTag,
 
   override private[bigdl] def isCompatibleWithKeras(): Boolean = false
 
-  override private[bigdl] def isCompatibleWithTorch(): Boolean = {
-    modules.filter(!_.isCompatibleWithTorch()).length <= 0
-  }
-
   override def reset(): Unit = {
     modules.foreach(_.reset())
   }

@@ -16,6 +16,7 @@
 
 package com.intel.analytics.bigdl.nn.keras
 
+import com.intel.analytics.bigdl.nn.Utils
 import com.intel.analytics.bigdl.nn.abstractnn.{AbstractModule, DataFormat, TensorModule}
 import com.intel.analytics.bigdl.optim.Regularizer
 import com.intel.analytics.bigdl.tensor.Tensor
@@ -71,6 +72,44 @@ class LocallyConnected2D[T: ClassTag](
     s"LocallyConnected2D: $borderMode")
   require(subsample.length == 2,
     s"For LocallyConnected2D, subsample should be of length 2 but got length ${subsample.length}")
+
+  override def computeOutputShape(inputShape: Shape): Shape = {
+    val input = inputShape.toSingle().toArray
+    require(input.length == 4,
+      s"LocallyConnected2D requires 4D input, but got input dim ${input.length}")
+    val stack = if (dimOrdering == DataFormat.NCHW) (input(1), input(3), input(2))
+    else (input(3), input(2), input(1))
+    val pad = KerasUtils.getPadsFromBorderMode(borderMode)
+    val nInputPlane = stack._1
+    val inputWidth = stack._2
+    val inputHeight = stack._3
+    val nOutputPlane = nbFilter
+    val kernelW = nbCol
+    val kernelH = nbRow
+    val strideW = subsample(1)
+    val strideH = subsample(0)
+    val padW = pad._2
+    val padH = pad._1
+    val sizes =
+      if (padW == -1 && padH == -1) {
+        Utils.getSAMEOutSizeAndPadding(inputHeight, inputWidth, strideH, strideW, kernelH, kernelW)
+      } else {
+        Utils.getOutSizeAndPadding(inputHeight, inputWidth, strideH, strideW,
+          kernelH, kernelW, padH, padW, ceilMode = false)
+      }
+    val padTop = sizes(0)
+    val padBottom = sizes(1)
+    val padLeft = sizes(2)
+    val padRight = sizes(3)
+    val outputHeight = sizes(4)
+    val outputWidth = sizes(5)
+    val (dimHeight, dimWidth, channelDim) = dimOrdering.getHWCDims(input.length)
+    require(outputWidth >= 1 && outputHeight >= 1,
+      s"output size is too small. outputWidth: $outputWidth, outputHeight: $outputHeight")
+    val outputShape = com.intel.analytics.bigdl.nn.LocallyConnected2D.getOutputShape(dimOrdering,
+      nOutputPlane, outputHeight, outputWidth)
+    Shape(Array(input(0)) ++ outputShape)
+  }
 
   override def doBuild(inputShape: Shape): AbstractModule[Tensor[T], Tensor[T], T] = {
     val input = inputShape.toSingle().toArray

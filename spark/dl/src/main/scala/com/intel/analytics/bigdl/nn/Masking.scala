@@ -28,7 +28,7 @@ import scala.reflect.ClassTag
  * @param maskValue mask value
  */
 class Masking[T: ClassTag](maskValue: Double = 0.0)
-(implicit ev: TensorNumeric[T]) extends TensorModule[T] with IdentityOutputShape{
+(implicit ev: TensorNumeric[T]) extends TensorModule[T]{
   val batchDim = 1
   val timeDim = 2
 
