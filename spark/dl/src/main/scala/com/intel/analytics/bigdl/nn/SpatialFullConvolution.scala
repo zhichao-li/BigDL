@@ -16,7 +16,7 @@
 
 package com.intel.analytics.bigdl.nn
 
-import com.intel.analytics.bigdl.nn.abstractnn.{AbstractModule, Activity, Initializable}
+import com.intel.analytics.bigdl.nn.abstractnn.{AbstractModule, Activity, CompatibleWithKeras, Initializable}
 import com.intel.analytics.bigdl.optim.Regularizer
 import com.intel.analytics.bigdl.tensor.TensorNumericMath.TensorNumeric
 import com.intel.analytics.bigdl.tensor._
@@ -86,7 +86,7 @@ class SpatialFullConvolution[T: ClassTag](
   var wRegularizer: Regularizer[T] = null,
   var bRegularizer: Regularizer[T] = null
   )(implicit ev: TensorNumeric[T])
-  extends AbstractModule[Activity, Tensor[T], T] with Initializable {
+  extends AbstractModule[Activity, Tensor[T], T] with Initializable with CompatibleWithKeras{
 
   require(adjW <= dW - 1 && adjH <= dH - 1,
     "SpatialFullConvolution: adjW=$adjW and adjH=$adjH must be smaller than " +

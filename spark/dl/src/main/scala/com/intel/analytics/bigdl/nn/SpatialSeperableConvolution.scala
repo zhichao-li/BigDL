@@ -15,7 +15,7 @@
  */
 package com.intel.analytics.bigdl.nn
 
-import com.intel.analytics.bigdl.nn.abstractnn.{AbstractModule, DataFormat}
+import com.intel.analytics.bigdl.nn.abstractnn.{AbstractModule, CompatibleWithKeras, DataFormat}
 import com.intel.analytics.bigdl.optim.Regularizer
 import com.intel.analytics.bigdl.tensor.Tensor
 import com.intel.analytics.bigdl.tensor.TensorNumericMath.TensorNumeric
@@ -61,7 +61,7 @@ class SpatialSeperableConvolution[T: ClassTag](
   val initPointWeight: Tensor[T] = null,
   val initBias: Tensor[T] = null
 )(implicit ev: TensorNumeric[T])
-  extends AbstractModule[Tensor[T], Tensor[T], T]{
+  extends AbstractModule[Tensor[T], Tensor[T], T] with CompatibleWithKeras{
 
   private val internalChannel = nInputChannel * depthMultiplier
 

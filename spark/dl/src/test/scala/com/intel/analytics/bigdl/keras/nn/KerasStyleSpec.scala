@@ -17,7 +17,8 @@
 package com.intel.analytics.bigdl.keras.nn
 
 import com.intel.analytics.bigdl.example.loadmodel.AlexNet_OWT
-import com.intel.analytics.bigdl.nn.keras.{Dense, Input, Model, Sequential => KSequential}
+import com.intel.analytics.bigdl.nn.abstractnn.InvalidLayer
+import com.intel.analytics.bigdl.nn.keras.{Activation, Dense, Input, InputLayer, Model, Sequential => KSequential}
 import com.intel.analytics.bigdl.nn.{Sequential => TSequential, _}
 import com.intel.analytics.bigdl.numeric.NumericFloat
 import com.intel.analytics.bigdl.tensor.Tensor
@@ -88,23 +89,43 @@ class KerasStyleSpec extends BigDLSpecHelper {
   }
 
   "TSequential" should "not work with dense" in {
-    intercept[RuntimeException] {
+    intercept[InvalidLayer] {
       val seq = TSequential[Float]()
       val d1 = Dense[Float](20, inputShape = Shape(10)).setName("dense1")
       seq.add(d1)
     }
   }
 
-  "TGraph" should "not work with dense" in {
+  "Incompatible inputShape" should "not work" in {
     intercept[RuntimeException] {
-      val d1 = Dense[Float](20, inputShape = Shape(10)).setName("dense1").inputs(Input())
+      val seq = KSequential[Float]()
+      val d1 = Dense[Float](20, inputShape = Shape(10)).setName("dense1")
+      seq.add(InputLayer(inputShape = Shape(5)))
+      seq.add(d1)
+    }
+  }
+
+  "TGraph" should "not work with dense" in {
+    intercept[InvalidLayer] {
+      val d1 = Dense[Float](20).setName("dense1").inputs(Input(inputShape = Shape(10)))
       val l1 = Linear(2, 3).inputs(d1)
+    }
+  }
+
+
+  "KGraph" should "not work with linear and seq" in {
+    intercept[InvalidLayer] {
+      val input = Input(inputShape = Shape(10))
+      val l1 = Linear(10, 3).inputs(input)
+      val seq = TSequential[Float]().inputs(l1)
+      val l2 = Linear(3, 4).inputs(seq)
+      Model(input, l2)
     }
   }
 
   "TSequential" should "not works with container containing Dense" in {
     val seq = TSequential[Float]()
-    intercept[RuntimeException] {
+    intercept[InvalidLayer] {
       val parallelTable = ParallelTable[Float]()
       val d1 = Dense[Float](20, inputShape = Shape(10)).setName("dense1")
       parallelTable.add(d1)
@@ -113,7 +134,7 @@ class KerasStyleSpec extends BigDLSpecHelper {
   }
 
   "TSequential" should "not work with container with dense" in {
-    intercept[RuntimeException] {
+    intercept[InvalidLayer] {
       val seq = TSequential[Float]()
       val seq2 = TSequential[Float]()
       val d1 = Dense[Float](20, inputShape = Shape(10)).setName("dense1")
@@ -149,5 +170,23 @@ class KerasStyleSpec extends BigDLSpecHelper {
     val reloadedModel = Module.loadModule(absPath)
     val inputData = Tensor[Float](Array(20, 10)).rand()
     val output = reloadedModel.forward(inputData)
+  }
+
+  "multiple outputs with index" should "be test" in {
+    val input = Input[Float](inputShape = Shape(10))
+    val d1 = Dense[Float](20).setName("dense1").inputs(input)
+    val d2 = Dense[Float](5).setName("dense2").inputs(input)
+    val multiOutput = Model[Float](input, Array(d1, d2)).inputs(input)
+
+    val relu1 = Activation[Float]("relu").inputs(multiOutput(1))
+    val model = Model[Float](input, relu1)
+    model.forward(Tensor[Float](Array(2, 10)).rand())
+    assert(model.getOutputShape().toSingle().sameElements(Array(-1, 20)))
+
+    val relu2 = Activation[Float]("relu").inputs(multiOutput(2))
+    val model2 = Model[Float](input, relu2)
+    model2.forward(Tensor[Float](Array(2, 10)).rand())
+    assert(model2.getOutputShape().toSingle().sameElements(Array(-1, 5)))
+
   }
 }

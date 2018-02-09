@@ -15,7 +15,7 @@
  */
 package com.intel.analytics.bigdl.nn
 
-import com.intel.analytics.bigdl.nn.abstractnn.{DataFormat, Initializable, TensorModule}
+import com.intel.analytics.bigdl.nn.abstractnn.{CompatibleWithKeras, DataFormat, Initializable, TensorModule}
 import com.intel.analytics.bigdl.optim.Regularizer
 import com.intel.analytics.bigdl.tensor.TensorNumericMath.TensorNumeric
 import com.intel.analytics.bigdl.tensor.{DoubleType, FloatType, Tensor}
@@ -71,7 +71,8 @@ class LocallyConnected2D[T: ClassTag](
   val initGradBias: Tensor[T] = null,
   val withBias: Boolean = true,
   val format: DataFormat = DataFormat.NCHW
-)(implicit ev: TensorNumeric[T]) extends TensorModule[T] with Initializable {
+)(implicit ev: TensorNumeric[T]) extends TensorModule[T] with Initializable
+  with CompatibleWithKeras{
   require((padW >= 0 && padH >= 0) || (padW == -1 && padH == -1),
     s"Illegal padding configuration (padW: $padW, padH: $padH)")
 

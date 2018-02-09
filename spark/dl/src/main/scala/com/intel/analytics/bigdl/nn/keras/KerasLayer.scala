@@ -25,7 +25,7 @@ import com.intel.analytics.bigdl.tensor.Tensor
 import com.intel.analytics.bigdl.tensor.TensorNumericMath.TensorNumeric
 import com.intel.analytics.bigdl.utils.serializer._
 import com.intel.analytics.bigdl.utils.serializer.converters.DataConverter
-import com.intel.analytics.bigdl.utils.{Shape, SingleShape, Util}
+import com.intel.analytics.bigdl.utils.{MultiShape, Shape, SingleShape, Util}
 import serialization.Bigdl.{AttrValue, BigDLModule}
 
 import scala.collection.mutable.ArrayBuffer
@@ -121,7 +121,7 @@ abstract class KerasLayer[A <: Activity: ClassTag, B <: Activity: ClassTag, T: C
   // scalastyle:on
   override def inputShapeValue: Shape = labor.inputShapeValue
 
-  override def outputShapeValue: Array[Shape] = labor.outputShapeValue
+  override def outputShapeValue: Shape = labor.outputShapeValue
 
   // scalastyle:off
   override def inputShapeValue_=(value: Shape): Unit = {
@@ -129,7 +129,7 @@ abstract class KerasLayer[A <: Activity: ClassTag, B <: Activity: ClassTag, T: C
     this._inputShapeValue = value
   }
 
-  override def outputShapeValue_=(value: Array[Shape]): Unit = {
+  override def outputShapeValue_=(value: Shape): Unit = {
    labor.outputShapeValue = value
    this._outputShapeValue = value
   }
@@ -153,7 +153,7 @@ abstract class KerasLayer[A <: Activity: ClassTag, B <: Activity: ClassTag, T: C
 
   override def isCompatibleWithTorch(): Boolean = false
 
-  override def getInputShape(): Shape = {
+  override final def getInputShape(): Shape = {
     if (batchInputShape != null) {
       batchInputShape
     } else if (this.labor == null) {
@@ -167,15 +167,20 @@ abstract class KerasLayer[A <: Activity: ClassTag, B <: Activity: ClassTag, T: C
     this.labor.computeOutputShape(inputShape)
   }
 
-  override def getOutputShape(): Shape = labor.getOutputShape()
+  override final def getOutputShape(): Shape = labor.getOutputShape()
 
-  override def build(inputShape: Shape): Shape = {
-    this.labor = doBuild(inputShape)
-    val outputShape = computeOutputShape(inputShape)
-    this.outputShapeValue ++= Array(outputShape)
-    this.inputShapeValue = inputShape
+  override def build(calcInputShape: Shape): Shape = {
+    if (batchInputShape != null) {
+      require(batchInputShape == calcInputShape,
+        s"InputShape from constructor ${calcInputShape}" +
+          s"is the same with the calculated inputShape: ${calcInputShape}")
+    }
+    this.labor = doBuild(calcInputShape)
+    val outputShape = computeOutputShape(calcInputShape)
+    this.outputShapeValue = outputShape
+    this.inputShapeValue = calcInputShape
     isBuilt = true
-    outputShape // we cannot use getOutputShape here as it may containing multiple value
+    outputShape
   }
 
   def doBuild(inputShape: Shape): AbstractModule[A, B, T]
@@ -191,7 +196,7 @@ abstract class KerasLayer[A <: Activity: ClassTag, B <: Activity: ClassTag, T: C
     val inputShape = Shape(nodes.map{_.element.getOutputShape()}.toList)
       this.build(inputShape)
     }
-    super.inputs(nodes: _*)
+    processInputs(nodes)
   }
 
   /**
@@ -205,7 +210,19 @@ abstract class KerasLayer[A <: Activity: ClassTag, B <: Activity: ClassTag, T: C
     val inputShape = Shape(nodes.map{_.element.getOutputShape()}.toList)
       this.build(inputShape)
     }
-    super.inputs(nodes)
+    processInputs(nodes)
+  }
+
+  private def getShapeByIndex(shape: Shape, index: Int): Shape = {
+    shape match {
+      case s: SingleShape =>
+        require(index == 1, s"Getting singleshape but with index: $index")
+        s
+      case m: MultiShape =>
+        val multiShape = m.toMulti()
+        require(index >= 1 && index <= multiShape.length)
+        multiShape(index - 1)
+    }
   }
 
   /**
@@ -219,11 +236,13 @@ abstract class KerasLayer[A <: Activity: ClassTag, B <: Activity: ClassTag, T: C
     Util.excludeNotKeras(List(first._1.element))
     Util.excludeNotKeras(nodesWithIndex.map(_._1.element))
     val shapes = ArrayBuffer[Shape]()
-    shapes.append(first._1.element.getOutputShapeFor(first._2))
+    shapes += getShapeByIndex(first._1.element.getOutputShape(), first._2)
     if (!nodesWithIndex.isEmpty) {
-      shapes ++= nodesWithIndex.map{t => t._1.element.getOutputShapeFor(t._2)}
+      shapes ++= nodesWithIndex.map{t =>
+        getShapeByIndex(first._1.element.getOutputShape(), first._2)
+      }
     }
     this.build(Shape(shapes.toList))
-    super.inputs(first, nodesWithIndex : _*)
+    processInputs(first, nodesWithIndex : _*)
   }
 }

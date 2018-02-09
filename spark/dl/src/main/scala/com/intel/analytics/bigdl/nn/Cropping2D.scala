@@ -15,7 +15,7 @@
  */
 package com.intel.analytics.bigdl.nn
 
-import com.intel.analytics.bigdl.nn.abstractnn.{DataFormat, TensorModule}
+import com.intel.analytics.bigdl.nn.abstractnn.{CompatibleWithKeras, DataFormat, TensorModule}
 import com.intel.analytics.bigdl.tensor.Tensor
 import com.intel.analytics.bigdl.tensor.TensorNumericMath.TensorNumeric
 import com.intel.analytics.bigdl.utils.Shape
@@ -43,7 +43,7 @@ class Cropping2D[T: ClassTag](
     val heightCrop: Array[Int],
     val widthCrop: Array[Int],
     val dataFormat: DataFormat = DataFormat.NCHW
-  )(implicit ev: TensorNumeric[T]) extends TensorModule[T] {
+  )(implicit ev: TensorNumeric[T]) extends TensorModule[T] with CompatibleWithKeras{
 
   require(heightCrop.length == 2, "heightCrop should be an array of length 2")
   require(widthCrop.length == 2, "widthCrop should be an array of length 2")

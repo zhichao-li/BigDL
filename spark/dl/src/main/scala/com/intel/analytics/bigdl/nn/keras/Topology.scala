@@ -35,7 +35,7 @@ class Model[T: ClassTag](private val _inputs : Seq[ModuleNode[T]],
 
   this.inputShapeValue = Shape(inputs.map{n => n.element.getInputShape()}.toList)
 
-  this.outputShapeValue = Array(outputs.map{_.element.getOutputShape()}: _*)
+  this.outputShapeValue = Shape(outputs.map{_.element.getOutputShape()}.toList)
 
   isBuilt = true
 
@@ -127,11 +127,6 @@ class Sequential[T: ClassTag](val stopInferShape: Boolean = false)
      getOutputShape()
   }
 
-  override def getOutputShape(): Shape = {
-    require(outputShapeValue.length > 0, "Sequence should not be empty")
-    outputShapeValue(outputShapeValue.length -1) // For Seq, we only respect the last item as output
-  }
-
   private def triggerBuilding(module: AbstractModule[_ <: Activity, _ <: Activity, T]): Unit = {
     if (this.modules.isEmpty) {
       if (module.getInputShape() == null) {
@@ -139,11 +134,11 @@ class Sequential[T: ClassTag](val stopInferShape: Boolean = false)
       } else {
         val outputShape = module.build(module.getInputShape())
         this.inputShapeValue = module.getInputShape()
-        this.outputShapeValue = Array(outputShape)
+        this.outputShapeValue = outputShape
       }
     } else {
       val outputShape = module.build(this.getOutputShape())
-      this.outputShapeValue = Array(outputShape)
+      this.outputShapeValue = outputShape
     }
     isBuilt = true
   }

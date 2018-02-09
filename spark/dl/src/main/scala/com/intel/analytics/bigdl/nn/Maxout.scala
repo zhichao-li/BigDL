@@ -16,7 +16,7 @@
 
 package com.intel.analytics.bigdl.nn
 
-import com.intel.analytics.bigdl.nn.abstractnn.TensorModule
+import com.intel.analytics.bigdl.nn.abstractnn.{CompatibleWithKeras, TensorModule}
 import com.intel.analytics.bigdl.optim.Regularizer
 import com.intel.analytics.bigdl.tensor.{DenseTensorApply, Tensor, TensorFunc6}
 import com.intel.analytics.bigdl.tensor.TensorNumericMath.TensorNumeric
@@ -44,7 +44,7 @@ class Maxout[T: ClassTag](val inputSize: Int, val outputSize: Int, val maxoutNum
   val withBias: Boolean = true, val wRegularizer: Regularizer[T] = null,
   val bRegularizer: Regularizer[T] = null, val initWeight: Tensor[T] = null,
                           val initBias: Tensor[T] = null)
-  (implicit ev: TensorNumeric[T]) extends TensorModule[T] {
+  (implicit ev: TensorNumeric[T]) extends TensorModule[T] with CompatibleWithKeras{
   val layer = Sequential().add(Linear(inputSize, outputSize * maxoutNumber, withBias = withBias,
     wRegularizer = wRegularizer, bRegularizer = bRegularizer, initWeight = initWeight,
     initBias = initBias))

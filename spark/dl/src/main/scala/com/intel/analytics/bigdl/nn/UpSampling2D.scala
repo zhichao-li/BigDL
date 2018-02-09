@@ -16,7 +16,7 @@
 
 package com.intel.analytics.bigdl.nn
 
-import com.intel.analytics.bigdl.nn.abstractnn.{DataFormat, TensorModule}
+import com.intel.analytics.bigdl.nn.abstractnn.{CompatibleWithKeras, DataFormat, TensorModule}
 import com.intel.analytics.bigdl.tensor.Tensor
 import com.intel.analytics.bigdl.tensor.TensorNumericMath.TensorNumeric
 import com.intel.analytics.bigdl.utils.Shape
@@ -34,7 +34,7 @@ import scala.reflect.ClassTag
  * @tparam T The numeric type in the criterion, usually which are [[Float]] or [[Double]]
  */
 class UpSampling2D[T: ClassTag] (val size: Array[Int], val format: DataFormat = DataFormat.NCHW)
-  (implicit ev: TensorNumeric[T]) extends TensorModule[T] {
+  (implicit ev: TensorNumeric[T]) extends TensorModule[T] with CompatibleWithKeras{
   require(size.length == 2, s"UpSampling2D's size should be an array containing" +
     s" 2 elements, but got ${size.mkString("x")}")
   require(size(0) > 0 && size(1) > 0, "UpSampling2D's size should be bigger than 0," +

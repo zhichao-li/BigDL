@@ -18,22 +18,28 @@ package com.intel.analytics.bigdl.nn.abstractnn
 
 import com.intel.analytics.bigdl.utils.Shape
 
+class InvalidLayer(msg: String) extends RuntimeException(msg)
+
+trait CompatibleWithKeras extends InferShape{
+  override def isCompatibleWithKeras(): Boolean = true
+}
+
 trait InferShape {
 
   private[bigdl] var _inputShapeValue: Shape = null
 
-  private[bigdl] var _outputShapeValue: Array[Shape] = Array[Shape]()
+  private[bigdl] var _outputShapeValue: Shape = null
 
   private[bigdl] def inputShapeValue: Shape = _inputShapeValue
 
-  private[bigdl] def outputShapeValue: Array[Shape] = _outputShapeValue
+  private[bigdl] def outputShapeValue: Shape = _outputShapeValue
 
   // scalastyle:off
   private[bigdl] def inputShapeValue_=(value: Shape): Unit = {
     _inputShapeValue = value
   }
 
-  private[bigdl] def outputShapeValue_=(value: Array[Shape]): Unit = {
+  private[bigdl] def outputShapeValue_=(value: Shape): Unit = {
     _outputShapeValue = value
   }
   // scalastyle:on
@@ -46,23 +52,10 @@ trait InferShape {
   }
 
   /**
-   * Get the outputshape by index.
-   * @param index start from 0
-   * @return
-   */
-  private[bigdl] def getOutputShapeFor(index: Int): Shape = {
-    _outputShapeValue(index)
-  }
-
-  /**
    * We suppose the first dim is batch
    */
   private[bigdl] def getOutputShape(): Shape = {
-    if (_outputShapeValue.length > 1) {
-      throw new RuntimeException(
-        "There are multiple outputs for this layer. Please use getInputShapeFor instead")
-    }
-    outputShapeValue(0)
+    outputShapeValue
   }
 
   /**
@@ -71,7 +64,7 @@ trait InferShape {
    */
   private[bigdl] def build(inputShape: Shape): Shape = {
     val outputShape = computeOutputShape(inputShape)
-    this._outputShapeValue ++ Array(outputShape)
+    this._outputShapeValue = outputShape
     this._inputShapeValue = inputShape
     isBuilt = true
     outputShape
@@ -80,7 +73,7 @@ trait InferShape {
   private[bigdl] var isBuilt: Boolean = false
 
 
-  private[bigdl] def isCompatibleWithKeras(): Boolean = true
+  private[bigdl] def isCompatibleWithKeras(): Boolean = false
 
   private[bigdl] def isCompatibleWithTorch(): Boolean = true
 

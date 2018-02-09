@@ -19,6 +19,6 @@ package com.intel.analytics.bigdl.nn.abstractnn
 
 import com.intel.analytics.bigdl.utils.Shape
 
-trait IdentityOutputShape extends InferShape{
+trait IdentityOutputShape extends CompatibleWithKeras{
   override def computeOutputShape(inputShape: Shape): Shape = inputShape
 }

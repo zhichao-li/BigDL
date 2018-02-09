@@ -250,7 +250,7 @@ trait ModuleSerializable extends Loadable with Savable{
       val shape = ShapeConverter.getAttributeValue(context, attrbute.build).asInstanceOf[BigDLShape]
       module.inputShapeValue = shape
     }
-
+    // TODO: update protobuf as we change Array[Shape] to Shape for outputShape
     val outputShapes = model.getOutputShapeList.asScala
     if (outputShapes.length > 0) {
       val shapes = outputShapes.map(outputShape => {
@@ -258,7 +258,7 @@ trait ModuleSerializable extends Loadable with Savable{
         attrbute.setShape(outputShape)
         ShapeConverter.getAttributeValue(context, attrbute.build).asInstanceOf[BigDLShape]
       }).toArray
-      module.outputShapeValue = shapes
+      module.outputShapeValue = shapes(0)
     }
     if (_copyWeightAndBias) {
       copy2BigDL(context, bigDLModule)
@@ -286,8 +286,8 @@ trait ModuleSerializable extends Loadable with Savable{
       modelBuilder.setInputShape(attribute.getShape)
     }
     val outputShapes = module.module.outputShapeValue
-    if (outputShapes != null && outputShapes.length > 0) {
-      outputShapes.foreach(outputShape => {
+    if (outputShapes != null) {
+      Array(outputShapes).foreach(outputShape => {
         val attribute = AttrValue.newBuilder
         ShapeConverter.setAttributeValue(context, attribute, outputShape,
           universe.typeOf[BigDLShape])

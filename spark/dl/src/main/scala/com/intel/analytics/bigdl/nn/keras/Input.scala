@@ -18,14 +18,14 @@ package com.intel.analytics.bigdl.nn.keras
 
 import com.intel.analytics.bigdl.nn.{Input => TInput}
 import com.intel.analytics.bigdl.nn.Graph.ModuleNode
-import com.intel.analytics.bigdl.nn.abstractnn.{AbstractModule, Activity}
+import com.intel.analytics.bigdl.nn.abstractnn.{AbstractModule, Activity, CompatibleWithKeras}
 import com.intel.analytics.bigdl.tensor.TensorNumericMath.TensorNumeric
 import com.intel.analytics.bigdl.utils.{Node, Shape}
 
 import scala.reflect.ClassTag
 
 class Input[T: ClassTag](val inputShape: Shape)(implicit ev: TensorNumeric[T])
-  extends TInput[T]() {
+  extends TInput[T]() with CompatibleWithKeras{
 
   private val batchInputShape = KerasLayer.addBatch(inputShape)
 

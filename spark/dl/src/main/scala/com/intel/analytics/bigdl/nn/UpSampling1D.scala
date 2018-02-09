@@ -18,7 +18,7 @@ package com.intel.analytics.bigdl.nn
 
 import java.util
 
-import com.intel.analytics.bigdl.nn.abstractnn.TensorModule
+import com.intel.analytics.bigdl.nn.abstractnn.{CompatibleWithKeras, TensorModule}
 import com.intel.analytics.bigdl.tensor.Tensor
 import com.intel.analytics.bigdl.tensor.TensorNumericMath.TensorNumeric
 import com.intel.analytics.bigdl.utils.Shape
@@ -36,7 +36,7 @@ import scala.reflect.ClassTag
  * @tparam T The numeric type in this module, usually which are [[Float]] or [[Double]]
  */
 class UpSampling1D[T: ClassTag] (val length: Int)
-  (implicit ev: TensorNumeric[T]) extends TensorModule[T] {
+  (implicit ev: TensorNumeric[T]) extends TensorModule[T] with CompatibleWithKeras{
   require(length > 0, "UpSampling1D's length should be bigger than 0," +
     s"but got $length")
 
