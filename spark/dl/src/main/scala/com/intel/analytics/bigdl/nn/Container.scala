@@ -45,12 +45,6 @@ abstract class Container[A <: Activity : ClassTag,
   val modules: ArrayBuffer[AbstractModule[Activity, Activity, T]]
   = ArrayBuffer[AbstractModule[Activity, Activity, T]]()
 
-  override private[bigdl] def isCompatibleWithKeras(): Boolean = false
-
-  override private[bigdl] def isCompatibleWithTorch(): Boolean = {
-    modules.filter(!_.isCompatibleWithTorch()).length <= 0
-  }
-
   override def zeroGradParameters(): Unit = {
     modules.foreach(_.zeroGradParameters())
   }

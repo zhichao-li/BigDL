@@ -18,11 +18,11 @@ package com.intel.analytics.bigdl.keras.nn
 
 import com.intel.analytics.bigdl.example.loadmodel.AlexNet_OWT
 import com.intel.analytics.bigdl.nn.abstractnn.InvalidLayer
-import com.intel.analytics.bigdl.nn.keras.{Activation, Dense, Input, InputLayer, Model, Sequential => KSequential}
+import com.intel.analytics.bigdl.nn.keras.{Activation, Dense, IdentityShapeWrapper, Input, InputLayer, Model, Sequential => KSequential}
 import com.intel.analytics.bigdl.nn.{Sequential => TSequential, _}
 import com.intel.analytics.bigdl.numeric.NumericFloat
 import com.intel.analytics.bigdl.tensor.Tensor
-import com.intel.analytics.bigdl.utils.{BigDLSpecHelper, Shape}
+import com.intel.analytics.bigdl.utils.{BigDLSpecHelper, Shape, T}
 
 
 class KerasStyleSpec extends BigDLSpecHelper {
@@ -61,26 +61,44 @@ class KerasStyleSpec extends BigDLSpecHelper {
     }
   }
 
-  "Sequential: shared relu" should "work correctly" in {
-    val sharedRelu = ReLU[Float]()
-    val seq1 = KSequential[Float]()
-    seq1.add(Dense[Float](20, inputShape = Shape(10)))
-    seq1.add(sharedRelu)
-    require(seq1.getOutputShape().toSingle().sameElements(Array(-1, 20)))
+  "Sequential: shared relu" should "not work correctly" in {
+    val thrown = intercept[Exception] {
+      val sharedRelu = new IdentityShapeWrapper(ReLU[Float]())
+      val seq1 = KSequential[Float]()
+      seq1.add(Dense[Float](20, inputShape = Shape(10)))
+      seq1.add(sharedRelu)
+      assert(seq1.getOutputShape().toSingle().sameElements(Array(-1, 20)))
 
-    val seq2 = KSequential[Float]()
-    seq2.add(Dense[Float](5, inputShape = Shape(20)))
-    seq2.add(sharedRelu)
-    require(seq2.getOutputShape().toSingle().sameElements(Array(-1, 5)))
+      val seq2 = KSequential[Float]()
+      seq2.add(Dense[Float](5, inputShape = Shape(20)))
+      seq2.add(sharedRelu)
+      assert(seq2.getOutputShape().toSingle().sameElements(Array(-1, 5)))
 
-    val seq = KSequential[Float]()
-    seq.add(seq1)
-    seq.add(seq2)
+      val seq = KSequential[Float]()
+      seq.add(seq1)
+      seq.add(seq2)
 
-    val inputData = Tensor[Float](Array(20, 10)).rand()
-    val output = seq.forward(inputData)
-    require(seq.getInputShape().toSingle().sameElements(Array(-1, 10)))
-    require(seq.getOutputShape().toSingle().sameElements(Array(-1, 5)))
+      val inputData = Tensor[Float](Array(20, 10)).rand()
+      val output = seq.forward(inputData)
+      assert(seq.getInputShape().toSingle().sameElements(Array(-1, 10)))
+      assert(seq.getOutputShape().toSingle().sameElements(Array(-1, 5)))
+    }
+    assert(thrown.getMessage().contains("Reuse module is not allowed"))
+  }
+
+  "Graph: shared relu" should "not work correctly" in {
+    val thrown = intercept[Exception] {
+      val input = Input(inputShape = Shape(10, 20))
+      val sharedRelu = new Activation("relu")
+      val out1 = sharedRelu.inputs(input)
+
+      val seq = KSequential[Float]()
+      seq.add(InputLayer(inputShape = Shape(10, 20)))
+      seq.add(sharedRelu)
+      val out2 = seq.inputs(out1)
+      val model = Model(input, out2)
+    }
+    assert(thrown.getMessage().contains("Reuse module is not allowed"))
   }
 
   "TSequential" should "work with alex" in {
@@ -112,8 +130,18 @@ class KerasStyleSpec extends BigDLSpecHelper {
     }
   }
 
+  "KGraph" should "not work with shared layers" in {
+    val thrown = intercept[RuntimeException] {
+      val input = Input(inputShape = Shape(10))
+      val dense1 = Dense(10, inputShape = Shape(10))
+      val node1 = dense1.inputs(input)
+      val seq = KSequential[Float]().add(dense1).inputs(node1)
+      Model(input, seq)
+    }
+    assert(thrown.getMessage().contains("Reuse module is not allowed"))
+  }
 
-  "KGraph" should "not work with linear and seq" in {
+  "Torch style linear and seq and linear" should "not work with keras Model" in {
     intercept[InvalidLayer] {
       val input = Input(inputShape = Shape(10))
       val l1 = Linear(10, 3).inputs(input)
@@ -173,20 +201,16 @@ class KerasStyleSpec extends BigDLSpecHelper {
   }
 
   "multiple outputs with index" should "be test" in {
-    val input = Input[Float](inputShape = Shape(10))
-    val d1 = Dense[Float](20).setName("dense1").inputs(input)
-    val d2 = Dense[Float](5).setName("dense2").inputs(input)
-    val multiOutput = Model[Float](input, Array(d1, d2)).inputs(input)
+    val input1 = Input[Float](inputShape = Shape(10))
+    val input2 = Input[Float](inputShape = Shape(10))
+    val d1 = Dense[Float](20).setName("dense1").inputs(input1)
+    val d2 = Dense[Float](5).setName("dense2").inputs(input2)
+    val multiOutput = Model[Float](Array(input1, input2), Array(d1, d2))
+      .inputs(Array(input1, input2))
 
     val relu1 = Activation[Float]("relu").inputs(multiOutput(1))
-    val model = Model[Float](input, relu1)
-    model.forward(Tensor[Float](Array(2, 10)).rand())
+    val model = Model[Float](Array(input1, input2), relu1)
+    model.forward(T(Tensor[Float](Array(2, 10)).rand(), Tensor[Float](Array(2, 10)).rand()))
     assert(model.getOutputShape().toSingle().sameElements(Array(-1, 20)))
-
-    val relu2 = Activation[Float]("relu").inputs(multiOutput(2))
-    val model2 = Model[Float](input, relu2)
-    model2.forward(Tensor[Float](Array(2, 10)).rand())
-    assert(model2.getOutputShape().toSingle().sameElements(Array(-1, 5)))
-
   }
 }

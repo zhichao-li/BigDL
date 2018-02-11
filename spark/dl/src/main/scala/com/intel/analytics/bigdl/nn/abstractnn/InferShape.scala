@@ -18,13 +18,13 @@ package com.intel.analytics.bigdl.nn.abstractnn
 
 import com.intel.analytics.bigdl.utils.Shape
 
+import scala.reflect.ClassTag
+
 class InvalidLayer(msg: String) extends RuntimeException(msg)
 
-trait CompatibleWithKeras extends InferShape{
-  override def isCompatibleWithKeras(): Boolean = true
-}
-
 trait InferShape {
+
+  private[bigdl] var isUsed = false
 
   private[bigdl] var _inputShapeValue: Shape = null
 
@@ -47,15 +47,22 @@ trait InferShape {
   /**
    * We suppose the first dim is batch
    */
-  private[bigdl] def getInputShape(): Shape = {
+  private[bigdl] final def getInputShape(): Shape = {
     _inputShapeValue
   }
 
   /**
    * We suppose the first dim is batch
    */
-  private[bigdl] def getOutputShape(): Shape = {
+  private[bigdl] final def getOutputShape(): Shape = {
     outputShapeValue
+  }
+
+  private[bigdl] def inferShape(calcInputShape: Shape): Shape = {
+    val outputShape = computeOutputShape(calcInputShape)
+    this.outputShapeValue = outputShape
+    this.inputShapeValue = calcInputShape
+    outputShape
   }
 
   /**
@@ -63,25 +70,39 @@ trait InferShape {
    * NB: the first dim of inputShape is batch
    */
   private[bigdl] def build(inputShape: Shape): Shape = {
-    val outputShape = computeOutputShape(inputShape)
-    this._outputShapeValue = outputShape
-    this._inputShapeValue = inputShape
-    isBuilt = true
-    outputShape
+    inferShape(inputShape)
   }
 
-  private[bigdl] var isBuilt: Boolean = false
-
-
   private[bigdl] def isCompatibleWithKeras(): Boolean = false
-
-  private[bigdl] def isCompatibleWithTorch(): Boolean = true
 
   /**
    * We suppose the first dim is batch
    */
   private[bigdl] def computeOutputShape(inputShape: Shape): Shape = {
     throw new RuntimeException("Haven't been implemented yet. Do not use it with Keras Layer")
+  }
+
+  private[bigdl] def ensureNotShared(): Unit = {
+    if (isUsed == true) {
+      throw new RuntimeException(s"Reuse module is not allowed: $this")
+    }
+    isUsed = true
+  }
+
+  private[bigdl] def ensureNotShared[T: ClassTag](modules : Seq[AbstractModule[_, _, T]]): Unit = {
+    modules.map{_.ensureNotShared()}
+  }
+
+  private[bigdl] def excludeInvalidLayers[T: ClassTag]
+  (modules : Seq[AbstractModule[_, _, T]]): Unit = {
+    val invalidNodes = if (this.isCompatibleWithKeras()) {
+      modules.filter{!_.isCompatibleWithKeras()}
+    } else {
+      modules.filter{_.isCompatibleWithKeras()}
+    }
+    if (invalidNodes.length > 0) {
+      throw new InvalidLayer(s"Do not mix with Layer: ${invalidNodes.mkString(",")}")
+    }
   }
 }
 

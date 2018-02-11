@@ -44,7 +44,7 @@ class Activation[T: ClassTag](
   override def doBuild(inputShape: Shape): AbstractModule[Tensor[T], Tensor[T], T] = {
     val model = Sequential[T]()
     model.add(InputLayer(inputShape = KerasLayer.removeBatch(inputShape)))
-    val layer = KerasUtils.getActivation(activation)
+    val layer = KerasUtils.getKerasActivation(activation)
     model.add(layer).asInstanceOf[AbstractModule[Tensor[T], Tensor[T], T]]
   }
 }

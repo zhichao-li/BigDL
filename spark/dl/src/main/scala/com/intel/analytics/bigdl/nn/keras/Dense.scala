@@ -76,7 +76,7 @@ class Dense[T: ClassTag](
       KerasLayer.fuse(layer, activation,
         inputShape).asInstanceOf[AbstractModule[Tensor[T], Tensor[T], T]]
     } else {
-      val seq = new Sequential[T](stopInferShape = true)
+      val seq = new Sequential[T]()
       val inDim = inputShapeList.last
       seq.add(InputLayer(inputShape = inputShape))
       seq.add(InferReshape(Array(-1, inDim), false))

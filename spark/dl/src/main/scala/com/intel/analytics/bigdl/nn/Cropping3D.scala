@@ -15,7 +15,7 @@
  */
 package com.intel.analytics.bigdl.nn
 
-import com.intel.analytics.bigdl.nn.abstractnn.{CompatibleWithKeras, TensorModule}
+import com.intel.analytics.bigdl.nn.abstractnn.{TensorModule}
 import com.intel.analytics.bigdl.tensor.Tensor
 import com.intel.analytics.bigdl.tensor.TensorNumericMath.TensorNumeric
 import com.intel.analytics.bigdl.utils.Shape
@@ -45,7 +45,7 @@ class Cropping3D[T: ClassTag](
     val dim2Crop: Array[Int],
     val dim3Crop: Array[Int],
     val dataFormat: String = Cropping3D.CHANNEL_FIRST
-  )(implicit ev: TensorNumeric[T]) extends TensorModule[T] with CompatibleWithKeras{
+  )(implicit ev: TensorNumeric[T]) extends TensorModule[T]{
 
   require(dim1Crop.length == 2, "dim1Crop should be an array of length 2")
   require(dim2Crop.length == 2, "dim2Crop should be an array of length 2")

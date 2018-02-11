@@ -176,20 +176,4 @@ object Util {
       i += 1
     }
   }
-
-  private[bigdl] def excludeNotTorch[T: ClassTag]
-  (modules : Seq[AbstractModule[_, _, T]]): Unit = {
-    val invalidNodes = modules.filter{!_.isCompatibleWithTorch()}
-    if (invalidNodes.length > 0) {
-      throw new InvalidLayer(s"Do not mix with Layer: ${invalidNodes.mkString(",")}")
-    }
-  }
-
-  private[bigdl] def excludeNotKeras[T: ClassTag]
-  (modules : Seq[AbstractModule[_, _, T]]): Unit = {
-    val invalidNodes = modules.filter{!_.isCompatibleWithKeras()}
-    if (invalidNodes.length > 0) {
-      throw new InvalidLayer(s"Do not mix with Layer: ${invalidNodes.mkString(",")}")
-    }
-  }
 }

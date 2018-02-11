@@ -44,11 +44,8 @@ class StaticGraph[T: ClassTag](
   private var backId2ForwardId: Array[Int] = _
   private var gradOutputCache: Array[Activity] = _
 
-  if (excludeNotTorch) {
-    Util.excludeNotTorch(forwardExecution.map {_.element})
-  } else {
-    Util.excludeNotKeras(forwardExecution.map {_.element})
-  }
+  // StaticGraph would append Identity, so we would need to ignore it here.
+  excludeInvalidLayers(forwardExecution.map {_.element}.filter{!_.isInstanceOf[Identity[T]]})
 
   buildBackwardGraph()
 

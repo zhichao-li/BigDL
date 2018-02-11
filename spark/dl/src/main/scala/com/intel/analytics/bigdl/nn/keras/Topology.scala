@@ -18,30 +18,27 @@ package com.intel.analytics.bigdl.nn.keras
 
 import com.intel.analytics.bigdl.nn.Graph._
 import com.intel.analytics.bigdl.nn.abstractnn.{AbstractModule, Activity}
-import com.intel.analytics.bigdl.nn.{Graph, GraphSerializable, StaticGraph, Sequential => TSequential}
+import com.intel.analytics.bigdl.nn.{Container, Graph, GraphSerializable, StaticGraph, Sequential => TSequential}
 import com.intel.analytics.bigdl.serialization.Bigdl.BigDLModule
 import com.intel.analytics.bigdl.tensor.TensorNumericMath.TensorNumeric
 import com.intel.analytics.bigdl.utils.serializer._
 import com.intel.analytics.bigdl.utils.{Shape, Util}
 
+import scala.collection.mutable
 import scala.reflect.ClassTag
 
 class Model[T: ClassTag](private val _inputs : Seq[ModuleNode[T]],
       private val _outputs : Seq[ModuleNode[T]])(implicit ev: TensorNumeric[T])
   extends StaticGraph[T](_inputs, _outputs, None, false) {
 
-  Util.excludeNotKeras(inputs.map(_.element))
-  Util.excludeNotKeras(outputs.map(_.element))
+  excludeInvalidLayers(inputs.map(_.element))
+  excludeInvalidLayers(outputs.map(_.element))
 
   this.inputShapeValue = Shape(inputs.map{n => n.element.getInputShape()}.toList)
 
   this.outputShapeValue = Shape(outputs.map{_.element.getOutputShape()}.toList)
 
-  isBuilt = true
-
   override private[bigdl] def isCompatibleWithKeras(): Boolean = true
-
-  override private[bigdl] def isCompatibleWithTorch(): Boolean = false
 
   override def computeOutputShape(inputShape: Shape): Shape = {
     getOutputShape()
@@ -114,25 +111,29 @@ trait ModelSerializer extends GraphSerializable with TKerasSerializerHelper{
   }
 }
 
-class Sequential[T: ClassTag](val stopInferShape: Boolean = false)
-(implicit ev: TensorNumeric[T]) extends TSequential[T] {
-
-  override private[bigdl] def isCompatibleWithKeras(): Boolean = true
-
-  override private[bigdl] def isCompatibleWithTorch(): Boolean = false
+class Sequential[T: ClassTag]()
+(implicit ev: TensorNumeric[T]) extends KerasLayer[Activity, Activity, T] {
 
   private[bigdl] var frozen: Boolean = false
 
-  override def computeOutputShape(inputShape: Shape): Shape = {
-     getOutputShape()
+  // we redefine labor here as `modules` is used by the Torch Container.
+  val _labor = doBuild(null)
+
+  override def labor(): TSequential[T] = _labor
+
+  // scalastyle:off
+  override def labor_=(value: AbstractModule[Activity, Activity, T]): Unit = {
+    throw new RuntimeException("Should not change the labor for Sequential")
   }
+  // scalastyle:on
 
   private def triggerBuilding(module: AbstractModule[_ <: Activity, _ <: Activity, T]): Unit = {
-    if (this.modules.isEmpty) {
+    if (this.getOutputShape() == null) {
       if (module.getInputShape() == null) {
         throw new RuntimeException("The first layer should explicitly declare inputshape")
       } else {
         val outputShape = module.build(module.getInputShape())
+        // The inputShape of Sequential should only be init here.
         this.inputShapeValue = module.getInputShape()
         this.outputShapeValue = outputShape
       }
@@ -140,7 +141,6 @@ class Sequential[T: ClassTag](val stopInferShape: Boolean = false)
       val outputShape = module.build(this.getOutputShape())
       this.outputShapeValue = outputShape
     }
-    isBuilt = true
   }
 
   /**
@@ -149,7 +149,8 @@ class Sequential[T: ClassTag](val stopInferShape: Boolean = false)
    * @param module module to be add
    * @return this container
    */
-  override def add(module: AbstractModule[_ <: Activity, _ <: Activity, T]): this.type = {
+  def add(module: AbstractModule[_ <: Activity, _ <: Activity, T]): this.type = {
+    module.ensureNotShared()
     if (frozen) {
       throw new RuntimeException(
         "This Sequential has been frozen, as it has been added into other container")
@@ -157,13 +158,23 @@ class Sequential[T: ClassTag](val stopInferShape: Boolean = false)
     if (module.isInstanceOf[Sequential[T]]) {
       module.asInstanceOf[Sequential[T]].frozen = true
     }
-    Util.excludeNotKeras[T](Seq(module))
-    if (!stopInferShape) {
-      triggerBuilding(module)
-    }
+    excludeInvalidLayers[T](Seq(module))
+
+    triggerBuilding(module)
+
     modules += module.asInstanceOf[AbstractModule[Activity, Activity, T]]
     this
   }
+
+  override def computeOutputShape(inputShape: Shape): Shape = {
+    if (modules.isEmpty) {
+      inputShape
+    } else {
+      modules.last.getOutputShape()
+    }
+  }
+
+  override def doBuild(inputShape: Shape): TSequential[T] = TSequential[T]()
 }
 
 object Sequential extends ContainerSerializable with TKerasSerializerHelper{

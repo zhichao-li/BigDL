@@ -18,27 +18,18 @@ package com.intel.analytics.bigdl.nn.keras
 
 import com.intel.analytics.bigdl.nn.{Input => TInput}
 import com.intel.analytics.bigdl.nn.Graph.ModuleNode
-import com.intel.analytics.bigdl.nn.abstractnn.{AbstractModule, Activity, CompatibleWithKeras}
+import com.intel.analytics.bigdl.nn.abstractnn.{AbstractModule, Activity}
 import com.intel.analytics.bigdl.tensor.TensorNumericMath.TensorNumeric
 import com.intel.analytics.bigdl.utils.{Node, Shape}
 
 import scala.reflect.ClassTag
 
 class Input[T: ClassTag](val inputShape: Shape)(implicit ev: TensorNumeric[T])
-  extends TInput[T]() with CompatibleWithKeras{
-
-  private val batchInputShape = KerasLayer.addBatch(inputShape)
-
-  override def getInputShape(): Shape = {
-    batchInputShape
-  }
-
-  override def getOutputShape(): Shape = {
-    batchInputShape
-  }
+  extends KerasLayer[Activity, Activity, T](KerasLayer.addBatch(inputShape)) {
 
   override def computeOutputShape(inputShape: Shape): Shape = inputShape
 
+  override def doBuild(inputShape: Shape): TInput[T] = new TInput[T]()
 }
 
 object Input {
@@ -46,6 +37,7 @@ object Input {
     name : String = null,
     inputShape: Shape = null)(implicit ev: TensorNumeric[T]): ModuleNode[T] = {
     val module = new Input(inputShape)
+    module.build(KerasLayer.addBatch(inputShape))
     if (name != null) {
       module.setName(name)
     }
@@ -56,8 +48,9 @@ object Input {
 object InputLayer {
   def apply[T: ClassTag](
     name : String = null,
-    inputShape: Shape = null)(implicit ev: TensorNumeric[T]): Input[T] = {
+    inputShape: Shape = null)(implicit ev: TensorNumeric[T]): KerasLayer[Activity, Activity, T] = {
     val module = new Input(inputShape)
+    module.build(KerasLayer.addBatch(inputShape))
     if (name != null) {
       module.setName(name)
     }

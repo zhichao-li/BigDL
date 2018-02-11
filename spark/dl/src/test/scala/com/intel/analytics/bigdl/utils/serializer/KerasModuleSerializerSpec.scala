@@ -15,6 +15,8 @@
  */
 package com.intel.analytics.bigdl.utils.serializer
 
+import com.intel.analytics.bigdl.nn.ReLU
+import com.intel.analytics.bigdl.nn.abstractnn.AbstractModule
 import com.intel.analytics.bigdl.nn.keras.{Sequential => KSequential}
 import com.intel.analytics.bigdl.nn.keras._
 import com.intel.analytics.bigdl.tensor._
@@ -31,7 +33,17 @@ class KerasModuleSerializerSpec extends SerializerSpecHelper {
     super.getExpected().filter(_.contains(getPackage()))
   }
 
-  "Input serializer" should "work properly" in {
+  override def addExcludedClass(): Unit = {
+    excludedClass.add("com.intel.analytics.bigdl.nn.keras.Input")
+  }
+  "IdentityShapeWrapper serializer" should "work properly" in {
+    val layer = new IdentityShapeWrapper(ReLU[Float]())
+    layer.build(Shape(20))
+    val inputData = Tensor[Float](2, 20).apply1(_ => Random.nextFloat())
+    runSerializationTest(layer.asInstanceOf[AbstractModule[_, _, Float]], inputData)
+  }
+
+  "InputLayer serializer" should "work properly" in {
     val input = InputLayer[Float](inputShape = Shape(20))
     val inputData = Tensor[Float](2, 20).apply1(_ => Random.nextFloat())
     runSerializationTest(input, inputData)
@@ -373,7 +385,7 @@ class KerasModuleSerializerSpec extends SerializerSpecHelper {
   }
 
   "Deconvolution2D serializer" should "work properly" in {
-    val layer = Deconvolution2D[Float](3, 3, 3, inputShape = Shape(3, 24, 24))
+    val layer = Deconvolution2D[Float](3, 3, 3, inputShape = Shape(12, 24, 24))
     layer.build(Shape(2, 12, 24, 24))
     val input = Tensor[Float](2, 12, 24, 24).apply1(_ => Random.nextFloat())
     runSerializationTest(layer, input)

@@ -17,7 +17,7 @@
 package com.intel.analytics.bigdl.nn
 
 import com.intel.analytics.bigdl.Module
-import com.intel.analytics.bigdl.nn.abstractnn.{CompatibleWithKeras, DataFormat, Initializable, TensorModule}
+import com.intel.analytics.bigdl.nn.abstractnn.{DataFormat, Initializable, TensorModule}
 import com.intel.analytics.bigdl.nn.quantized.Quantizable
 import com.intel.analytics.bigdl.optim.Regularizer
 import com.intel.analytics.bigdl.tensor.TensorNumericMath.TensorNumeric
@@ -71,7 +71,7 @@ class SpatialConvolution[T: ClassTag](
   val withBias: Boolean = true,
   val format: DataFormat = DataFormat.NCHW
 )(implicit ev: TensorNumeric[T]) extends TensorModule[T] with Initializable
-  with CompatibleWithKeras{
+ {
 
 
   require(nOutputPlane % nGroup == 0, s"Number of input channels " +
