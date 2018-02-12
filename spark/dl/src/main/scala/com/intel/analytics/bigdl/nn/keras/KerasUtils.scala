@@ -113,27 +113,4 @@ private[keras] object KerasUtils {
       case "th" => "CHANNEL_FIRST"
     }
   }
-
-
-  def checkIsUnique[T: ClassTag](modules: Array[AbstractModule[Activity, Activity, T]]): Unit = {
-    val tmpSet = mutable.HashSet[AbstractModule[Activity, Activity, T]]()
-    def check(m: AbstractModule[Activity, Activity, T]): Unit = {
-      if (tmpSet.contains(m)) {
-        throw new RuntimeException(s"Layer $m should not be used more than once")
-      } else {
-        tmpSet += m
-      }
-    }
-    modules.foreach {module =>
-      module match {
-        case k: KerasLayer[Activity, Activity, T] =>
-          check(k)
-        case c: Container[Activity, Activity, T] =>
-          checkIsUnique(c.modules.toArray)
-        case a: AbstractModule[_, _, T] =>
-          check(a)
-      }
-    }
-  }
-
 }
