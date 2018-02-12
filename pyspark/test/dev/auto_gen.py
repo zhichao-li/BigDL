@@ -110,13 +110,15 @@ def to_java_creator(scala_src):
     scala_params = get_parameters(scala_src)
 
     def format_creator_param_list(scala_params):
-        mapping = {"inputShape": 8*" " + "inputShape: JList[Int] = null"}
+        name_mapping = {"inputShape": 8*" " + "inputShape: JList[Int] = null"}
+        type_mapping = {"(Int, Int)": "JList[Int]"}
         result = []
         for name, value, t in scala_params:
-            if name in mapping:
-                result.append(mapping[name])
+
+            if name in name_mapping:
+                result.append(name_mapping[name])
             else:
-                result.append(8*" " + """%s: %s%s""" % (name, t, " = " + value if value else ""))
+                result.append(8*" " + """%s: %s%s""" % (name, type_mapping.get(t, t), " = " + value if value else ""))
         return append_semi(result)
 
     def format_init_list(scala_params):
