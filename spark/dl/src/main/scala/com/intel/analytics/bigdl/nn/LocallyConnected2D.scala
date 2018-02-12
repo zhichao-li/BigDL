@@ -19,7 +19,7 @@ import com.intel.analytics.bigdl.nn.abstractnn.{DataFormat, Initializable, Tenso
 import com.intel.analytics.bigdl.optim.Regularizer
 import com.intel.analytics.bigdl.tensor.TensorNumericMath.TensorNumeric
 import com.intel.analytics.bigdl.tensor.{DoubleType, FloatType, Tensor}
-import com.intel.analytics.bigdl.utils.{Engine, Shape, T, Table}
+import com.intel.analytics.bigdl.utils.Engine
 
 import scala.concurrent.Future
 import scala.reflect.ClassTag

@@ -40,7 +40,7 @@ class GaussianNoise[T: ClassTag](
    val sigma: Double,
    val inputShape: Shape = null)(implicit ev: TensorNumeric[T])
   extends KerasLayer[Tensor[T], Tensor[T], T](KerasLayer.addBatch(inputShape))
-    with IdentityOutputShape{
+    with IdentityOutputShape {
 
   override def doBuild(inputShape: Shape): AbstractModule[Tensor[T], Tensor[T], T] = {
     val layer = com.intel.analytics.bigdl.nn.GaussianNoise(stddev = sigma)

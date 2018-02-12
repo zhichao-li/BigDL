@@ -39,7 +39,7 @@ class ELU[T: ClassTag](
    val alpha: Double = 1.0,
    val inputShape: Shape = null)(implicit ev: TensorNumeric[T])
   extends KerasLayer[Tensor[T], Tensor[T], T](KerasLayer.addBatch(inputShape))
-    with IdentityOutputShape{
+    with IdentityOutputShape {
 
   override def doBuild(inputShape: Shape): AbstractModule[Tensor[T], Tensor[T], T] = {
     val layer = com.intel.analytics.bigdl.nn.ELU(

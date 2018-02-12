@@ -16,9 +16,9 @@
 
 package com.intel.analytics.bigdl.nn
 
-import com.intel.analytics.bigdl.nn.abstractnn.{TensorModule}
+import com.intel.analytics.bigdl.nn.abstractnn.TensorModule
 import com.intel.analytics.bigdl.optim.Regularizer
-import com.intel.analytics.bigdl.tensor.{DenseTensorApply, Tensor, TensorFunc6}
+import com.intel.analytics.bigdl.tensor.Tensor
 import com.intel.analytics.bigdl.tensor.TensorNumericMath.TensorNumeric
 import com.intel.analytics.bigdl.utils.{Shape, Table}
 
