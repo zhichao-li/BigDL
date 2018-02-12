@@ -742,19 +742,6 @@ abstract class AbstractModule[A <: Activity: ClassTag, B <: Activity: ClassTag, 
     this
   }
 
-  /**
-   * Build graph: some other modules point to current module
-   * @param nodes upstream module nodes
-   * @return node containing current module
-   */
-  def inputs(nodes : ModuleNode[T]*): ModuleNode[T] = {
-    val curNode = new ModuleNode[T](this)
-    nodes.foreach(node => {
-      node.add(curNode, Edge())
-    })
-    curNode
-  }
-
   protected def processInputs(nodes: Seq[ModuleNode[T]]): ModuleNode[T] = {
     val curNode = new ModuleNode[T](this)
     nodes.foreach(node => {
