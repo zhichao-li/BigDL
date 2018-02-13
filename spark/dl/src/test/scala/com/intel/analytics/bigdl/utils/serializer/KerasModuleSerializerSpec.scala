@@ -469,7 +469,7 @@ class KerasModuleSerializerSpec extends SerializerSpecHelper {
     val input = Tensor[Float](3, 12).apply1(_ => Random.nextFloat())
     runSerializationTest(layer, input)
   }
-
+// TODO: seems like build is invoked multiple times here.
   "Merge serializer" should "work properly" in {
     val l1 = InputLayer[Float](inputShape = Shape(4, 8))
     val l2 = InputLayer[Float](inputShape = Shape(4, 8))

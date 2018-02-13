@@ -18,9 +18,8 @@ package com.intel.analytics.bigdl.nn.keras
 
 import com.intel.analytics.bigdl._
 import com.intel.analytics.bigdl.nn.Graph._
-import com.intel.analytics.bigdl.nn.abstractnn.{AbstractModule, Activity}
-import com.intel.analytics.bigdl.nn.keras.{Sequential => KSequential}
-import com.intel.analytics.bigdl.nn.{Container, Sequential => TSequential}
+import com.intel.analytics.bigdl.nn.abstractnn.{AbstractModule, Activity, InferShape}
+import com.intel.analytics.bigdl.nn.{Container => TContainer, Sequential => TSequential}
 import com.intel.analytics.bigdl.serialization.Bigdl.{AttrValue, BigDLModule}
 import com.intel.analytics.bigdl.tensor.Tensor
 import com.intel.analytics.bigdl.tensor.TensorNumericMath.TensorNumeric
@@ -105,7 +104,7 @@ private[bigdl] object KerasLayer {
     if (shape.isInstanceOf[SingleShape]) {
       Shape((shape.toSingle().slice(1, shape.toSingle().length)).toArray)
     } else {
-      Shape(shape.toMulti().map {addBatch(_)})
+      Shape(shape.toMulti().map {removeBatch(_)})
     }
   }
 }
@@ -120,7 +119,7 @@ private[bigdl] object KerasLayer {
  * @param batchInputShape the first dim is batch
  */
 abstract class KerasLayer[A <: Activity: ClassTag, B <: Activity: ClassTag, T: ClassTag]
-(batchInputShape: Shape = null)(implicit ev: TensorNumeric[T]) extends Container[A, B, T] {
+(batchInputShape: Shape = null)(implicit ev: TensorNumeric[T]) extends TContainer[A, B, T] {
 
   inputShapeValue = batchInputShape
 
@@ -157,7 +156,14 @@ abstract class KerasLayer[A <: Activity: ClassTag, B <: Activity: ClassTag, T: C
   override def isCompatibleWithKeras(): Boolean = true
 
   override def computeOutputShape(inputShape: Shape): Shape = {
-    this.labor.computeOutputShape(inputShape)
+    val cls = this.getClass.getComponentType
+    val torchLayer = labor match {
+      case s: TContainer[_, _, T] =>
+        s.modules.filter(
+          !_.isInstanceOf[Input[T]]).filter(!_.isInstanceOf[IdentityShapeWrapper[_, _, T]])(0)
+      case l: InferShape => l
+    }
+    torchLayer.asInstanceOf[InferShape].computeOutputShape(inputShape)
   }
 
   private def checkWithCurrentInputShape(calcInputShape: Shape): Unit = {

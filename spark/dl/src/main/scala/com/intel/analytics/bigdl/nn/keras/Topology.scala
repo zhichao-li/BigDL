@@ -116,16 +116,7 @@ class Sequential[T: ClassTag]()
 
   private[bigdl] var frozen: Boolean = false
 
-  // we redefine labor here as `modules` is used by the Torch Container.
-  val _labor = doBuild(null)
-
-  override def labor(): TSequential[T] = _labor
-
-  // scalastyle:off
-  override def labor_=(value: AbstractModule[Activity, Activity, T]): Unit = {
-    throw new RuntimeException("Should not change the labor for Sequential")
-  }
-  // scalastyle:on
+  labor = doBuild(null)
 
   private def triggerBuilding(module: AbstractModule[_ <: Activity, _ <: Activity, T]): Unit = {
     if (this.getOutputShape() == null) {
@@ -162,7 +153,8 @@ class Sequential[T: ClassTag]()
 
     triggerBuilding(module)
 
-    modules += module.asInstanceOf[AbstractModule[Activity, Activity, T]]
+    labor.asInstanceOf[TSequential[T]].modules +=
+      module.asInstanceOf[AbstractModule[Activity, Activity, T]]
     this
   }
 

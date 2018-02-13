@@ -18,7 +18,7 @@ package com.intel.analytics.bigdl.keras.nn
 
 import com.intel.analytics.bigdl.keras.KerasBaseSpec
 import com.intel.analytics.bigdl.nn.abstractnn.{AbstractModule, DataFormat}
-import com.intel.analytics.bigdl.nn.keras.{LocallyConnected2D, Sequential => KSequential}
+import com.intel.analytics.bigdl.nn.keras.{KerasLayer, LocallyConnected2D, Sequential => KSequential}
 import com.intel.analytics.bigdl.tensor.Tensor
 import com.intel.analytics.bigdl.utils.Shape
 
@@ -54,10 +54,10 @@ class LocallyConnected2DSpec extends KerasBaseSpec {
         |model = Model(input=input_tensor, output=output_tensor)
       """.stripMargin
     val seq = KSequential[Float]()
-    val layer = LocallyConnected2D[Float](32, 2, 2,
-      activation = "relu", inputShape = Shape(12, 24, 24))
+    val layer = LocallyConnected2D[Float](32, 2, 2, inputShape = Shape(12, 24, 24))
     seq.add(layer)
-    checkOutputAndGrad(seq.asInstanceOf[AbstractModule[Tensor[Float], Tensor[Float], Float]],
+    layer.build(KerasLayer.addBatch(Shape(12, 24, 24)))
+    checkOutputAndGrad(layer.asInstanceOf[AbstractModule[Tensor[Float], Tensor[Float], Float]],
       kerasCode, weightConverter)
   }
 
