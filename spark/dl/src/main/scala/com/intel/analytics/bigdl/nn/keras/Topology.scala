@@ -29,7 +29,7 @@ import scala.reflect.ClassTag
 
 class Model[T: ClassTag](private val _inputs : Seq[ModuleNode[T]],
       private val _outputs : Seq[ModuleNode[T]])(implicit ev: TensorNumeric[T])
-  extends StaticGraph[T](_inputs, _outputs, None, false) {
+  extends StaticGraph[T](_inputs, _outputs, None) {
 
   validateInput(inputs.map(_.element))
   validateInput(outputs.map(_.element))

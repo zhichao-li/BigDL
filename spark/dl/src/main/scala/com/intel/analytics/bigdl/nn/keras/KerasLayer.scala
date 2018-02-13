@@ -202,7 +202,6 @@ abstract class KerasLayer[A <: Activity: ClassTag, B <: Activity: ClassTag, T: C
    */
   override def inputs(nodes : ModuleNode[T]*): ModuleNode[T] = {
     validateInput(nodes.map(_.element))
-    require(nodes != null && !nodes.isEmpty, "Empty input is not allow")
     if (!nodes.isEmpty) { // as there's Identity().inputs() within Graph
     val inputShape = Shape(nodes.map{_.element.getOutputShape()}.toList)
       this.build(inputShape)
