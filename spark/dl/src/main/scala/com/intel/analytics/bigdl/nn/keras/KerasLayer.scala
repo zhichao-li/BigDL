@@ -137,7 +137,7 @@ abstract class KerasLayer[A <: Activity: ClassTag, B <: Activity: ClassTag, T: C
     modules.clear()
     modules.append(value)
   }
-  // scalastyle:on
+ // scalastyle:on
 
   override def updateOutput(input: A): B = {
     output = labor.updateOutput(input)
@@ -151,6 +151,10 @@ abstract class KerasLayer[A <: Activity: ClassTag, B <: Activity: ClassTag, T: C
 
   override def accGradParameters(input: A, gradOutput: B): Unit = {
     labor.accGradParameters(input, gradOutput)
+  }
+
+  override def isBuilt(): Boolean = {
+    !this.modules.isEmpty && super.isBuilt()
   }
 
   override def isKerasStyle(): Boolean = true
@@ -188,7 +192,10 @@ abstract class KerasLayer[A <: Activity: ClassTag, B <: Activity: ClassTag, T: C
         checkWithCurrentInputShape(calcInputShape)
         getOutputShape()
       case _ =>
-        labor = doBuild(calcInputShape)
+        if (isBuilt()) {
+          throw new RuntimeException(s"Should not build this module: $this multiple times")
+        }
+        this.modules.append(doBuild(calcInputShape))
         inferShape(calcInputShape)
     }
   }

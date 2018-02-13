@@ -22,7 +22,7 @@ import com.intel.analytics.bigdl.nn.keras.{Activation, Dense, IdentityShapeWrapp
 import com.intel.analytics.bigdl.nn.{Sequential => TSequential, _}
 import com.intel.analytics.bigdl.numeric.NumericFloat
 import com.intel.analytics.bigdl.tensor.Tensor
-import com.intel.analytics.bigdl.utils.{BigDLSpecHelper, Shape, T}
+import com.intel.analytics.bigdl.utils.{BigDLSpecHelper, Shape, T, TestUtils}
 
 
 class KerasStyleSpec extends BigDLSpecHelper {
@@ -98,7 +98,7 @@ class KerasStyleSpec extends BigDLSpecHelper {
       val out2 = seq.inputs(out1)
       val model = Model(input, out2)
     }
-    assert(thrown.getMessage().contains("Reuse module is not allowed"))
+    assert(thrown.getMessage().contains("multiple times"))
   }
 
   "TSequential" should "work with alex" in {
@@ -219,5 +219,15 @@ class KerasStyleSpec extends BigDLSpecHelper {
       val d1 = Dense[Float](20).setName("dense1").inputs()
     }
     assert(thrown.getMessage().contains("Empty input is not allow"))
+  }
+
+  "InputLayer" should "be test" in {
+    val inputLayer = InputLayer(inputShape = Shape(2, 3))
+    val seq = KSequential[Float]()
+    seq.add(inputLayer)
+    val inputData = Tensor[Float](Array(2, 2, 3)).rand()
+    val output = seq.forward(inputData)
+    seq.forward(output)
+    TestUtils.compareOutputShape(seq, Shape(2, 3)) should be (true)
   }
 }

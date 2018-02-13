@@ -58,7 +58,7 @@ trait InferShape {
     outputShapeValue
   }
 
-  protected def inferShape(calcInputShape: Shape): Shape = {
+  private[bigdl] def inferShape(calcInputShape: Shape): Shape = {
     val outputShape = computeOutputShape(calcInputShape)
     this.outputShapeValue = outputShape
     this.inputShapeValue = calcInputShape
@@ -69,16 +69,18 @@ trait InferShape {
    * Execute building logic and return the outputShape for the given inputShape.
    * NB: the first dim of inputShape is batch
    */
-  protected def build(inputShape: Shape): Shape = {
+  private[bigdl] def build(inputShape: Shape): Shape = {
     inferShape(inputShape)
   }
 
-  protected def isKerasStyle(): Boolean = false
+  private[bigdl] def isBuilt(): Boolean = outputShapeValue != null
+
+  private[bigdl] def isKerasStyle(): Boolean = false
 
   /**
    * We suppose the first dim is batch
    */
-  protected def computeOutputShape(inputShape: Shape): Shape = {
+  private[bigdl] def computeOutputShape(inputShape: Shape): Shape = {
     throw new RuntimeException("Haven't been implemented yet. Do not use it with Keras Layer")
   }
 

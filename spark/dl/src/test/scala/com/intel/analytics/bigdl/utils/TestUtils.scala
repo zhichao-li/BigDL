@@ -33,16 +33,18 @@ object TestUtils {
    * Compare the output of `computeOutputShape` with the `forward` result
    */
   def compareOutputShape(layer: AbstractModule[Activity, Activity, Float],
-                         inputShape: Shape): Boolean = {
-    val inputData = Tensor[Float](Array(2) ++ inputShape.toSingle()).randn()
+                         inputShapeWithoutBatch: Shape): Boolean = {
+    val inputData = Tensor[Float](Array(2) ++ inputShapeWithoutBatch.toSingle()).randn()
     val runnableLayer = layer match {
       case k: KerasLayer[_, _, _] =>
-        k.build(inputShape)
+        if (!k.isBuilt()) {
+          k.build(KerasLayer.addBatch(inputShapeWithoutBatch))
+        }
         k
       case a: AbstractModule[_, _, _] => a
     }
     val calcOutputShape = runnableLayer.computeOutputShape(
-      KerasLayer.addBatch(inputShape)).toSingle()
+      KerasLayer.addBatch(inputShapeWithoutBatch)).toSingle()
     val forwardOutputShape = runnableLayer.forward(inputData).toTensor[Float].size()
     calcOutputShape.slice(1, calcOutputShape.length).sameElements(
       forwardOutputShape.slice(1, forwardOutputShape.length))

@@ -50,7 +50,6 @@ object InputLayer {
     name : String = null,
     inputShape: Shape = null)(implicit ev: TensorNumeric[T]): KerasLayer[Activity, Activity, T] = {
     val module = new Input(inputShape)
-    module.build(KerasLayer.addBatch(inputShape))
     if (name != null) {
       module.setName(name)
     }

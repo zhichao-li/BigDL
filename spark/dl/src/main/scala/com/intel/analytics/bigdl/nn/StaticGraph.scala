@@ -43,9 +43,6 @@ class StaticGraph[T: ClassTag](
   private var backId2ForwardId: Array[Int] = _
   private var gradOutputCache: Array[Activity] = _
 
-  // StaticGraph would append Identity, so we would need to ignore it here.
-  validateInput(forwardExecution.map {_.element}.filter{!_.isInstanceOf[Identity[T]]})
-
   buildBackwardGraph()
 
   override def updateOutput(input: Activity): Activity = {

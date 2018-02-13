@@ -21,18 +21,15 @@ import com.intel.analytics.bigdl.nn.abstractnn.{AbstractModule, Activity}
 import com.intel.analytics.bigdl.nn.{Container, Graph, GraphSerializable, StaticGraph, Sequential => TSequential}
 import com.intel.analytics.bigdl.serialization.Bigdl.BigDLModule
 import com.intel.analytics.bigdl.tensor.TensorNumericMath.TensorNumeric
+import com.intel.analytics.bigdl.utils.Shape
 import com.intel.analytics.bigdl.utils.serializer._
-import com.intel.analytics.bigdl.utils.{Shape, Util}
 
-import scala.collection.mutable
+import scala.collection.JavaConverters._
 import scala.reflect.ClassTag
 
 class Model[T: ClassTag](private val _inputs : Seq[ModuleNode[T]],
       private val _outputs : Seq[ModuleNode[T]])(implicit ev: TensorNumeric[T])
   extends StaticGraph[T](_inputs, _outputs, None) {
-
-  validateInput(inputs.map(_.element))
-  validateInput(outputs.map(_.element))
 
   this.inputShapeValue = Shape(inputs.map{n => n.element.getInputShape()}.toList)
 
@@ -116,7 +113,7 @@ class Sequential[T: ClassTag]()
 
   private[bigdl] var frozen: Boolean = false
 
-  labor = doBuild(null)
+  this.modules.append(doBuild(null))
 
   private def triggerBuilding(module: AbstractModule[_ <: Activity, _ <: Activity, T]): Unit = {
     if (this.getOutputShape() == null) {
@@ -158,10 +155,10 @@ class Sequential[T: ClassTag]()
   }
 
   override def computeOutputShape(inputShape: Shape): Shape = {
-    if (modules.isEmpty) {
+    if (labor.asInstanceOf[TSequential[T]].modules.isEmpty) {
       inputShape
     } else {
-      modules.last.getOutputShape()
+      labor.asInstanceOf[TSequential[T]].modules.last.getOutputShape()
     }
   }
 
@@ -172,6 +169,18 @@ object Sequential extends ContainerSerializable with TKerasSerializerHelper{
   def apply[@specialized(Float, Double) T: ClassTag]()
      (implicit ev: TensorNumeric[T]) : Sequential[T] = {
     new Sequential[T]()
+  }
+
+  override def loadSubModules[T: ClassTag](context : DeserializeContext,
+      module : AbstractModule[Activity, Activity, T])
+    (implicit ev: TensorNumeric[T]) : Unit = {
+    val kseq = module.asInstanceOf[Sequential[T]]
+    val subModules = context.bigdlModule.getSubModulesList.asScala
+    subModules.foreach(module => {
+      val subModuleData = ModuleSerializer.load(DeserializeContext(module,
+        context.storages, context.storageType, _copyWeightAndBias))
+      kseq.labor = subModuleData.module
+    })
   }
 
   override def doSerializeModule[T: ClassTag](context: SerializeContext[T],

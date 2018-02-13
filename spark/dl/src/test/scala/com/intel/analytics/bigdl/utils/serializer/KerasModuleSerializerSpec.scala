@@ -45,6 +45,7 @@ class KerasModuleSerializerSpec extends SerializerSpecHelper {
 
   "InputLayer serializer" should "work properly" in {
     val input = InputLayer[Float](inputShape = Shape(20))
+    input.build(Shape(2, 20))
     val inputData = Tensor[Float](2, 20).apply1(_ => Random.nextFloat())
     runSerializationTest(input, inputData)
   }
@@ -60,6 +61,9 @@ class KerasModuleSerializerSpec extends SerializerSpecHelper {
     val dense = Dense[Float](10, inputShape = Shape(20))
     val kseq = KSequential[Float]()
     kseq.add(dense)
+    val kseq2 = KSequential[Float]()
+    kseq2.add(Dense[Float](10, inputShape = Shape(10)))
+    kseq.add(kseq2)
     val input = Tensor[Float](2, 20).apply1(_ => Random.nextFloat())
     runSerializationTest(kseq, input)
   }

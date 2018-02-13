@@ -593,7 +593,7 @@ trait GraphSerializable extends ContainerSerializable {
         context.storages, context.storageType))
       val moduleNode = bigDLModule.module match {
         case controlOps: ControlOps[T] => createControlNode(controlOps)
-        case _ => bigDLModule.module.inputs()
+        case _ => new ModuleNode[T](bigDLModule.module)
       }
       val preNodes = bigDLModule.pre
       layerMap(bigDLModule.module.getName) = (moduleNode, preNodes)
