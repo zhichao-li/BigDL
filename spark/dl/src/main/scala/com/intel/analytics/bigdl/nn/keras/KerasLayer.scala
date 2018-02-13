@@ -153,7 +153,7 @@ abstract class KerasLayer[A <: Activity: ClassTag, B <: Activity: ClassTag, T: C
     labor.accGradParameters(input, gradOutput)
   }
 
-  override def isCompatibleWithKeras(): Boolean = true
+  override def isKerasStyle(): Boolean = true
 
   override def computeOutputShape(inputShape: Shape): Shape = {
     val cls = this.getClass.getComponentType
@@ -201,9 +201,9 @@ abstract class KerasLayer[A <: Activity: ClassTag, B <: Activity: ClassTag, T: C
    * @return node containing current module
    */
   override def inputs(nodes : ModuleNode[T]*): ModuleNode[T] = {
-    excludeInvalidLayers(nodes.map(_.element))
-    ensureNotShared(nodes.map{_.element})
-    if (!nodes.isEmpty) { // as there's  Identity().inputs() within Graph
+    validateInput(nodes.map(_.element))
+    require(nodes != null && !nodes.isEmpty, "Empty input is not allow")
+    if (!nodes.isEmpty) { // as there's Identity().inputs() within Graph
     val inputShape = Shape(nodes.map{_.element.getOutputShape()}.toList)
       this.build(inputShape)
     }
@@ -217,9 +217,8 @@ abstract class KerasLayer[A <: Activity: ClassTag, B <: Activity: ClassTag, T: C
    * @return node containing current module
    */
   override def inputs(nodes : Array[ModuleNode[T]]): ModuleNode[T] = {
-    excludeInvalidLayers(nodes.map(_.element))
-    ensureNotShared(nodes.map{_.element})
-    if (!nodes.isEmpty) { // as there's  Identity().inputs() within Graph
+    validateInput(nodes.map(_.element))
+    if (!nodes.isEmpty) {
     val inputShape = Shape(nodes.map{_.element.getOutputShape()}.toList)
       this.build(inputShape)
     }
@@ -246,10 +245,8 @@ abstract class KerasLayer[A <: Activity: ClassTag, B <: Activity: ClassTag, T: C
    */
   override def inputs(first: (ModuleNode[T], Int),
      nodesWithIndex : (ModuleNode[T], Int)*): ModuleNode[T] = {
-    excludeInvalidLayers(List(first._1.element))
-    excludeInvalidLayers(nodesWithIndex.map(_._1.element))
-    ensureNotShared(List(first._1.element))
-    ensureNotShared(nodesWithIndex.map(_._1.element))
+    validateInput(List(first._1.element))
+    validateInput(nodesWithIndex.map(_._1.element))
     val shapes = ArrayBuffer[Shape]()
     shapes += getShapeByIndex(first._1.element.getOutputShape(), first._2)
     if (!nodesWithIndex.isEmpty) {

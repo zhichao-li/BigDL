@@ -45,7 +45,7 @@ class StaticGraph[T: ClassTag](
   private var gradOutputCache: Array[Activity] = _
 
   // StaticGraph would append Identity, so we would need to ignore it here.
-  excludeInvalidLayers(forwardExecution.map {_.element}.filter{!_.isInstanceOf[Identity[T]]})
+  validateInput(forwardExecution.map {_.element}.filter{!_.isInstanceOf[Identity[T]]})
 
   buildBackwardGraph()
 

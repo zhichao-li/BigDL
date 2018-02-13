@@ -213,4 +213,11 @@ class KerasStyleSpec extends BigDLSpecHelper {
     model.forward(T(Tensor[Float](Array(2, 10)).rand(), Tensor[Float](Array(2, 10)).rand()))
     assert(model.getOutputShape().toSingle().sameElements(Array(-1, 20)))
   }
+
+  "Empty inputs is not allow" should "be test" in {
+    val thrown = intercept[Exception] {
+      val d1 = Dense[Float](20).setName("dense1").inputs()
+    }
+    assert(thrown.getMessage().contains("Empty input is not allow"))
+  }
 }

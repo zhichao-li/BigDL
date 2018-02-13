@@ -16,6 +16,8 @@
 
 package com.intel.analytics.bigdl.nn.abstractnn
 
+import com.intel.analytics.bigdl.nn.Graph.ModuleNode
+import com.intel.analytics.bigdl.nn.Identity
 import com.intel.analytics.bigdl.utils.Shape
 
 import scala.reflect.ClassTag
@@ -82,18 +84,18 @@ trait InferShape {
     throw new RuntimeException("Haven't been implemented yet. Do not use it with Keras Layer")
   }
 
-  private[bigdl] def ensureNotShared(): Unit = {
+  private def ensureNotShared(): Unit = {
     if (isUsed == true) {
       throw new RuntimeException(s"Reuse module is not allowed: $this")
     }
     isUsed = true
   }
 
-  private[bigdl] def ensureNotShared[T: ClassTag](modules : Seq[AbstractModule[_, _, T]]): Unit = {
+  private def ensureNotShared[T: ClassTag](modules : Seq[AbstractModule[_, _, T]]): Unit = {
     modules.map{_.ensureNotShared()}
   }
 
-  private[bigdl] def excludeInvalidLayers[T: ClassTag]
+  private def excludeInvalidLayers[T: ClassTag]
   (modules : Seq[AbstractModule[_, _, T]]): Unit = {
     val invalidNodes = if (this.isKerasStyle()) {
       modules.filter{!_.isKerasStyle()}
@@ -103,6 +105,14 @@ trait InferShape {
     if (invalidNodes.length > 0) {
       throw new InvalidLayer(s"Do not mix with Layer: ${invalidNodes.mkString(",")}")
     }
+  }
+
+  private[bigdl] def validateInput[T: ClassTag](modules : Seq[AbstractModule[_, _, T]]): Unit = {
+    if (this.isKerasStyle()) {
+      require(modules != null && !modules.isEmpty, "Empty input is not allow")
+      ensureNotShared(modules)
+    }
+    excludeInvalidLayers(modules)
   }
 }
 

@@ -31,8 +31,8 @@ class Model[T: ClassTag](private val _inputs : Seq[ModuleNode[T]],
       private val _outputs : Seq[ModuleNode[T]])(implicit ev: TensorNumeric[T])
   extends StaticGraph[T](_inputs, _outputs, None, false) {
 
-  excludeInvalidLayers(inputs.map(_.element))
-  excludeInvalidLayers(outputs.map(_.element))
+  validateInput(inputs.map(_.element))
+  validateInput(outputs.map(_.element))
 
   this.inputShapeValue = Shape(inputs.map{n => n.element.getInputShape()}.toList)
 
@@ -141,7 +141,6 @@ class Sequential[T: ClassTag]()
    * @return this container
    */
   def add(module: AbstractModule[_ <: Activity, _ <: Activity, T]): this.type = {
-    module.ensureNotShared()
     if (frozen) {
       throw new RuntimeException(
         "This Sequential has been frozen, as it has been added into other container")
@@ -149,7 +148,7 @@ class Sequential[T: ClassTag]()
     if (module.isInstanceOf[Sequential[T]]) {
       module.asInstanceOf[Sequential[T]].frozen = true
     }
-    excludeInvalidLayers[T](Seq(module))
+    validateInput[T](Seq(module))
 
     triggerBuilding(module)
 

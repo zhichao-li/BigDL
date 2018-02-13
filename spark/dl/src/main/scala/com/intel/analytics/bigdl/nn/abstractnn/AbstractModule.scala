@@ -766,7 +766,7 @@ abstract class AbstractModule[A <: Activity: ClassTag, B <: Activity: ClassTag, 
    * @return node containing current module
    */
   def inputs(nodes : ModuleNode[T]*): ModuleNode[T] = {
-    excludeInvalidLayers(nodes.map{_.element})
+    validateInput(nodes.map(_.element))
     processInputs(nodes)
   }
 
@@ -776,7 +776,7 @@ abstract class AbstractModule[A <: Activity: ClassTag, B <: Activity: ClassTag, 
    * @return node containing current module
    */
   def inputs(nodes : Array[ModuleNode[T]]): ModuleNode[T] = {
-    excludeInvalidLayers(nodes.map{_.element})
+    validateInput(nodes.map(_.element))
     processInputs(nodes)
   }
 
@@ -787,8 +787,8 @@ abstract class AbstractModule[A <: Activity: ClassTag, B <: Activity: ClassTag, 
    * @return node containing current module
    */
   def inputs(first: (ModuleNode[T], Int), nodesWithIndex : (ModuleNode[T], Int)*): ModuleNode[T] = {
-    excludeInvalidLayers(List(first._1.element))
-    excludeInvalidLayers(nodesWithIndex.map(_._1.element))
+    validateInput(List(first._1.element))
+    validateInput(nodesWithIndex.map(_._1.element))
     processInputs(first, nodesWithIndex: _*)
   }
 
