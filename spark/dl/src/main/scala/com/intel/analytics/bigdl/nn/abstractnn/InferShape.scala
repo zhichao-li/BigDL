@@ -73,7 +73,7 @@ trait InferShape {
     inferShape(inputShape)
   }
 
-  private[bigdl] def isCompatibleWithKeras(): Boolean = false
+  private[bigdl] def isKerasStyle(): Boolean = false
 
   /**
    * We suppose the first dim is batch
@@ -95,10 +95,10 @@ trait InferShape {
 
   private[bigdl] def excludeInvalidLayers[T: ClassTag]
   (modules : Seq[AbstractModule[_, _, T]]): Unit = {
-    val invalidNodes = if (this.isCompatibleWithKeras()) {
-      modules.filter{!_.isCompatibleWithKeras()}
+    val invalidNodes = if (this.isKerasStyle()) {
+      modules.filter{!_.isKerasStyle()}
     } else {
-      modules.filter{_.isCompatibleWithKeras()}
+      modules.filter{_.isKerasStyle()}
     }
     if (invalidNodes.length > 0) {
       throw new InvalidLayer(s"Do not mix with Layer: ${invalidNodes.mkString(",")}")

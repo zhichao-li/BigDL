@@ -38,7 +38,7 @@ class Model[T: ClassTag](private val _inputs : Seq[ModuleNode[T]],
 
   this.outputShapeValue = Shape(outputs.map{_.element.getOutputShape()}.toList)
 
-  override private[bigdl] def isCompatibleWithKeras(): Boolean = true
+  override private[bigdl] def isKerasStyle(): Boolean = true
 
   override def computeOutputShape(inputShape: Shape): Shape = {
     getOutputShape()

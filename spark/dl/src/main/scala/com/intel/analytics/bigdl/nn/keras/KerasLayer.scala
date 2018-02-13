@@ -59,7 +59,7 @@ object KerasLayerSerializer extends ContainerSerializable with TKerasSerializerH
 class IdentityShapeWrapper[A <: Activity, B <: Activity, T: ClassTag]
 (layer: AbstractModule[Activity, Activity, T])(implicit ev: TensorNumeric[T])
   extends KerasLayer[Activity, Activity, T](null) {
-  if (layer.isCompatibleWithKeras()) {
+  if (layer.isKerasStyle()) {
     throw new RuntimeException(s"We only accept torch layer here, but got: $layer")
   }
   override def computeOutputShape(inputShape: Shape): Shape = {
