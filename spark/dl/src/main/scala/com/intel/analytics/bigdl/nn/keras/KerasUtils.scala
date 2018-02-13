@@ -17,14 +17,13 @@
 package com.intel.analytics.bigdl.nn.keras
 
 import com.intel.analytics.bigdl.nn._
-import com.intel.analytics.bigdl.nn.abstractnn.{AbstractModule, Activity, DataFormat}
+import com.intel.analytics.bigdl.nn.abstractnn.{AbstractModule, DataFormat}
 import com.intel.analytics.bigdl.tensor.Tensor
 import com.intel.analytics.bigdl.tensor.TensorNumericMath.TensorNumeric
 
-import scala.collection.mutable
 import scala.reflect.ClassTag
 
-private[keras] object KerasUtils {
+object KerasUtils {
 
   private[keras] def getPadsFromBorderMode(borderMode: String = "valid"): (Int, Int) = {
     if (borderMode == "same") {

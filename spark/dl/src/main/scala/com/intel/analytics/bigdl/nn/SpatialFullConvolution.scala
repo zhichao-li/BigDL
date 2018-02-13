@@ -18,15 +18,13 @@ package com.intel.analytics.bigdl.nn
 
 import com.intel.analytics.bigdl.nn.abstractnn.{AbstractModule, Activity, Initializable}
 import com.intel.analytics.bigdl.optim.Regularizer
+import com.intel.analytics.bigdl.serialization.Bigdl.{AttrValue, BigDLModule}
 import com.intel.analytics.bigdl.tensor.TensorNumericMath.TensorNumeric
 import com.intel.analytics.bigdl.tensor._
-import com.intel.analytics.bigdl.utils.{Shape, T, Table, serializer}
-import com.intel.analytics.bigdl.utils.RandomGenerator._
 import com.intel.analytics.bigdl.utils.serializer._
 import com.intel.analytics.bigdl.utils.serializer.converters.DataConverter
-import com.intel.analytics.bigdl.serialization.Bigdl.{AttrValue, BigDLModule}
+import com.intel.analytics.bigdl.utils.{Shape, T, Table}
 
-import scala.concurrent.Future
 import scala.reflect.ClassTag
 import scala.reflect.runtime.universe
 
@@ -86,7 +84,7 @@ class SpatialFullConvolution[T: ClassTag](
   var wRegularizer: Regularizer[T] = null,
   var bRegularizer: Regularizer[T] = null
   )(implicit ev: TensorNumeric[T])
-  extends AbstractModule[Activity, Tensor[T], T] with Initializable{
+  extends AbstractModule[Activity, Tensor[T], T] with Initializable {
 
   require(adjW <= dW - 1 && adjH <= dH - 1,
     "SpatialFullConvolution: adjW=$adjW and adjH=$adjH must be smaller than " +

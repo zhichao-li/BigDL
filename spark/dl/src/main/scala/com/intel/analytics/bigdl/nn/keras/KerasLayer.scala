@@ -192,10 +192,11 @@ abstract class KerasLayer[A <: Activity: ClassTag, B <: Activity: ClassTag, T: C
         checkWithCurrentInputShape(calcInputShape)
         getOutputShape()
       case _ =>
-        if (isBuilt()) {
+        // Input would be reused multiple time in inputs for StaticGraph
+        if (isBuilt() && !this.isInstanceOf[Input[T]]) {
           throw new RuntimeException(s"Should not build this module: $this multiple times")
         }
-        this.modules.append(doBuild(calcInputShape))
+        labor = doBuild(calcInputShape)
         inferShape(calcInputShape)
     }
   }
@@ -252,10 +253,10 @@ abstract class KerasLayer[A <: Activity: ClassTag, B <: Activity: ClassTag, T: C
   override def inputs(first: (ModuleNode[T], Int),
      nodesWithIndex : (ModuleNode[T], Int)*): ModuleNode[T] = {
     validateInput(List(first._1.element))
-    validateInput(nodesWithIndex.map(_._1.element))
     val shapes = ArrayBuffer[Shape]()
     shapes += getShapeByIndex(first._1.element.getOutputShape(), first._2)
     if (!nodesWithIndex.isEmpty) {
+      validateInput(nodesWithIndex.map(_._1.element))
       shapes ++= nodesWithIndex.map{t =>
         getShapeByIndex(first._1.element.getOutputShape(), first._2)
       }

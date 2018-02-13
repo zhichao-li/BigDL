@@ -16,6 +16,8 @@
 
 package com.intel.analytics.bigdl.nn.abstractnn
 
+import com.intel.analytics.bigdl.nn.keras.{Input => KInput}
+import com.intel.analytics.bigdl.nn.{Input => TInput}
 import com.intel.analytics.bigdl.utils.Shape
 
 import scala.reflect.ClassTag
@@ -85,7 +87,8 @@ trait InferShape {
   }
 
   private def ensureNotShared(): Unit = {
-    if (isUsed == true) {
+    if (isUsed == true && !this.isInstanceOf[TInput[_]]
+    && !this.isInstanceOf[KInput[_]]) {
       throw new RuntimeException(s"Reuse module is not allowed: $this")
     }
     isUsed = true

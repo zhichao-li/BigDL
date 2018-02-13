@@ -138,7 +138,7 @@ class KerasStyleSpec extends BigDLSpecHelper {
       val seq = KSequential[Float]().add(dense1).inputs(node1)
       Model(input, seq)
     }
-    assert(thrown.getMessage().contains("Reuse module is not allowed"))
+    assert(thrown.getMessage().contains("multiple times"))
   }
 
   "Torch style linear and seq and linear" should "not work with keras Model" in {

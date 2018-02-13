@@ -16,7 +16,7 @@
 
 package com.intel.analytics.bigdl.nn.keras
 
-import com.intel.analytics.bigdl.nn._
+import com.intel.analytics.bigdl.nn.{InferReshape, InitializationMethod, Linear, Xavier, Zeros, Sequential => TSequential}
 import com.intel.analytics.bigdl.nn.abstractnn._
 import com.intel.analytics.bigdl.optim.Regularizer
 import com.intel.analytics.bigdl.tensor.Tensor
@@ -77,9 +77,8 @@ class Dense[T: ClassTag](
       KerasLayer.fuse(layer, activation,
         inputShape).asInstanceOf[AbstractModule[Tensor[T], Tensor[T], T]]
     } else {
-      val seq = new Sequential[T]()
+      val seq = new TSequential[T]()
       val inDim = inputShapeList.last
-      seq.add(InputLayer(inputShape = inputShape))
       seq.add(InferReshape(Array(-1, inDim), false))
       seq.add(layer)
       seq.add(InferReshape(Array(-1) ++
