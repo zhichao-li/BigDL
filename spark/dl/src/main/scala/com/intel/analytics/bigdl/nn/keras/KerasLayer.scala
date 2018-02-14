@@ -116,26 +116,20 @@ class KerasIdentityWrapper[T: ClassTag]
  * Wrap a torch style layer to keras style layer.
  * This layer can be built multiple times.
  * @param torchLayer a torch style layer
- * @param inputShape inputShape for this layer without batch.
  *   i.e If the input data is (2, 3, 4) and 2 is the batch size, you should input: (3, 4) here.
  * @return a keras compatible layer
  */
 class KerasLayerWrapper[T: ClassTag]
 (val torchLayer: AbstractModule[Activity, Activity, T],
-    val inputShape: Shape)(implicit ev: TensorNumeric[T])
+    val inputShape: Shape = null)(implicit ev: TensorNumeric[T])
   extends KerasLayer[Activity, Activity, T](KerasLayer.addBatch(inputShape)) {
 
   require(!torchLayer.isKerasStyle(), s"We only accept torch layer here, but got: $torchLayer")
-  require(inputShape.isInstanceOf[SingleShape],
-    s"We only support SingleShape here, but got: $inputShape")
-
-  build(KerasLayer.addBatch(inputShape))
 
   override def computeOutputShape(calcInputShape: Shape): Shape = {
-    require(this.inputShape == KerasLayer.removeBatch(calcInputShape),
-      s"${this.inputShape} != ${KerasLayer.removeBatch(calcInputShape)}")
     val dummyOutTensor =
-      torchLayer.forward(Tensor[T]((List(2) ++ inputShape.toSingle()).toArray).rand())
+      torchLayer.forward(Tensor[T](
+        (List(2) ++ KerasLayer.removeBatch(calcInputShape).toSingle()).toArray).rand())
     val outSize = dummyOutTensor.toTensor.size()
     KerasLayer.addBatch(Shape(outSize.slice(1, outSize.length)))
   }
