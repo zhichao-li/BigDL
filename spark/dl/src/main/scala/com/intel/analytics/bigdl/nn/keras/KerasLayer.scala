@@ -99,7 +99,7 @@ class KerasLayerWrapper[T: ClassTag]
 
   require(!torchLayer.isKerasStyle(), s"We only accept torch layer here, but got: $torchLayer")
   require(inputShape.isInstanceOf[SingleShape],
-    s"We only support SingleShape here, but got: $torchLayer")
+    s"We only support SingleShape here, but got: $inputShape")
 
   val dummyOutTensor =
     torchLayer.forward(Tensor[T]((List(2) ++ inputShape.toSingle()).toArray).rand())
