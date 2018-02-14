@@ -47,14 +47,14 @@ object KerasUtils {
     }
   }
 
-  private[keras] def getKerasActivation[T : ClassTag] (activation: String)
+  private[bigdl] def getKerasActivation[T : ClassTag] (activation: String)
     (implicit ev: TensorNumeric[T]): KerasLayer[Tensor[T], Tensor[T], T] = {
     if (activation == null) { return null }
     if (activation.toLowerCase() == "softmax") {
       SoftMax[T]()
     } else {
       val torchActivation = getTorchActivation(activation)
-      new KerasLayerIdentityWrapper[Tensor[T], Tensor[T], T](torchActivation)
+      new KerasIdentityWrapper[T](torchActivation)
         .asInstanceOf[KerasLayer[Tensor[T], Tensor[T], T]]
     }
   }

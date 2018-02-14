@@ -18,7 +18,7 @@ package com.intel.analytics.bigdl.keras.nn
 
 import com.intel.analytics.bigdl.example.loadmodel.AlexNet_OWT
 import com.intel.analytics.bigdl.nn.abstractnn.InvalidLayer
-import com.intel.analytics.bigdl.nn.keras.{Activation, Dense, KerasLayerIdentityWrapper, Input, InputLayer, Model, Sequential => KSequential}
+import com.intel.analytics.bigdl.nn.keras.{Activation, Dense, KerasIdentityWrapper, Input, InputLayer, Model, Sequential => KSequential}
 import com.intel.analytics.bigdl.nn.{Input => TInput, Sequential => TSequential, _}
 import com.intel.analytics.bigdl.numeric.NumericFloat
 import com.intel.analytics.bigdl.tensor.Tensor
@@ -63,7 +63,7 @@ class KerasStyleSpec extends BigDLSpecHelper {
 
   "Sequential: shared relu" should "not work correctly" in {
     val thrown = intercept[Exception] {
-      val sharedRelu = new KerasLayerIdentityWrapper(ReLU[Float]())
+      val sharedRelu = new KerasIdentityWrapper(ReLU[Float]())
       val seq1 = KSequential[Float]()
       seq1.add(Dense[Float](20, inputShape = Shape(10)))
       seq1.add(sharedRelu)
@@ -83,7 +83,7 @@ class KerasStyleSpec extends BigDLSpecHelper {
       assert(seq.getInputShape().toSingle().sameElements(Array(-1, 10)))
       assert(seq.getOutputShape().toSingle().sameElements(Array(-1, 5)))
     }
-    assert(thrown.getMessage().contains("Reuse module is not allowed"))
+    assert(thrown.getMessage().contains("Reuse module as src is not allowed"))
   }
 
   "Graph: shared relu" should "not work correctly" in {
@@ -99,6 +99,16 @@ class KerasStyleSpec extends BigDLSpecHelper {
       val model = Model(input, out2)
     }
     assert(thrown.getMessage().contains("multiple times"))
+  }
+
+  "Graph: shared relu as dest" should "not work correctly" in {
+    val thrown = intercept[Exception] {
+      val input = Input(inputShape = Shape(10, 20))
+      val sharedRelu = new Activation("relu")
+      val out1 = sharedRelu.inputs(input)
+      val out2 = sharedRelu.inputs(Input(inputShape = Shape(10, 20)))
+    }
+    assert(thrown.getMessage().contains("Reuse module as dest is not allowed"))
   }
 
   "TSequential" should "work with alex" in {

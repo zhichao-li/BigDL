@@ -67,13 +67,37 @@ trait KerasLayerSerializable extends ContainerSerializable with TKerasSerializer
   }
 }
 
+private[bigdl] class KerasIdentityActivationWrapper[T: ClassTag]
+(val torchLayer: AbstractModule[Activity, Activity, T],
+    val activation: KerasLayer[Tensor[T], Tensor[T], T])(implicit ev: TensorNumeric[T])
+  extends KerasLayer[Activity, Activity, T](null) {
+  require(!torchLayer.isKerasStyle(),
+    s"We should get torch style layer, but got: $torchLayer")
+
+  override def computeOutputShape(inputShape: Shape): Shape = {
+    torchLayer.computeOutputShape(inputShape)
+  }
+
+  override def doBuild(inputShape: Shape): AbstractModule[Activity, Activity, T] = {
+    val torchActivation = activation.doBuild(inputShape)
+    require(!torchActivation.isKerasStyle(),
+      s"We should get torch style activation, but got: $torchActivation")
+    val seq = TSequential[T]()
+    seq.add(torchLayer)
+    seq.add(torchActivation)
+    seq.setName(torchLayer.getName())
+    seq
+  }
+}
+
 /**
- * Wrap a torch style layer to keras style layer,
- * we are supposing the inputshape and the outputshape keep the same in this layer.
+ * Wrap a torch style layer to keras style layer.
+ * This layer can be built multiple times.
+ * We are supposing the inputshape and the outputshape keep the same in this layer.
  * @param layer a torch style layer
  * @return a keras compatible layer
  */
-class KerasLayerIdentityWrapper[A <: Activity, B <: Activity, T: ClassTag]
+class KerasIdentityWrapper[T: ClassTag]
 (val layer: AbstractModule[Activity, Activity, T])(implicit ev: TensorNumeric[T])
   extends KerasLayer[Activity, Activity, T](null) {
   if (layer.isKerasStyle()) {
@@ -83,10 +107,14 @@ class KerasLayerIdentityWrapper[A <: Activity, B <: Activity, T: ClassTag]
     inputShape
   }
   override def doBuild(inputShape: Shape): AbstractModule[Activity, Activity, T] = layer
+
+  override def allowRebuilt(): Boolean = true
+
 }
 
 /**
- * Wrap a torch style layer to keras style layer,
+ * Wrap a torch style layer to keras style layer.
+ * This layer can be built multiple times.
  * @param torchLayer a torch style layer
  * @param inputShape inputShape for this layer without batch.
  *   i.e If the input data is (2, 3, 4) and 2 is the batch size, you should input: (3, 4) here.
@@ -101,35 +129,34 @@ class KerasLayerWrapper[T: ClassTag]
   require(inputShape.isInstanceOf[SingleShape],
     s"We only support SingleShape here, but got: $inputShape")
 
-  val dummyOutTensor =
-    torchLayer.forward(Tensor[T]((List(2) ++ inputShape.toSingle()).toArray).rand())
-
   build(KerasLayer.addBatch(inputShape))
 
   override def computeOutputShape(calcInputShape: Shape): Shape = {
     require(this.inputShape == KerasLayer.removeBatch(calcInputShape),
       s"${this.inputShape} != ${KerasLayer.removeBatch(calcInputShape)}")
-        val outSize = dummyOutTensor.toTensor.size()
-        KerasLayer.addBatch(Shape(outSize.slice(1, outSize.length)))
+    val dummyOutTensor =
+      torchLayer.forward(Tensor[T]((List(2) ++ inputShape.toSingle()).toArray).rand())
+    val outSize = dummyOutTensor.toTensor.size()
+    KerasLayer.addBatch(Shape(outSize.slice(1, outSize.length)))
   }
 
   override def doBuild(inputShape: Shape): AbstractModule[Activity, Activity, T] = torchLayer
+
+  override def allowRebuilt(): Boolean = true
+
 }
 
 private[bigdl] object KerasLayer {
   private[bigdl] def fuse[T: ClassTag](torchLayer: AbstractModule[Activity, Activity, T],
-        kerasActivation: AbstractModule[Tensor[T], Tensor[T], T],
+        kerasActivation: KerasLayer[Tensor[T], Tensor[T], T],
         batchInputShape: Shape)
         (implicit ev: TensorNumeric[T]): AbstractModule[Activity, Activity, T] = {
     if (kerasActivation == null) {
       torchLayer
     } else {
-      val kerasLayer = new KerasLayerWrapper(torchLayer, KerasLayer.removeBatch(batchInputShape))
-      val seq = KSequential[T]()
-      seq.add(kerasLayer)
-      seq.add(kerasActivation)
-      seq.setName(kerasLayer.getName())
-      seq
+      val wrapper = new KerasIdentityActivationWrapper[T](torchLayer, kerasActivation)
+      wrapper.build(batchInputShape)
+      wrapper
     }
   }
 
@@ -235,9 +262,7 @@ abstract class KerasLayer[A <: Activity: ClassTag, B <: Activity: ClassTag, T: C
         getOutputShape()
       case _ =>
         // Input would be reused multiple time in inputs for StaticGraph
-        if (isBuilt()
-          && !this.isInstanceOf[Input[T]]
-          && !this.isInstanceOf[KerasLayerWrapper[T]]) {
+        if (isBuilt() && !this.allowRebuilt()) {
           throw new RuntimeException(s"Should not build this module: $this multiple times")
         }
         labor = doBuild(calcInputShape)

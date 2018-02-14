@@ -15,7 +15,7 @@
  */
 package com.intel.analytics.bigdl.utils.serializer
 
-import com.intel.analytics.bigdl.nn.ReLU
+import com.intel.analytics.bigdl.nn.{Linear, ReLU}
 import com.intel.analytics.bigdl.nn.abstractnn.AbstractModule
 import com.intel.analytics.bigdl.nn.keras.{Sequential => KSequential}
 import com.intel.analytics.bigdl.nn.keras._
@@ -37,7 +37,7 @@ class KerasModuleSerializerSpec extends SerializerSpecHelper {
     excludedClass.add("com.intel.analytics.bigdl.nn.keras.Input")
   }
   "IdentityShapeWrapper serializer" should "work properly" in {
-    val layer = new KerasLayerIdentityWrapper(ReLU[Float]())
+    val layer = new KerasIdentityWrapper(ReLU[Float]())
     layer.build(Shape(20))
     val inputData = Tensor[Float](2, 20).apply1(_ => Random.nextFloat())
     runSerializationTest(layer.asInstanceOf[AbstractModule[_, _, Float]], inputData)
@@ -506,6 +506,14 @@ class KerasModuleSerializerSpec extends SerializerSpecHelper {
     val layer = new KerasLayerWrapper[Float](ReLU[Float](), inputShape = Shape(8, 12))
     layer.build(Shape(3, 8, 12))
     val input = Tensor[Float](3, 8, 12).apply1(_ => Random.nextFloat())
+    runSerializationTest(layer, input)
+  }
+
+  "KerasIdentityActivationWrapper serializer" should "work properly" in {
+    val layer = new KerasIdentityActivationWrapper[Float](Linear[Float](2, 3),
+      Activation("relu"))
+    layer.build(Shape(2, 2))
+    val input = Tensor[Float](2, 2).apply1(_ => Random.nextFloat())
     runSerializationTest(layer, input)
   }
 

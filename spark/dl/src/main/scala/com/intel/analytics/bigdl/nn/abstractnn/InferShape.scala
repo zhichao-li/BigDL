@@ -16,7 +16,7 @@
 
 package com.intel.analytics.bigdl.nn.abstractnn
 
-import com.intel.analytics.bigdl.nn.keras.{Input => KInput}
+import com.intel.analytics.bigdl.nn.keras.{Sequential => KSequential, Input => KInput}
 import com.intel.analytics.bigdl.nn.{Input => TInput}
 import com.intel.analytics.bigdl.utils.Shape
 
@@ -26,7 +26,9 @@ class InvalidLayer(msg: String) extends RuntimeException(msg)
 
 trait InferShape {
 
-  private[bigdl] var isUsed = false
+  private[bigdl] var usedAsSrc = false
+
+  private[bigdl] var usedAsDest = false
 
   private[bigdl] var _inputShapeValue: Shape = null
 
@@ -79,6 +81,8 @@ trait InferShape {
 
   private[bigdl] def isKerasStyle(): Boolean = false
 
+  private[bigdl] def allowRebuilt(): Boolean = false
+
   /**
    * We suppose the first dim is batch
    */
@@ -86,16 +90,25 @@ trait InferShape {
     throw new RuntimeException("Haven't been implemented yet. Do not use it with Keras Layer")
   }
 
-  private def ensureNotShared(): Unit = {
-    if (isUsed == true && !this.isInstanceOf[TInput[_]]
-    && !this.isInstanceOf[KInput[_]]) {
-      throw new RuntimeException(s"Reuse module is not allowed: $this")
-    }
-    isUsed = true
-  }
-
   private def ensureNotShared[T: ClassTag](modules : Seq[AbstractModule[_, _, T]]): Unit = {
-    modules.map{_.ensureNotShared()}
+    def validateUsage(module: InferShape): Unit = {
+
+    }
+    // We can add module into Sequential multiple times.
+    if (!this.isInstanceOf[KSequential[T]]) {
+      if (!this.isInstanceOf[TInput[_]]
+        && !this.isInstanceOf[KInput[_]] && this.usedAsDest == true) {
+        throw new RuntimeException(s"Reuse module as dest is not allowed: $this")
+      }
+      this.usedAsDest = true
+    }
+    modules.map{module =>
+      if (!module.isInstanceOf[TInput[_]]
+        && !module.isInstanceOf[KInput[_]] && module.usedAsSrc == true) {
+        throw new RuntimeException(s"Reuse module as src is not allowed: $this")
+      }
+      module.usedAsSrc = true
+    }
   }
 
   private[bigdl] def excludeInvalidLayers[T: ClassTag]

@@ -30,6 +30,8 @@ class Input[T: ClassTag](val inputShape: Shape)(implicit ev: TensorNumeric[T])
   override def computeOutputShape(inputShape: Shape): Shape = inputShape
 
   override def doBuild(inputShape: Shape): TInput[T] = new TInput[T]()
+
+  override def allowRebuilt(): Boolean = true
 }
 
 object Input {
