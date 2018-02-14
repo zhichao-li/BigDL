@@ -17,9 +17,10 @@
 package com.intel.analytics.bigdl.nn.keras
 
 import com.intel.analytics.bigdl.nn._
-import com.intel.analytics.bigdl.nn.abstractnn.{AbstractModule, DataFormat}
+import com.intel.analytics.bigdl.nn.abstractnn.{AbstractModule, Activity, DataFormat}
 import com.intel.analytics.bigdl.tensor.Tensor
 import com.intel.analytics.bigdl.tensor.TensorNumericMath.TensorNumeric
+import com.intel.analytics.bigdl.utils.Shape
 
 import scala.reflect.ClassTag
 
@@ -47,13 +48,18 @@ object KerasUtils {
   }
 
   private[keras] def getKerasActivation[T : ClassTag] (activation: String)
-    (implicit ev: TensorNumeric[T]): AbstractModule[Tensor[T], Tensor[T], T] = {
-    val torchActivation = getActivation(activation)
-    new IdentityShapeWrapper(torchActivation)
-      .asInstanceOf[AbstractModule[Tensor[T], Tensor[T], T]]
+    (implicit ev: TensorNumeric[T]): KerasLayer[Tensor[T], Tensor[T], T] = {
+    if (activation == null) { return null }
+    if (activation.toLowerCase() == "softmax") {
+      SoftMax[T]()
+    } else {
+      val torchActivation = getTorchActivation(activation)
+      new KerasLayerIdentityWrapper[Tensor[T], Tensor[T], T](torchActivation)
+        .asInstanceOf[KerasLayer[Tensor[T], Tensor[T], T]]
+    }
   }
 
-  private[keras] def getActivation[T : ClassTag] (activation: String)
+  private[keras] def getTorchActivation[T : ClassTag] (activation: String)
     (implicit ev: TensorNumeric[T]): AbstractModule[Tensor[T], Tensor[T], T] = {
     if (activation == null) null
     else {
@@ -61,7 +67,8 @@ object KerasUtils {
           case "tanh" => Tanh[T]()
           case "sigmoid" => Sigmoid[T]()
           case "relu" => ReLU[T]()
-          case "softmax" => SoftMax[T]().asInstanceOf[AbstractModule[Tensor[T], Tensor[T], T]]
+          case "softmax" =>
+                com.intel.analytics.bigdl.nn.SoftMax[T]()
           case "softplus" => SoftPlus[T]()
           case "softsign" => SoftSign[T]()
           case "hard_sigmoid" => HardSigmoid[T]()

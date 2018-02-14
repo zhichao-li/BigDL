@@ -18,8 +18,8 @@ package com.intel.analytics.bigdl.keras.nn
 
 import com.intel.analytics.bigdl.example.loadmodel.AlexNet_OWT
 import com.intel.analytics.bigdl.nn.abstractnn.InvalidLayer
-import com.intel.analytics.bigdl.nn.keras.{Activation, Dense, IdentityShapeWrapper, Input, InputLayer, Model, Sequential => KSequential}
-import com.intel.analytics.bigdl.nn.{Sequential => TSequential, _}
+import com.intel.analytics.bigdl.nn.keras.{Activation, Dense, KerasLayerIdentityWrapper, Input, InputLayer, Model, Sequential => KSequential}
+import com.intel.analytics.bigdl.nn.{Input => TInput, Sequential => TSequential, _}
 import com.intel.analytics.bigdl.numeric.NumericFloat
 import com.intel.analytics.bigdl.tensor.Tensor
 import com.intel.analytics.bigdl.utils.{BigDLSpecHelper, Shape, T, TestUtils}
@@ -63,7 +63,7 @@ class KerasStyleSpec extends BigDLSpecHelper {
 
   "Sequential: shared relu" should "not work correctly" in {
     val thrown = intercept[Exception] {
-      val sharedRelu = new IdentityShapeWrapper(ReLU[Float]())
+      val sharedRelu = new KerasLayerIdentityWrapper(ReLU[Float]())
       val seq1 = KSequential[Float]()
       seq1.add(Dense[Float](20, inputShape = Shape(10)))
       seq1.add(sharedRelu)
@@ -148,6 +148,14 @@ class KerasStyleSpec extends BigDLSpecHelper {
       val seq = TSequential[Float]().inputs(l1)
       val l2 = Linear(3, 4).inputs(seq)
       Model(input, l2)
+    }
+  }
+
+  "Torch style inputs in Model constructor" should "not work" in {
+    intercept[InvalidLayer] {
+      val tinput = TInput()
+      val l1 = Linear(10, 3).inputs(tinput)
+      Model(tinput, l1)
     }
   }
 

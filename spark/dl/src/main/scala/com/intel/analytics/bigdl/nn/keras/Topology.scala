@@ -18,7 +18,7 @@ package com.intel.analytics.bigdl.nn.keras
 
 import com.intel.analytics.bigdl.nn.Graph._
 import com.intel.analytics.bigdl.nn.abstractnn.{AbstractModule, Activity}
-import com.intel.analytics.bigdl.nn.{Container, Graph, GraphSerializable, StaticGraph, Sequential => TSequential}
+import com.intel.analytics.bigdl.nn.{Container, Graph, GraphSerializable, Identity, StaticGraph, Sequential => TSequential}
 import com.intel.analytics.bigdl.serialization.Bigdl.BigDLModule
 import com.intel.analytics.bigdl.tensor.TensorNumericMath.TensorNumeric
 import com.intel.analytics.bigdl.utils.Shape
@@ -165,28 +165,9 @@ class Sequential[T: ClassTag]()
   override def doBuild(inputShape: Shape): TSequential[T] = TSequential[T]()
 }
 
-object Sequential extends ContainerSerializable with TKerasSerializerHelper{
+object Sequential extends KerasLayerSerializable{
   def apply[@specialized(Float, Double) T: ClassTag]()
      (implicit ev: TensorNumeric[T]) : Sequential[T] = {
     new Sequential[T]()
-  }
-
-  override def loadSubModules[T: ClassTag](context : DeserializeContext,
-      module : AbstractModule[Activity, Activity, T])
-    (implicit ev: TensorNumeric[T]) : Unit = {
-    val kseq = module.asInstanceOf[Sequential[T]]
-    val subModules = context.bigdlModule.getSubModulesList.asScala
-    subModules.foreach(module => {
-      val subModuleData = ModuleSerializer.load(DeserializeContext(module,
-        context.storages, context.storageType, _copyWeightAndBias))
-      kseq.labor = subModuleData.module
-    })
-  }
-
-  override def doSerializeModule[T: ClassTag](context: SerializeContext[T],
-                                              moduleBuilder : BigDLModule.Builder)
-                                             (implicit ev: TensorNumeric[T]) : Unit = {
-    super.doSerializeModule(context, moduleBuilder)
-    appendKerasLabel(context, moduleBuilder)
   }
 }

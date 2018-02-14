@@ -112,7 +112,7 @@ object Convolution2D {
     bias: Boolean = true,
     inputShape: Shape = null)(implicit ev: TensorNumeric[T]): Convolution2D[T] = {
     new Convolution2D[T](nbFilter, nbRow, nbCol,
-      KerasUtils.getInitMethod(init), KerasUtils.getActivation(activation),
+      KerasUtils.getInitMethod(init), KerasUtils.getKerasActivation(activation),
       borderMode, Array(subsample._1, subsample._2),
       KerasUtils.toBigDLFormat(dimOrdering), wRegularizer,
       bRegularizer, bias, inputShape)

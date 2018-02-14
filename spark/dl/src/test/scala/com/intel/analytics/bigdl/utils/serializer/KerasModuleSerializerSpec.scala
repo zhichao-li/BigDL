@@ -37,7 +37,7 @@ class KerasModuleSerializerSpec extends SerializerSpecHelper {
     excludedClass.add("com.intel.analytics.bigdl.nn.keras.Input")
   }
   "IdentityShapeWrapper serializer" should "work properly" in {
-    val layer = new IdentityShapeWrapper(ReLU[Float]())
+    val layer = new KerasLayerIdentityWrapper(ReLU[Float]())
     layer.build(Shape(20))
     val inputData = Tensor[Float](2, 20).apply1(_ => Random.nextFloat())
     runSerializationTest(layer.asInstanceOf[AbstractModule[_, _, Float]], inputData)
@@ -497,6 +497,13 @@ class KerasModuleSerializerSpec extends SerializerSpecHelper {
   "Bidirectional serializer" should "work properly" in {
     val layer = Bidirectional[Float](SimpleRNN(4, returnSequences = true),
       inputShape = Shape(8, 12))
+    layer.build(Shape(3, 8, 12))
+    val input = Tensor[Float](3, 8, 12).apply1(_ => Random.nextFloat())
+    runSerializationTest(layer, input)
+  }
+
+  "KerasLayerWrapper serializer" should "work properly" in {
+    val layer = new KerasLayerWrapper[Float](ReLU[Float](), inputShape = Shape(8, 12))
     layer.build(Shape(3, 8, 12))
     val input = Tensor[Float](3, 8, 12).apply1(_ => Random.nextFloat())
     runSerializationTest(layer, input)

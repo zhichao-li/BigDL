@@ -98,7 +98,7 @@ trait InferShape {
     modules.map{_.ensureNotShared()}
   }
 
-  private def excludeInvalidLayers[T: ClassTag]
+  private[bigdl] def excludeInvalidLayers[T: ClassTag]
   (modules : Seq[AbstractModule[_, _, T]]): Unit = {
     val invalidNodes = if (this.isKerasStyle()) {
       modules.filter{!_.isKerasStyle()}
