@@ -121,10 +121,10 @@ private[bigdl] object KerasLayer {
         kerasActivation: AbstractModule[Tensor[T], Tensor[T], T],
         batchInputShape: Shape)
         (implicit ev: TensorNumeric[T]): AbstractModule[Activity, Activity, T] = {
-    val kerasLayer = new KerasLayerWrapper(torchLayer, KerasLayer.removeBatch(batchInputShape))
     if (kerasActivation == null) {
-      kerasLayer
+      torchLayer
     } else {
+      val kerasLayer = new KerasLayerWrapper(torchLayer, KerasLayer.removeBatch(batchInputShape))
       val seq = KSequential[T]()
       seq.add(kerasLayer)
       seq.add(kerasActivation)
