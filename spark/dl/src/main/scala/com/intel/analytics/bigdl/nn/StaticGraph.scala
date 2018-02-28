@@ -35,7 +35,8 @@ import scala.reflect.ClassTag
 class StaticGraph[T: ClassTag](
   private val _inputs : Seq[ModuleNode[T]],
   private val _outputs : Seq[ModuleNode[T]],
-  private val _variables: Option[(Array[Tensor[T]], Array[Tensor[T]])] = None
+  private val _variables: Option[(Array[Tensor[T]], Array[Tensor[T]])] = None,
+  private val enableExcludeChecking: Boolean = true
 )(implicit ev: TensorNumeric[T]) extends Graph[T](_inputs, _outputs, _variables) {
   private val forwardExecution = forwardGraph.topologySort.reverse
   private var backwardExecution: Array[Node[AbstractModule[Activity, Activity, T]]] = _
@@ -43,8 +44,9 @@ class StaticGraph[T: ClassTag](
   private var backId2ForwardId: Array[Int] = _
   private var gradOutputCache: Array[Activity] = _
 
-  // StaticGraph would append Identity, so we would need to ignore it here.
-  excludeInvalidLayers(forwardExecution.map {_.element}.filter{!_.isInstanceOf[Identity[T]]})
+  if (enableExcludeChecking) {
+    excludeInvalidLayers(forwardExecution.map {_.element})
+  }
 
   buildBackwardGraph()
 

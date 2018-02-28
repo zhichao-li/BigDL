@@ -62,19 +62,15 @@ trait InferShape {
     outputShapeValue
   }
 
-  private[bigdl] def inferShape(calcInputShape: Shape): Shape = {
-    val outputShape = computeOutputShape(calcInputShape)
-    this.outputShapeValue = outputShape
-    this.inputShapeValue = calcInputShape
-    outputShape
-  }
-
   /**
    * Execute building logic and return the outputShape for the given inputShape.
    * NB: the first dim of inputShape is batch
    */
   private[bigdl] def build(inputShape: Shape): Shape = {
-    inferShape(inputShape)
+    val outputShape = computeOutputShape(inputShape)
+    this.outputShapeValue = outputShape
+    this.inputShapeValue = inputShape
+    outputShape
   }
 
   private[bigdl] def isBuilt(): Boolean = outputShapeValue != null
@@ -91,9 +87,6 @@ trait InferShape {
   }
 
   private def ensureNotShared[T: ClassTag](modules : Seq[AbstractModule[_, _, T]]): Unit = {
-    def validateUsage(module: InferShape): Unit = {
-
-    }
     // We can add module into Sequential multiple times.
     if (!this.isInstanceOf[KSequential[T]]) {
       if (!this.isInstanceOf[TInput[_]]
@@ -119,13 +112,15 @@ trait InferShape {
       modules.filter{_.isKerasStyle()}
     }
     if (invalidNodes.length > 0) {
-      throw new InvalidLayer(s"Do not mix with Layer: ${invalidNodes.mkString(",")}")
+      throw new InvalidLayer(s"""Do not mix ${this}(isKerasStyle=${isKerasStyle()}) with Layer
+                           (isKerasStyle=${invalidNodes(0).isKerasStyle()}):
+         ${invalidNodes.mkString(",")}""")
     }
   }
 
   private[bigdl] def validateInput[T: ClassTag](modules : Seq[AbstractModule[_, _, T]]): Unit = {
     if (this.isKerasStyle()) {
-      require(modules != null && !modules.isEmpty, "Empty input is not allow")
+      require(modules != null && !modules.isEmpty, "Empty input is not allowed")
       ensureNotShared(modules)
     }
     excludeInvalidLayers(modules)

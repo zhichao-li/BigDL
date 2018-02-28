@@ -233,7 +233,7 @@ abstract class KerasLayer[A <: Activity: ClassTag, B <: Activity: ClassTag, T: C
     labor.computeOutputShape(inputShape)
   }
 
-  private def checkWithCurrentInputShape(calcInputShape: Shape): Unit = {
+  private[bigdl] def checkWithCurrentInputShape(calcInputShape: Shape): Unit = {
     if (getInputShape() != null) {
       val withoutBatchInputShape = KerasLayer.removeBatch(getInputShape())
       val withoutBatchCalcInputShape = KerasLayer.removeBatch(calcInputShape)
@@ -244,24 +244,17 @@ abstract class KerasLayer[A <: Activity: ClassTag, B <: Activity: ClassTag, T: C
   }
 
   override def inferShape(calcInputShape: Shape): Shape = {
-    checkWithCurrentInputShape(calcInputShape)
-    super.inferShape(calcInputShape)
+
   }
 
   override def build(calcInputShape: Shape): Shape = {
-    this match {
-      case ks: com.intel.analytics.bigdl.nn.keras.Sequential[T] =>
-        // Sequential is a special case, and it would take care of itself within its add function.
-        checkWithCurrentInputShape(calcInputShape)
-        getOutputShape()
-      case _ =>
-        // Input would be reused multiple time in inputs for StaticGraph
-        if (isBuilt() && !this.allowRebuilt()) {
-          throw new RuntimeException(s"Should not build this module: $this multiple times")
-        }
-        labor = doBuild(calcInputShape)
-        inferShape(calcInputShape)
+    // Input would be reused multiple time in inputs for StaticGraph
+    if (isBuilt() && !this.allowRebuilt()) {
+      throw new RuntimeException(s"Should not build this module: $this multiple times")
     }
+    labor = doBuild(calcInputShape)
+    checkWithCurrentInputShape(calcInputShape)
+    super.build(calcInputShape)
   }
 
   /**

@@ -44,8 +44,6 @@ abstract class Container[A <: Activity : ClassTag,
   val modules: ArrayBuffer[AbstractModule[Activity, Activity, T]]
   = ArrayBuffer[AbstractModule[Activity, Activity, T]]()
 
-  override private[bigdl] def isKerasStyle(): Boolean = false
-
   override def reset(): Unit = {
     modules.foreach(_.reset())
   }

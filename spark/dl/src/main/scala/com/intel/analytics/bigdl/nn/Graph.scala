@@ -643,7 +643,7 @@ trait GraphSerializable extends ContainerSerializable {
         .asInstanceOf[Boolean]
       Graph.dynamic[T](inputs.toArray, outputs.toArray, sharedVariables, generateBackward)
     } else {
-      Graph[T](inputs.toArray, outputs.toArray, sharedVariables)
+      new StaticGraph[T](inputs, outputs, sharedVariables, false)
     }
     var serializedStopGradientLayers : Array[String] = null
     // this is to keep backward compatible

@@ -18,31 +18,46 @@ package com.intel.analytics.bigdl.nn.keras
 
 import com.intel.analytics.bigdl.nn.Graph._
 import com.intel.analytics.bigdl.nn.abstractnn.{AbstractModule, Activity}
-import com.intel.analytics.bigdl.nn.{Container, Graph, GraphSerializable, Identity, StaticGraph, Sequential => TSequential}
+import com.intel.analytics.bigdl.nn.{Identity, StaticGraph, Sequential => TSequential}
 import com.intel.analytics.bigdl.serialization.Bigdl.BigDLModule
 import com.intel.analytics.bigdl.tensor.TensorNumericMath.TensorNumeric
 import com.intel.analytics.bigdl.utils.Shape
 import com.intel.analytics.bigdl.utils.serializer._
 
 import scala.collection.JavaConverters._
+import scala.collection.mutable.ArrayBuffer
 import scala.reflect.ClassTag
 
 class Model[T: ClassTag](private val _inputs : Seq[ModuleNode[T]],
       private val _outputs : Seq[ModuleNode[T]])(implicit ev: TensorNumeric[T])
-  extends StaticGraph[T](_inputs, _outputs, None) {
+  extends KerasLayer[Activity, Activity, T]{
 
-  this.inputShapeValue = Shape(inputs.map{n => n.element.getInputShape()}.toList)
+  this.labor = doBuild(null)
 
-  this.outputShapeValue = Shape(outputs.map{_.element.getOutputShape()}.toList)
+  // StaticGraph would append Identity, so we would need to ignore it here.
+  excludeInvalidLayers(this.labor.asInstanceOf[StaticGraph[T]].
+    getForwardExecutions().map {_.element}.filter{!_.isInstanceOf[Identity[T]]})
 
-  override private[bigdl] def isKerasStyle(): Boolean = true
+  this.inputShapeValue = Shape(_inputs.map{n => n.element.getInputShape()}.toList)
+
+  this.outputShapeValue = Shape(_outputs.map{_.element.getOutputShape()}.toList)
+
+  override def isKerasStyle(): Boolean = true
 
   override def computeOutputShape(inputShape: Shape): Shape = {
     getOutputShape()
   }
+
+  override def doBuild(inputShape: Shape): StaticGraph[T] =
+    new StaticGraph[T](_inputs, _outputs, None, false)
+
+  override def build(calcInputShape: Shape): Shape = {
+    checkWithCurrentInputShape(calcInputShape)
+    getOutputShape()
+  }
 }
 
-object Model extends ModelSerializer{
+object Model extends KerasLayerSerializable{
   /**
    * Build multiple inputs, multiple outputs graph container.
    * @param input input node
@@ -51,7 +66,7 @@ object Model extends ModelSerializer{
    */
   def apply[T: ClassTag](
       input : Array[ModuleNode[T]],
-      output : Array[ModuleNode[T]])(implicit ev: TensorNumeric[T]) : Graph[T] = {
+      output : Array[ModuleNode[T]])(implicit ev: TensorNumeric[T]) : Model[T] = {
     new Model[T](input, output)
   }
 
@@ -62,7 +77,7 @@ object Model extends ModelSerializer{
    * @return a graph container
    */
   def apply[T: ClassTag](input : ModuleNode[T], output : Array[ModuleNode[T]])
-                        (implicit ev: TensorNumeric[T]) : Graph[T] = {
+                        (implicit ev: TensorNumeric[T]) : Model[T] = {
     new Model[T](Seq(input), output)
   }
 
@@ -73,7 +88,7 @@ object Model extends ModelSerializer{
    * @return a graph container
    */
   def apply[T: ClassTag](input : Array[ModuleNode[T]], output : ModuleNode[T])
-                        (implicit ev: TensorNumeric[T]) : Graph[T] = {
+                        (implicit ev: TensorNumeric[T]) : Model[T] = {
     new Model[T](input, Seq(output))
   }
   /**
@@ -83,29 +98,33 @@ object Model extends ModelSerializer{
    * @return a graph container
    */
   def apply[T: ClassTag](input : ModuleNode[T], output : ModuleNode[T])
-                        (implicit ev: TensorNumeric[T]) : Graph[T] = {
+                        (implicit ev: TensorNumeric[T]) : Model[T] = {
     new Model[T](Seq(input), Seq(output))
   }
-}
-
-trait ModelSerializer extends GraphSerializable with TKerasSerializerHelper{
 
   override def doSerializeModule[T: ClassTag](context: SerializeContext[T],
-                                              moduleBuilder : BigDLModule.Builder)
-                                             (implicit ev: TensorNumeric[T]) : Unit = {
-    super.doSerializeModule(context, moduleBuilder)
-    appendKerasLabel(context, moduleBuilder)
+      builder: BigDLModule.Builder)
+    (implicit ev: TensorNumeric[T]): Unit = {
+    val labor = context.moduleData.module.
+      asInstanceOf[KerasLayer[Activity, Activity, T]].labor
+    val subModule = ModuleSerializer.serialize(SerializeContext(ModuleData(labor,
+      new ArrayBuffer[String](), new ArrayBuffer[String]()), context.storages,
+      context.storageType, _copyWeightAndBias))
+    builder.addSubModules(subModule.bigDLModule)
   }
 
   override def doLoadModule[T: ClassTag](context: DeserializeContext)
-    (implicit ev: TensorNumeric[T]) : AbstractModule[Activity, Activity, T] = {
-    val (module, inputs, outputs, generateBackwardValue, sharedVariables) =
-      prepareLoadModule(context)
-    require(generateBackwardValue == null, "there's no generateBackward for keras module")
-    require(module.containsAttr("is_keras_module")
-      && module.getAttrOrThrow("is_keras_module").getBoolValue(), "It should be a keras module")
-    Model(inputs.toArray, outputs.toArray)
+    (implicit ev: TensorNumeric[T]): AbstractModule[Activity, Activity, T] = {
+    val subProtoModules = context.bigdlModule.getSubModulesList.asScala
+    val subModules = subProtoModules.map(module => {
+      val subModuleData = ModuleSerializer.load(DeserializeContext(module,
+        context.storages, context.storageType, _copyWeightAndBias))
+      subModuleData.module
+    })
+    val tGraph = subModules(0).asInstanceOf[StaticGraph[T]]
+    Model(tGraph.inputs.toArray, tGraph.outputs.toArray)
   }
+
 }
 
 class Sequential[T: ClassTag]()
@@ -113,7 +132,7 @@ class Sequential[T: ClassTag]()
 
   private[bigdl] var frozen: Boolean = false
 
-  this.modules.append(doBuild(null))
+  this.labor = doBuild(null)
 
   private def triggerBuilding(module: AbstractModule[_ <: Activity, _ <: Activity, T]): Unit = {
     if (this.getOutputShape() == null) {
@@ -163,6 +182,12 @@ class Sequential[T: ClassTag]()
   }
 
   override def doBuild(inputShape: Shape): TSequential[T] = TSequential[T]()
+
+  override def build(calcInputShape: Shape): Shape = {
+    // Sequential is a special case, and it would take care of itself within its add function.
+    checkWithCurrentInputShape(calcInputShape)
+    getOutputShape()
+  }
 }
 
 object Sequential extends KerasLayerSerializable{
