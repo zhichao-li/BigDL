@@ -28,15 +28,18 @@ import scala.collection.JavaConverters._
 import scala.collection.mutable.ArrayBuffer
 import scala.reflect.ClassTag
 
+abstract class Trainable[T: ClassTag](implicit ev: TensorNumeric[T])
+  extends KerasLayer[Activity, Activity, T] {
+  // TODO: enrich fit, compile, evaluate etc here.
+}
+
 class Model[T: ClassTag](private val _inputs : Seq[ModuleNode[T]],
       private val _outputs : Seq[ModuleNode[T]])(implicit ev: TensorNumeric[T])
-  extends KerasLayer[Activity, Activity, T]{
-
+  extends Trainable[T]{
   this.labor = doBuild(null)
 
-  // StaticGraph would append Identity, so we would need to ignore it here.
   excludeInvalidLayers(this.labor.asInstanceOf[StaticGraph[T]].
-    getForwardExecutions().map {_.element}.filter{!_.isInstanceOf[Identity[T]]})
+    getForwardExecutions().map {_.element})
 
   this.inputShapeValue = Shape(_inputs.map{n => n.element.getInputShape()}.toList)
 
@@ -128,7 +131,7 @@ object Model extends KerasLayerSerializable{
 }
 
 class Sequential[T: ClassTag]()
-(implicit ev: TensorNumeric[T]) extends KerasLayer[Activity, Activity, T] {
+(implicit ev: TensorNumeric[T]) extends Trainable[T] {
 
   private[bigdl] var frozen: Boolean = false
 
@@ -184,7 +187,6 @@ class Sequential[T: ClassTag]()
   override def doBuild(inputShape: Shape): TSequential[T] = TSequential[T]()
 
   override def build(calcInputShape: Shape): Shape = {
-    // Sequential is a special case, and it would take care of itself within its add function.
     checkWithCurrentInputShape(calcInputShape)
     getOutputShape()
   }

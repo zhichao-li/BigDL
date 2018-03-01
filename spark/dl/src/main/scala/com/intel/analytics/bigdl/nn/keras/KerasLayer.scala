@@ -19,7 +19,6 @@ package com.intel.analytics.bigdl.nn.keras
 import com.intel.analytics.bigdl._
 import com.intel.analytics.bigdl.nn.Graph._
 import com.intel.analytics.bigdl.nn.abstractnn.{AbstractModule, Activity}
-import com.intel.analytics.bigdl.nn.keras.Sequential._copyWeightAndBias
 import com.intel.analytics.bigdl.nn.keras.{Sequential => KSequential}
 import com.intel.analytics.bigdl.nn.{Container => TContainer, Sequential => TSequential}
 import com.intel.analytics.bigdl.serialization.Bigdl.{AttrValue, BigDLModule}
@@ -29,8 +28,8 @@ import com.intel.analytics.bigdl.utils.serializer._
 import com.intel.analytics.bigdl.utils.serializer.converters.DataConverter
 import com.intel.analytics.bigdl.utils.{MultiShape, Shape, SingleShape}
 
-import scala.collection.mutable.ArrayBuffer
 import scala.collection.JavaConverters._
+import scala.collection.mutable.ArrayBuffer
 import scala.reflect.ClassTag
 
 private[bigdl] trait TKerasSerializerHelper {
@@ -241,10 +240,6 @@ abstract class KerasLayer[A <: Activity: ClassTag, B <: Activity: ClassTag, T: C
         s"InputShape from constructor ${withoutBatchInputShape}" +
           s"should be the same with the calculated inputShape: ${withoutBatchCalcInputShape}")
     }
-  }
-
-  override def inferShape(calcInputShape: Shape): Shape = {
-
   }
 
   override def build(calcInputShape: Shape): Shape = {
