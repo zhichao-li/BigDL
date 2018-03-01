@@ -51,8 +51,7 @@ class Linear[T: ClassTag](
   private val initBias: Tensor[T] = null,
   private val initGradWeight: Tensor[T] = null,
   private val initGradBias: Tensor[T] = null
-)(implicit ev: TensorNumeric[T]) extends TensorModule[T] with Initializable
- {
+)(implicit ev: TensorNumeric[T]) extends TensorModule[T] with Initializable {
   val weight: Tensor[T] =
     if (initWeight != null) initWeight else Tensor[T](outputSize, inputSize)
   val bias: Tensor[T] =
@@ -79,10 +78,6 @@ class Linear[T: ClassTag](
       Option(bias).foreach(biasInitMethod.init(_, VariableFormat.ONE_D))
     }
     zeroGradParameters()
-  }
-
-  override def computeOutputShape(inputShape: Shape): Shape = {
-    inputShape.copyAndUpdate(-1, outputSize)
   }
 
   override def updateOutput(input: Tensor[T]): Tensor[T] = {

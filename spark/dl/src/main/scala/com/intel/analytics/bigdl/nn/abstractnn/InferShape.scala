@@ -86,21 +86,38 @@ trait InferShape {
     throw new RuntimeException("Haven't been implemented yet. Do not use it with Keras Layer")
   }
 
+
+
   private def ensureNotShared[T: ClassTag](modules : Seq[AbstractModule[_, _, T]]): Unit = {
+    def skip(module: InferShape): Boolean = {
+      module.isInstanceOf[TInput[_]] || module.isInstanceOf[KInput[_]]
+    }
     // We can add module into Sequential multiple times.
-    if (!this.isInstanceOf[KSequential[T]]) {
-      if (!this.isInstanceOf[TInput[_]]
-        && !this.isInstanceOf[KInput[_]] && this.usedAsDest == true) {
+    if (this.isInstanceOf[KSequential[T]]) {
+      val submodules = this.asInstanceOf[KSequential[T]].modules
+      if (!submodules.isEmpty) {
+        if (!skip(submodules.last) && submodules.last.usedAsSrc == true) {
+          throw new RuntimeException(s"Reuse module as src is not allowed: $this")
+        }
+        submodules.last.usedAsSrc = true
+      }
+      modules.foreach{module =>
+        if (!skip(this) && module.usedAsDest == true) {
+          throw new RuntimeException(s"Reuse module as dest is not allowed: $this")
+        }
+        module.usedAsDest = true
+      }
+    } else {
+      if (!skip(this) && this.usedAsDest == true) {
         throw new RuntimeException(s"Reuse module as dest is not allowed: $this")
       }
       this.usedAsDest = true
-    }
-    modules.map{module =>
-      if (!module.isInstanceOf[TInput[_]]
-        && !module.isInstanceOf[KInput[_]] && module.usedAsSrc == true) {
-        throw new RuntimeException(s"Reuse module as src is not allowed: $this")
+      modules.foreach{module =>
+        if (!skip(this) && module.usedAsSrc == true) {
+          throw new RuntimeException(s"Reuse module as src is not allowed: $this")
+        }
+        module.usedAsSrc = true
       }
-      module.usedAsSrc = true
     }
   }
 

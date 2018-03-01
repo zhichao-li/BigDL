@@ -85,7 +85,7 @@ class Dense[T: ClassTag](
       torchLayer = seq.asInstanceOf[AbstractModule[Tensor[T], Tensor[T], T]]
     }
     KerasLayer.fuse(torchLayer, activation,
-      inputShape).asInstanceOf[AbstractModule[Tensor[T], Tensor[T], T]]
+      inputShape, Some(computeOutputShape)).asInstanceOf[AbstractModule[Tensor[T], Tensor[T], T]]
   }
 }
 

@@ -28,14 +28,14 @@ import scala.collection.JavaConverters._
 import scala.collection.mutable.ArrayBuffer
 import scala.reflect.ClassTag
 
-abstract class Trainable[T: ClassTag](implicit ev: TensorNumeric[T])
+abstract class KerasModel[T: ClassTag](implicit ev: TensorNumeric[T])
   extends KerasLayer[Activity, Activity, T] {
   // TODO: enrich fit, compile, evaluate etc here.
 }
 
 class Model[T: ClassTag](private val _inputs : Seq[ModuleNode[T]],
       private val _outputs : Seq[ModuleNode[T]])(implicit ev: TensorNumeric[T])
-  extends Trainable[T]{
+  extends KerasModel[T]{
   this.labor = doBuild(null)
 
   excludeInvalidLayers(this.labor.asInstanceOf[StaticGraph[T]].
@@ -131,7 +131,7 @@ object Model extends KerasLayerSerializable{
 }
 
 class Sequential[T: ClassTag]()
-(implicit ev: TensorNumeric[T]) extends Trainable[T] {
+(implicit ev: TensorNumeric[T]) extends KerasModel[T] {
 
   private[bigdl] var frozen: Boolean = false
 

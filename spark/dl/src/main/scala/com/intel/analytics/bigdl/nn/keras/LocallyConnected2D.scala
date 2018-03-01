@@ -73,7 +73,6 @@ class LocallyConnected2D[T: ClassTag](
   require(subsample.length == 2,
     s"For LocallyConnected2D, subsample should be of length 2 but got length ${subsample.length}")
 
-
   override def doBuild(inputShape: Shape): AbstractModule[Tensor[T], Tensor[T], T] = {
     val input = inputShape.toSingle().toArray
     val stack = if (dimOrdering == DataFormat.NCHW) (input(1), input(3), input(2))

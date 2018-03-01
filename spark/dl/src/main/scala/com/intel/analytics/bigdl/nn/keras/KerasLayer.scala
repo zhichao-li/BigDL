@@ -66,29 +66,6 @@ trait KerasLayerSerializable extends ContainerSerializable with TKerasSerializer
   }
 }
 
-private[bigdl] class KerasIdentityActivationWrapper[T: ClassTag]
-(val torchLayer: AbstractModule[Activity, Activity, T],
-    val activation: KerasLayer[Tensor[T], Tensor[T], T])(implicit ev: TensorNumeric[T])
-  extends KerasLayer[Activity, Activity, T](null) {
-  require(!torchLayer.isKerasStyle(),
-    s"We should get torch style layer, but got: $torchLayer")
-
-  override def computeOutputShape(inputShape: Shape): Shape = {
-    torchLayer.computeOutputShape(inputShape)
-  }
-
-  override def doBuild(inputShape: Shape): AbstractModule[Activity, Activity, T] = {
-    val torchActivation = activation.doBuild(inputShape)
-    require(!torchActivation.isKerasStyle(),
-      s"We should get torch style activation, but got: $torchActivation")
-    val seq = TSequential[T]()
-    seq.add(torchLayer)
-    seq.add(torchActivation)
-    seq.setName(torchLayer.getName())
-    seq
-  }
-}
-
 /**
  * Wrap a torch style layer to keras style layer.
  * This layer can be built multiple times.
@@ -120,17 +97,22 @@ class KerasIdentityWrapper[T: ClassTag]
  */
 class KerasLayerWrapper[T: ClassTag]
 (val torchLayer: AbstractModule[Activity, Activity, T],
-    val inputShape: Shape = null)(implicit ev: TensorNumeric[T])
+    val inputShape: Shape = null,
+    computeOutputShapeFunc: Option[(Shape => Shape)] = None)(implicit ev: TensorNumeric[T])
   extends KerasLayer[Activity, Activity, T](KerasLayer.addBatch(inputShape)) {
 
   require(!torchLayer.isKerasStyle(), s"We only accept torch layer here, but got: $torchLayer")
 
   override def computeOutputShape(calcInputShape: Shape): Shape = {
-    val dummyOutTensor =
-      torchLayer.forward(Tensor[T](
-        (List(2) ++ KerasLayer.removeBatch(calcInputShape).toSingle()).toArray).rand())
-    val outSize = dummyOutTensor.toTensor.size()
-    KerasLayer.addBatch(Shape(outSize.slice(1, outSize.length)))
+    if (computeOutputShapeFunc.isEmpty) {
+      val dummyOutTensor =
+        torchLayer.forward(Tensor[T](
+          (List(2) ++ KerasLayer.removeBatch(calcInputShape).toSingle()).toArray).rand())
+      val outSize = dummyOutTensor.toTensor.size()
+      KerasLayer.addBatch(Shape(outSize.slice(1, outSize.length)))
+    } else {
+      computeOutputShapeFunc.get(calcInputShape)
+    }
   }
 
   override def doBuild(inputShape: Shape): AbstractModule[Activity, Activity, T] = torchLayer
@@ -142,12 +124,16 @@ class KerasLayerWrapper[T: ClassTag]
 private[bigdl] object KerasLayer {
   private[bigdl] def fuse[T: ClassTag](torchLayer: AbstractModule[Activity, Activity, T],
         kerasActivation: KerasLayer[Tensor[T], Tensor[T], T],
-        batchInputShape: Shape)
+        batchInputShape: Shape,
+      computeOutputShapeFunc: Option[(Shape => Shape)] = None)
         (implicit ev: TensorNumeric[T]): AbstractModule[Activity, Activity, T] = {
     if (kerasActivation == null) {
       torchLayer
     } else {
-      val wrapper = new KerasIdentityActivationWrapper[T](torchLayer, kerasActivation)
+      val wrapper = KSequential[T]()
+      wrapper.add(new KerasLayerWrapper[T](torchLayer,
+        KerasLayer.removeBatch(batchInputShape), computeOutputShapeFunc))
+      wrapper.add(kerasActivation)
       wrapper.build(batchInputShape)
       wrapper
     }

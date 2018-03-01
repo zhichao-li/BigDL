@@ -509,12 +509,4 @@ class KerasModuleSerializerSpec extends SerializerSpecHelper {
     runSerializationTest(layer, input)
   }
 
-  "KerasIdentityActivationWrapper serializer" should "work properly" in {
-    val layer = new KerasIdentityActivationWrapper[Float](Linear[Float](2, 3),
-      Activation("relu"))
-    layer.build(Shape(2, 2))
-    val input = Tensor[Float](2, 2).apply1(_ => Random.nextFloat())
-    runSerializationTest(layer, input)
-  }
-
 }

@@ -43,8 +43,7 @@ object TestUtils {
         k
       case a: AbstractModule[_, _, _] => a
     }
-    val calcOutputShape = runnableLayer.computeOutputShape(
-      KerasLayer.addBatch(inputShapeWithoutBatch)).toSingle()
+    val calcOutputShape = runnableLayer.getOutputShape().toSingle()
     val forwardOutputShape = runnableLayer.forward(inputData).toTensor[Float].size()
     calcOutputShape.slice(1, calcOutputShape.length).sameElements(
       forwardOutputShape.slice(1, forwardOutputShape.length))
