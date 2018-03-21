@@ -20,7 +20,7 @@ import com.intel.analytics.bigdl.keras.KerasBaseSpec
 import com.intel.analytics.bigdl.nn.abstractnn.{AbstractModule, DataFormat}
 import com.intel.analytics.bigdl.nn.keras.{Conv2D, Convolution2D, Sequential => KSequential}
 import com.intel.analytics.bigdl.tensor.Tensor
-import com.intel.analytics.bigdl.utils.Shape
+import com.intel.analytics.bigdl.utils.{RandomGenerator, Shape}
 import com.intel.analytics.bigdl.utils.serializer.ModuleSerializationTest
 
 import scala.util.Random
@@ -36,15 +36,25 @@ class Convolution2DSpec extends KerasBaseSpec {
       """
         |input_tensor = Input(shape=[3, 24, 24])
         |input = np.random.random([2, 3, 24, 24])
-        |output_tensor = Convolution2D(64, 2, 5, activation="relu",
+        |output_tensor = Convolution2D(64, 2, 5, activation="tanh",
         |                              dim_ordering="th")(input_tensor)
         |model = Model(input=input_tensor, output=output_tensor)
       """.stripMargin
+    RandomGenerator.RNG.setSeed(1000)
     val seq = KSequential[Float]()
-    val layer = Convolution2D[Float](64, 2, 5, activation = "relu",
+    val layer = Convolution2D[Float](64, 2, 5, activation = "tanh",
       inputShape = Shape(3, 24, 24))
     seq.add(layer)
-    checkOutputAndGrad(seq.asInstanceOf[AbstractModule[Tensor[Float], Tensor[Float], Float]],
+    val seqq = KSequential[Float]()
+    seqq.add(seq)
+
+    RandomGenerator.RNG.setSeed(1000)
+    val seq2 = KSequential[Float]()
+    val layer2 = Convolution2D[Float](64, 2, 5,
+      inputShape = Shape(3, 24, 24))
+    seq2.add(layer2)
+
+    checkOutputAndGrad(seqq.asInstanceOf[AbstractModule[Tensor[Float], Tensor[Float], Float]],
       kerasCode, weightConverter, 1e-3)
   }
 

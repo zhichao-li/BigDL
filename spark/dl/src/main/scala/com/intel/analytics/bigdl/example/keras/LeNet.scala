@@ -21,16 +21,19 @@ import com.intel.analytics.bigdl.utils.Shape
 
 object LeNet {
   def apply(classNum: Int): Sequential[Float] = {
+    import com.intel.analytics.bigdl.nn.keras._
+    import com.intel.analytics.bigdl.utils.Shape
+
     val model = Sequential[Float]()
     model.add(Reshape(Array(1, 28, 28), inputShape = Shape(28, 28, 1)))
-    model.add(Convolution2D(32, 3, 3, activation = "relu"))
-    model.add(Convolution2D(32, 3, 3, activation = "relu"))
-    model.add(MaxPooling2D(poolSize = (2, 2)))
-    model.add(Dropout(0.25))
+    model.add(Convolution2D[Float](6, 5, 5, activation = "tanh").setName("conv1_5x5"))
+    model.add(MaxPooling2D())
+    model.add(Convolution2D[Float](12, 5, 5, activation = "tanh").setName("conv2_5x5"))
+    model.add(MaxPooling2D())
     model.add(Flatten())
-    model.add(Dense(128, activation = "relu"))
-    model.add(Dropout(0.5))
-    model.add(Dense(classNum, activation = "softmax"))
-    model
+    model.add(Dense[Float](100, activation = "tanh").setName("fc1"))
+    model.add(Dense[Float](classNum).setName("fc2"))
+    model.add(Activation("softmax"))
+    return model
   }
 }
